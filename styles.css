@@ -1,0 +1,104 @@
+/* style.css */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row-reverse; /* Move a sidebar para o lado direito */
+}
+
+
+
+#canvasContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 200px); /* Desconta a largura da sidebar */
+  padding: 20px;
+}
+
+canvas {
+  border: 1px solid black;
+}
+
+#btnContainer {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+
+/*.sidebar {
+  width: 250px;
+  background-color: #f1f1f1;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  right: 0; /* Alterado de "left" para "right" 
+  bottom: 0;} 
+*/
+
+.sidebar {
+  width: 250px;
+  background-color: #f4f4f4;
+  padding: 10px;
+  box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.1); /* Sombra para dar destaque à sidebar */
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 10px;
+}
+
+
+/* Estilos para as propriedades dos triângulos */
+.triangle-properties {
+  margin-top: 20px;
+}
+
+
+.polygon-button {
+  margin-bottom: 10px;
+  margin-left: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.polygon-button:hover {
+  background-color: #0056b3; /* Cor mais escura ao passar o mouse */
+}
+
+
+#deletePolygonButton:hover {
+  background-color: #ce4a4a;  /* Cor de fundo ao passar o mouse */
+}
+
+h3 {
+  position: fixed;
+  left: 10px;  /* Ajuste a posição à esquerda */
+  top: 70px;   /* Ajuste a posição para baixo em relação ao topo */
+  width: 200px; /* Ajuste a largura conforme necessário */
+  background-color: white; /* Adicione uma cor de fundo se necessário */
+  padding: 10px; /* Espaçamento interno */
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Sombra para destaque */
+  z-index: 1000; /* Para garantir que fique acima de outros elementos */
+}
