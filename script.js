@@ -12,19 +12,9 @@ class Poligono {
     }
   }
 
-  draw(context) {
-    context.beginPath();
-    context.moveTo(this.vertices[0][0], this.vertices[0][1]);
-    for (let i = 1; i < this.vertices.length; i++) {
-      context.lineTo(this.vertices[i][0], this.vertices[i][1]);
-    }
-    context.closePath();
-    context.stroke();
-  }
+
 
 }
-
-
 
 
 
@@ -176,11 +166,6 @@ function visao(ponto) {
   return novoPonto;
 };
 
-
-
-
-
-
 var arrayVertice = [
   [0, -10, -10],  // Inferior esquerdo
   [0,  10, -10],  // Inferior direito
@@ -192,11 +177,61 @@ var arrayVertice = [
 
 // INTERFACE /////////////////////////////////////////////////////////////////////
 
+function drawSquare() {
+  const canvas = document.getElementById('canvas');
+  const context = canvas.getContext('2d');
 
+  // 4 pontos do quadrado (X, Y)
+  const pontos = [
+    [100, 100],  // Ponto 1
+    [200, 100],  // Ponto 2
+    [200, 200],  // Ponto 3
+    [100, 200]   // Ponto 4
+  ];
+
+  // Desenhando o quadrado
+  context.beginPath();
+  context.moveTo(pontos[0][0], pontos[0][1]);  // Inicia no primeiro ponto
+
+  for (let i = 1; i < pontos.length; i++) {
+    context.lineTo(pontos[i][0], pontos[i][1]);  // Liga os pontos
+  }
+
+  context.closePath();  // Fecha o caminho (volta ao ponto inicial)
+  context.stroke();     // Desenha o contorno
+}
+
+
+function drawSquare() {
+  var canvas = document.getElementById('viewport');
+  var context = canvas.getContext('2d');
+
+  // 4 pontos do quadrado (X, Y)
+  var pontos = [
+    [550, 50],  // Ponto 1
+    [50, 350],  // Ponto 2
+    [550, 650],  // Ponto 3
+    [1050, 350]   // Ponto 4
+  ];
+
+  // Desenhando o quadrado
+  context.beginPath();
+  context.moveTo(pontos[0][0], pontos[0][1]);  // Inicia no primeiro ponto
+
+  for (let i = 1; i < pontos.length; i++) {
+    context.lineTo(pontos[i][0], pontos[i][1]);  // Liga os pontos
+  }
+
+  context.closePath();  // Fecha o caminho (volta ao ponto inicial)
+  context.stroke();     // Desenha o contorno
+}
+
+drawSquare();
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  
+
+
   
   // Seleciona os inputs existentes pelo ID
   const xVrp = document.getElementById('xVrp');
