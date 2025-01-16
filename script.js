@@ -88,23 +88,22 @@ function projPersp(mSruSrt, ponto) {
 
 var xMin = -8;
 var xMax = 8;
-var yMin = -6;
-var yMax = 6;
+var yMin = -15;
+var yMax = 15;
 
 var uMin = 0;
-var uMax = 319;
+var uMax = 1100;
 var vMin = 0;
-var vMax = 239;
+var vMax = 700;
 
 var dp = 40;
 var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
+var vetP = [20, 10, 25];
 
 
 function visao(ponto) {
 
-
-  var vetP = [20, 10, 25];
   var vetN = [
     vetVrp[0] - vetP[0],
     vetVrp[1] - vetP[1],
@@ -166,40 +165,10 @@ function visao(ponto) {
   return novoPonto;
 };
 
-var arrayVertice = [
-  [0, -10, -10],  // Inferior esquerdo
-  [0,  10, -10],  // Inferior direito
-  [0,  10,  10],  // Superior direito
-  [0, -10,  10]   // Superior esquerdo
-];
-
 
 
 // INTERFACE /////////////////////////////////////////////////////////////////////
 
-function drawSquare() {
-  const canvas = document.getElementById('canvas');
-  const context = canvas.getContext('2d');
-
-  // 4 pontos do quadrado (X, Y)
-  const pontos = [
-    [100, 100],  // Ponto 1
-    [200, 100],  // Ponto 2
-    [200, 200],  // Ponto 3
-    [100, 200]   // Ponto 4
-  ];
-
-  // Desenhando o quadrado
-  context.beginPath();
-  context.moveTo(pontos[0][0], pontos[0][1]);  // Inicia no primeiro ponto
-
-  for (let i = 1; i < pontos.length; i++) {
-    context.lineTo(pontos[i][0], pontos[i][1]);  // Liga os pontos
-  }
-
-  context.closePath();  // Fecha o caminho (volta ao ponto inicial)
-  context.stroke();     // Desenha o contorno
-}
 
 
 function drawSquare() {
@@ -214,6 +183,25 @@ function drawSquare() {
     [1050, 350]   // Ponto 4
   ];
 
+  ponto1 = [[10], [0], [0], [1]];
+  ponto2 = [[0], [10], [0], [1]];
+  ponto3 = [[0], [20], [10], [1]];
+  ponto4 = [[20], [10], [10], [1]];
+
+  ponto1 = visao(ponto1);
+  ponto2 = visao(ponto2);
+  ponto3 = visao(ponto3);
+  ponto4 = visao(ponto4);
+
+  var pontos = [
+    [ponto1[0], ponto1[1]],  // Ponto 1
+    [ponto2[0], ponto2[1]],  // Ponto 2
+    [ponto3[0], ponto3[1]],  // Ponto 3
+    [ponto4[0], ponto4[1]]   // Ponto 4
+  ];
+
+  console.log(ponto1);
+  
   // Desenhando o quadrado
   context.beginPath();
   context.moveTo(pontos[0][0], pontos[0][1]);  // Inicia no primeiro ponto
@@ -226,13 +214,14 @@ function drawSquare() {
   context.stroke();     // Desenha o contorno
 }
 
-drawSquare();
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Seleciona o canvas e o contexto
+  const canvas = document.getElementById('viewport');
+  const context = canvas.getContext('2d');
 
-
-  
   // Seleciona os inputs existentes pelo ID
   const xVrp = document.getElementById('xVrp');
   const yVrp = document.getElementById('yVrp');
@@ -242,34 +231,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const zP = document.getElementById('zP');
   const dpValue = document.getElementById('dpValue');
 
-
-
-
-  // Função para imprimir o valor no console
-  const printValue = (event) => {
-    //console.log(`Valor de ${event.target.id}: ${event.target.value}`);
-  };///
-  // Adiciona o evento de mudança de valor para cada input
-  xVrp.addEventListener('input', printValue);
-  yVrp.addEventListener('input', printValue);
-  zVrp.addEventListener('input', printValue);
-  xP.addEventListener('input', printValue);
-  yP.addEventListener('input', printValue);
-  zP.addEventListener('input', printValue);
-  dpValue.addEventListener('input', printValue);
-
-  //*/
-
-
-
-  //função de atualizar valores
+  // Função de atualizar valores
   const updateValues = () => {
     vetVrp = [parseInt(xVrp.value), parseInt(yVrp.value), parseInt(zVrp.value)];
     vetP = [parseInt(xP.value), parseInt(yP.value), parseInt(zP.value)];
     dp = parseInt(dpValue.value);
-    //console.log(vetVrp, vetP, dp);
-    pontoA = [[21.2], [0.7], [42.3], [1]];
-    console.log(visao(pontoA));
+
+    // LIMPAR O CANVAS ANTES DE DESENHAR
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // DESENHAR O QUADRADO ATUALIZADO
+    drawSquare();
   };
 
   // Adiciona o evento de mudança de valor para cada input
@@ -281,9 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
   zP.addEventListener('input', updateValues);
   dpValue.addEventListener('input', updateValues);
 
+  // Desenha o quadrado inicialmente
+  drawSquare();
 });
-
-
 
 
 
