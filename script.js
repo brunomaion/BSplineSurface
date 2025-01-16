@@ -6,7 +6,7 @@ class Poligono {
   }
 
   addVertice(array){ // //[[x,y,z][x,y,z]]
-    let tam = array.length;
+    var tam = array.length;
     for (let i = 0; i < tam; i++) {
       this.vertices.push(array[i]);
     }
@@ -23,6 +23,17 @@ class Poligono {
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 //////////// FUNCOES
 
@@ -85,99 +96,87 @@ function projPersp(mSruSrt, ponto) {
 
 // INFO ///////////////////////////////////////////////////////////////////////////
 
-let xMin = -8;
-let xMax = 8;
-let yMin = -6;
-let yMax = 6;
+var xMin = -8;
+var xMax = 8;
+var yMin = -6;
+var yMax = 6;
 
-let uMin = 0;
-let uMax = 319;
-let vMin = 0;
-let vMax = 239;
-let dp = 40;
-let viewUp = [0, 1, 0];
-let vetVrp = [25, 15, 80];
-let vetP = [20, 10, 25];
+var uMin = 0;
+var uMax = 319;
+var vMin = 0;
+var vMax = 239;
+
+var dp = 40;
+var viewUp = [0, 1, 0];
+var vetVrp = [25, 15, 80];
 
 
-//////////////////////////////////////////// PADRAO
+function visao(ponto) {
 
-let vetN = [
+
+  var vetP = [20, 10, 25];
+  var vetN = [
     vetVrp[0] - vetP[0],
     vetVrp[1] - vetP[1],
     vetVrp[2] - vetP[2]
-];
-let vetNunitario = vetorUnitario(vetN);
-let yn = produtoEscalar(viewUp, vetNunitario);
-let vetV = [
-    viewUp[0] - (yn * vetNunitario[0]),
-    viewUp[1] - (yn * vetNunitario[1]),
-    viewUp[2] - (yn * vetNunitario[2])
-];
-let vetVunitario = vetorUnitario(vetV);
-let vetU = produtoVetorial(vetVunitario, vetNunitario);
+  ];
 
-/*-
-console.log('Vetor N unitário:', vetNunitario);
-console.log('Vetor V unitário:', vetVunitario);
-console.log('Vetor U:', vetU);
-*/
+  var vetNunitario = vetorUnitario(vetN);
+  var yn = produtoEscalar(viewUp, vetNunitario);
+  var vetV = [
+      viewUp[0] - (yn * vetNunitario[0]),
+      viewUp[1] - (yn * vetNunitario[1]),
+      viewUp[2] - (yn * vetNunitario[2])
+  ];
+  var vetVunitario = vetorUnitario(vetV);
+  var vetU = produtoVetorial(vetVunitario, vetNunitario);
 
-
-///////////////////////////////////////////////////////////////////////////
-
-
-// Example usage:
-var matrizR = [
-  [vetU[0], vetU[1], vetU[2], 0,],
-  [vetVunitario[0], vetVunitario[1], vetVunitario[2], 0],
-  [vetNunitario[0], vetNunitario[1], vetNunitario[2], 0],
-  [0, 0, 0, 1]
-];
-
-var matrizT = 
-[
-  [1, 0, 0, -vetVrp[0]],
-  [0, 1, 0, -vetVrp[1]],
-  [0, 0, 1, -vetVrp[2]],
-  [0, 0, 0, 1]
-]
-
-
-var matrizPersp = [
-  [1, 0, 0, 0],
-  [0, 1, 0, 0],
-  [0, 0, 1, 0],
-  [0, 0, ((-(1))/dp), 0]
-];
-
-var matrizJP = [
-  [((uMax-uMin)/(xMax-xMin)), 0, 0, ((-(xMin) * ((uMax-uMin)/(xMax-xMin))) + uMin)],
-  [0, ((vMin-vMax)/(yMax-yMin)), 0, (((yMin) * ((vMax-vMin)/(yMax-yMin))) + vMax)],
-  [0, 0, 1, 0],
-  [0, 0, 0, 1]
-];
-
-pontoA = [[21.2], [0.7], [42.3], [1]];
-
-var matrizSruSrc = matriz44(matrizR, matrizT);
-/*
-console.log('SRUSRC', matrizSruSrc);
-console.log('JP', matrizJP);
-console.log('PROJ', matrizPersp);
-*/
-var matrizSruSrt = matriz44(matriz44(matrizJP, matrizPersp), matrizSruSrc);
-
-console.log(matrizSruSrt);
+  var matrizR = [
+    [vetU[0], vetU[1], vetU[2], 0,],
+    [vetVunitario[0], vetVunitario[1], vetVunitario[2], 0],
+    [vetNunitario[0], vetNunitario[1], vetNunitario[2], 0],
+    [0, 0, 0, 1]
+  ];
+  
+  var matrizT = 
+  [
+    [1, 0, 0, -vetVrp[0]],
+    [0, 1, 0, -vetVrp[1]],
+    [0, 0, 1, -vetVrp[2]],
+    [0, 0, 0, 1]
+  ]
+  
+  var matrizPersp = [
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, ((-(1))/dp), 0]
+  ];
+  
+  var matrizJP = [
+    [((uMax-uMin)/(xMax-xMin)), 0, 0, ((-(xMin) * ((uMax-uMin)/(xMax-xMin))) + uMin)],
+    [0, ((vMin-vMax)/(yMax-yMin)), 0, (((yMin) * ((vMax-vMin)/(yMax-yMin))) + vMax)],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+  ];
+  
+  var matrizSruSrc = matriz44(matrizR, matrizT);
+  /*
+  console.log('SRUSRC', matrizSruSrc);
+  console.log('JP', matrizJP);
+  console.log('PROJ', matrizPersp);
+  */
+  var matrizSruSrt = matriz44(matriz44(matrizJP, matrizPersp), matrizSruSrc);
+  
+  pontoASRT = matriz44x41(matrizSruSrt,ponto);
+  //console.log(pontoASRT)
+  //console.log(fatorHomogeneo(pontoASRT));
+  novoPonto = fatorHomogeneo(pontoASRT);
+  
+  return novoPonto;
+};
 
 
-pontoASRT = matriz44x41(matrizSruSrt,pontoA);
-
-console.log(pontoASRT);
-console.log(fatorHomogeneo(pontoASRT));
-
-
-//M M M M SRU SRT jp proj SRU SRC
 
 
 
@@ -191,8 +190,63 @@ var arrayVertice = [
 
 
 
+// INTERFACE /////////////////////////////////////////////////////////////////////
 
 
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  
+  
+  // Seleciona os inputs existentes pelo ID
+  const xVrp = document.getElementById('xVrp');
+  const yVrp = document.getElementById('yVrp');
+  const zVrp = document.getElementById('zVrp');
+  const xP = document.getElementById('xP');
+  const yP = document.getElementById('yP');
+  const zP = document.getElementById('zP');
+  const dpValue = document.getElementById('dpValue');
+
+
+
+
+  // Função para imprimir o valor no console
+  const printValue = (event) => {
+    //console.log(`Valor de ${event.target.id}: ${event.target.value}`);
+  };///
+  // Adiciona o evento de mudança de valor para cada input
+  xVrp.addEventListener('input', printValue);
+  yVrp.addEventListener('input', printValue);
+  zVrp.addEventListener('input', printValue);
+  xP.addEventListener('input', printValue);
+  yP.addEventListener('input', printValue);
+  zP.addEventListener('input', printValue);
+  dpValue.addEventListener('input', printValue);
+
+  //*/
+
+
+
+  //função de atualizar valores
+  const updateValues = () => {
+    vetVrp = [parseInt(xVrp.value), parseInt(yVrp.value), parseInt(zVrp.value)];
+    vetP = [parseInt(xP.value), parseInt(yP.value), parseInt(zP.value)];
+    dp = parseInt(dpValue.value);
+    //console.log(vetVrp, vetP, dp);
+    pontoA = [[21.2], [0.7], [42.3], [1]];
+    console.log(visao(pontoA));
+  };
+
+  // Adiciona o evento de mudança de valor para cada input
+  xVrp.addEventListener('input', updateValues);
+  yVrp.addEventListener('input', updateValues);
+  zVrp.addEventListener('input', updateValues);
+  xP.addEventListener('input', updateValues);
+  yP.addEventListener('input', updateValues);
+  zP.addEventListener('input', updateValues);
+  dpValue.addEventListener('input', updateValues);
+
+});
 
 
 

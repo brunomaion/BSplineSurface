@@ -9,11 +9,41 @@
 <body>
 
   <div class="sidebar">
-    <ul>
-        <!-- Lista de polígonos -->
-        <div id="polygonsList"></div>
-        <div id="polygonProperties"></div>
-      </ul>
+
+
+    <div class="configUsuario"> 
+
+      <div id="vrpDiv">
+        <label>VRP:</label>
+        <label for="xVrp">X:</label>
+        <input type="number" id="xVrp" name="xVrp" value="25" maxlength="3" size="3">
+        <label for="yVrp">Y:</label>
+        <input type="number" id="yVrp" name="yVrp" value="15" maxlength="3" size="3">
+        <label for="zVrp">Z:</label>
+        <input type="number" id="zVrp" name="zVrp" value="80" maxlength="3" size="1">
+      </div>
+
+      <div id="pDiv">
+        <label>P:</label>
+        <label for="xP">X:</label>
+        <input type="number" id="xP" name="xP" value="20" maxlength="3" size="3">
+        <label for="yP">Y:</label>
+        <input type="number" id="yP" name="yP" value="10" maxlength="3" size="3">
+        <label for="zP">Z:</label>
+        <input type="number" id="zP" name="zP" value="25" maxlength="3" size="1">
+      </div>
+
+      <div id="dpDiv">
+        <label for="dpValue">dp:</label>
+        <input type="number" id="dpValue" name="dpValue" value="40" maxlength="3" size="1" style="margin-left: 10px;">
+      </div>
+    
+    </div>
+
+
+    <div id="malhasLista"></div>
+    <div id="propriedades"></div>
+
   </div>  
 
   <div id="canvasContainer">
