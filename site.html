@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
+  <title>CG2</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,10 +11,12 @@
   <div class="sidebar">
 
 
-    <div class="configUsuario"> 
+    <div class="configCamera"> 
+
+      <label>Câmera:</label><br>
 
       <div id="vrpDiv">
-        <label>VRP:</label>
+        <label>VRP:</label><br>
         <label for="xVrp">X:</label>
         <input type="number" id="xVrp" name="xVrp" value="25" maxlength="3" size="3">
         <label for="yVrp">Y:</label>
@@ -24,7 +26,7 @@
       </div>
 
       <div id="pDiv">
-        <label>P:</label>
+        <label>P:</label><br>
         <label for="xP">X:</label>
         <input type="number" id="xP" name="xP" value="20" maxlength="3" size="3">
         <label for="yP">Y:</label>
@@ -40,6 +42,21 @@
     
     </div>
 
+    <div class="configTransformacoes">
+      
+      <label>Transformações:</label><br>
+
+      <div id="rotDiv">
+        <label>Rotacionar:</label><br>
+        <label for="xRot">X:</label>
+        <input type="number" id="xRot" name="xRot" value="0" maxlength="3" size="3">
+        <label for="yRot">Y:</label>
+        <input type="number" id="yRot" name="yRot" value="0" maxlength="3" size="3">
+        <label for="zRot">Z:</label>
+        <input type="number" id="zRot" name="zRot" value="0" maxlength="3" size="3">
+      </div>
+
+    </div>
 
     <div id="malhasLista"></div>
     <div id="propriedades"></div>

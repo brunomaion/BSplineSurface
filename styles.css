@@ -38,12 +38,24 @@ button:hover {
   background-color: #0056b3;
 }
 
-.configUsuario > div {
+.configCamera > div {
+  margin-top: 5px; /* Espaço acima da primeira sub-div */
+}
+
+.configTransformacoes > div {
+  margin-top: 5px; /* Espaço acima da primeira sub-div */
+}
+
+.rotDiv > div {
   margin-bottom: 5px; /* Espaço entre as sub-divs */
   margin-top: 5px; /* Espaço acima da primeira sub-div */
 }
 
 #xVrp, #yVrp, #zVrp {
+  width: 35px;
+}
+
+#xRot, #zRot, #yRot {
   width: 35px;
 }
 
@@ -55,33 +67,19 @@ button:hover {
   width: 35px;
 }
 
+.sidebar > div {
+  margin-top: 20px;
+}
 
-
-/*.sidebar {
-  width: 250px;
-  background-color: #f1f1f1;
-  padding: 20px;
-  position: fixed;
-  top: 0;
-  right: 0; /* Alterado de "left" para "right" 
-  bottom: 0;} 
-*/
 
 .sidebar {
+
   width: 250px;
   background-color: #f4f4f4;
   padding: 10px;
   box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.1); /* Sombra para dar destaque à sidebar */
 }
 
-.sidebar ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidebar ul li {
-  margin-bottom: 10px;
-}
 
 
 /* Estilos para as propriedades dos triângulos */

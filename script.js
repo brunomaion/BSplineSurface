@@ -86,6 +86,8 @@ function projPersp(mSruSrt, ponto) {
 
 // INFO ///////////////////////////////////////////////////////////////////////////
 
+
+/// camera 
 var xMin = -8;
 var xMax = 8;
 var yMin = -15;
@@ -100,6 +102,18 @@ var dp = 40;
 var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
 var vetP = [20, 10, 25];
+
+
+/// rotacao
+
+var rotX = 0;
+var rotY = 0;
+var rotZ = 0;
+
+
+
+
+
 
 
 function visao(ponto) {
@@ -167,6 +181,57 @@ function visao(ponto) {
 
 
 
+function rotacao(ponto, eixo) {
+  
+  function rotacaoX(ponto, angulo) {
+    var matrizRotacao = [
+      [1, 0, 0, 0],
+      [0, Math.cos(angulo), -Math.sin(angulo), 0],
+      [0, Math.sin(angulo), Math.cos(angulo), 0],
+      [0, 0, 0, 1]
+    ];
+  
+    pontoRotacionado = matriz44x41(matrizRotacao, ponto);
+    return pontoRotacionado;
+  }
+  
+  function rotacaoY(ponto, angulo) {
+    var matrizRotacao = [
+      [Math.cos(angulo), 0, Math.sin(angulo), 0],
+      [0, 1, 0, 0],
+      [-Math.sin(angulo), 0, Math.cos(angulo), 0],
+      [0, 0, 0, 1]
+    ];
+  
+    pontoRotacionado = matriz44x41(matrizRotacao, ponto);
+    return pontoRotacionado;
+  }
+  
+  function rotacaoZ(ponto, angulo) {
+    var matrizRotacao = [
+      [Math.cos(angulo), -Math.sin(angulo), 0, 0],
+      [Math.sin(angulo), Math.cos(angulo), 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ];
+  
+    pontoRotacionado = matriz44x41(matrizRotacao, ponto);
+    return pontoRotacionado;
+  }
+  
+  let pontoRotacionado = ponto;
+  if (eixo == 'x') {
+    pontoRotacionado = rotacaoX(ponto, rotX);
+  } else if (eixo == 'y') {
+    pontoRotacionado = rotacaoY(ponto, rotY);
+  } else if (eixo == 'z') {
+    pontoRotacionado = rotacaoZ(ponto, rotZ);
+  }
+  return pontoRotacionado;
+}
+
+
+
 // INTERFACE /////////////////////////////////////////////////////////////////////
 
 
@@ -183,21 +248,41 @@ function drawSquare() {
     [1050, 350]   // Ponto 4
   ];
 
-  ponto1 = [[10], [0], [0], [1]];
+  ponto1 = [[10], [0], [10], [1]];
   ponto2 = [[0], [10], [0], [1]];
-  ponto3 = [[0], [20], [10], [1]];
-  ponto4 = [[20], [10], [10], [1]];
+  ponto3 = [[0], [20], [0], [1]];
+  ponto4 = [[20], [10], [50], [1]];
+
+  ponto1 = [[-10], [-20], [10], [1]];
+  ponto2 = [[10], [-20], [10], [1]];
+  ponto3 = [[7], [20], [10], [1]];
+  ponto4 = [[-7], [20], [10], [1]];
+  ponto5 = [[-10], [-20], [-10], [1]];
+  ponto6 = [[10], [-20], [-10], [1]];
+  ponto7 = [[7], [20], [-10], [1]];
+  ponto8 = [[-7], [20], [-10], [1]];
 
   ponto1 = visao(ponto1);
   ponto2 = visao(ponto2);
   ponto3 = visao(ponto3);
   ponto4 = visao(ponto4);
+  ponto5 = visao(ponto5);
+  ponto6 = visao(ponto6);
+  ponto7 = visao(ponto7);
+  ponto8 = visao(ponto8);
+
+
+
 
   var pontos = [
     [ponto1[0], ponto1[1]],  // Ponto 1
     [ponto2[0], ponto2[1]],  // Ponto 2
     [ponto3[0], ponto3[1]],  // Ponto 3
-    [ponto4[0], ponto4[1]]   // Ponto 4
+    [ponto4[0], ponto4[1]],   // Ponto 4
+    [ponto5[0], ponto5[1]],  // Ponto 1
+    [ponto6[0], ponto6[1]],  // Ponto 2
+    [ponto7[0], ponto7[1]],  // Ponto 3
+    [ponto8[0], ponto8[1]]   // Ponto 4
   ];
 
   console.log(ponto1);
@@ -215,6 +300,18 @@ function drawSquare() {
 }
 
 
+function drawViewport() {
+  var canvas = document.getElementById('viewport');
+  var context = canvas.getContext('2d');
+
+  // Desenha a viewport
+  context.beginPath();
+  context.rect(uMin, vMin, uMax - uMin, vMax- vMin);
+  context.stroke();
+}
+
+drawViewport();
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -230,12 +327,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const yP = document.getElementById('yP');
   const zP = document.getElementById('zP');
   const dpValue = document.getElementById('dpValue');
+  const xRotValue = document.getElementById('xRot');
+  const yRotValue = document.getElementById('yRot');
+  const zRotValue = document.getElementById('zRot');
 
   // Função de atualizar valores
   const updateValues = () => {
+    let currentRotX = parseInt(xRotValue.value);
+    let currentRotY = parseInt(yRotValue.value);
+    let currentRotZ = parseInt(zRotValue.value);
+    
     vetVrp = [parseInt(xVrp.value), parseInt(yVrp.value), parseInt(zVrp.value)];
     vetP = [parseInt(xP.value), parseInt(yP.value), parseInt(zP.value)];
     dp = parseInt(dpValue.value);
+
+
+    rotX = parseInt(xRotValue.value) //* Math.PI / 180;
+    rotY = parseInt(yRotValue.value) //* Math.PI / 180;
+    rotZ = parseInt(zRotValue.value) //* Math.PI / 180;
 
     // LIMPAR O CANVAS ANTES DE DESENHAR
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -252,6 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
   yP.addEventListener('input', updateValues);
   zP.addEventListener('input', updateValues);
   dpValue.addEventListener('input', updateValues);
+  xRotValue.addEventListener('input', updateValues);
+  yRotValue.addEventListener('input', updateValues);
+  zRotValue.addEventListener('input', updateValues);
+
+
 
   // Desenha o quadrado inicialmente
   drawSquare();
