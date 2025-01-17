@@ -76,8 +76,11 @@ function matriz44x41(a, b) {
 }
 
 function fatorHomogeneo(vetor) {
-  if (vetor[3] === 0) return vetor;  // Evita divisão por zero
-  return [vetor[0] / vetor[3], vetor[1] / vetor[3], vetor[2] / vetor[3], 1];
+  return [
+    [vetor[0]/vetor[3]], 
+    [vetor[1]/vetor[3]], 
+    vetor[2], 
+    [1]];
 }
 
 function projPersp(mSruSrt, ponto) {
@@ -113,13 +116,21 @@ var rotX = 0;
 var rotY = 0;
 var rotZ = 0;
 
-
-
-
+var ponto1 = [[-10], [-20], [10], [1]];
+var ponto2 = [[10], [-20], [10], [1]];
+var ponto3 = [[7], [20], [10], [1]];
+var ponto4 = [[-7], [20], [10], [1]];
+var ponto5 = [[-10], [-20], [-10], [1]];
+var ponto6 = [[10], [-20], [-10], [1]];
+var ponto7 = [[7], [20], [-10], [1]];
+var ponto8 = [[-7], [20], [-10], [1]];
 
 
 
 function visao(ponto) {
+
+
+  
 
   var vetN = [
     vetVrp[0] - vetP[0],
@@ -190,6 +201,8 @@ function rotacao(ponto, eixo) {
     return angulo * (Math.PI / 180);
   }
 
+
+
   function rotacaoX(ponto, angulo) {
     angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
     var matrizRotacao = [
@@ -246,17 +259,9 @@ function drawSquare() {
   var context = canvas.getContext('2d');
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  drawViewport();
 
-  ponto1 = [[-10], [-20], [10], [1]];
-  ponto2 = [[10], [-20], [10], [1]];
-  ponto3 = [[7], [20], [10], [1]];
-  ponto4 = [[-7], [20], [10], [1]];
-  ponto5 = [[-10], [-20], [-10], [1]];
-  ponto6 = [[10], [-20], [-10], [1]];
-  ponto7 = [[7], [20], [-10], [1]];
-  ponto8 = [[-7], [20], [-10], [1]];
-
+  // Antes de começar a desenhar qualquer coisa no canvas
+  context.beginPath();  
 
   ponto1 = rotacao(ponto1, eixo);
   ponto2 = rotacao(ponto2, eixo);
@@ -276,25 +281,25 @@ function drawSquare() {
   ponto6 = visao(ponto6);
   ponto7 = visao(ponto7);
   ponto8 = visao(ponto8);
+  //*/
 
-
-
+  console.log((ponto1));
+  
 
 
   var pontos = [
-    [ponto1[0], ponto1[1]],  // Ponto 1
-    [ponto2[0], ponto2[1]],  // Ponto 2
-    [ponto3[0], ponto3[1]],  // Ponto 3
-    [ponto4[0], ponto4[1]],   // Ponto 4
-    [ponto5[0], ponto5[1]],  // Ponto 1
-    [ponto6[0], ponto6[1]],  // Ponto 2
-    [ponto7[0], ponto7[1]],  // Ponto 3
-    [ponto8[0], ponto8[1]]   // Ponto 4
+      [ponto1[0], ponto1[1]],  // Ponto 1
+      [ponto2[0], ponto2[1]],  // Ponto 2
+      [ponto3[0], ponto3[1]],  // Ponto 3
+      [ponto4[0], ponto4[1]],   // Ponto 4
+      [ponto5[0], ponto5[1]],  // Ponto 1
+      [ponto6[0], ponto6[1]],  // Ponto 2
+      [ponto7[0], ponto7[1]],  // Ponto 3
+      [ponto8[0], ponto8[1]]   // Ponto 4
   ];
 
-  
 
-    // Frente
+  // Frente
   context.moveTo(pontos[0][0], pontos[0][1]);
   context.lineTo(pontos[1][0], pontos[1][1]);
   context.lineTo(pontos[2][0], pontos[2][1]);
@@ -318,24 +323,11 @@ function drawSquare() {
 }
 
 
-function drawViewport() {
-  var canvas = document.getElementById('viewport');
-  var context = canvas.getContext('2d');
 
-  // Desenha a viewport
-  context.beginPath();
-  context.rect(uMin, vMin, uMax - uMin, vMax- vMin);
-  context.stroke();
-}
-
-drawViewport();
 
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Seleciona o canvas e o contexto
-  const canvas = document.getElementById('viewport');
-  const context = canvas.getContext('2d');
 
   // Seleciona os inputs existentes pelo ID
   const inputs = {
@@ -392,9 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
     rotY = (parseInt(inputs.yRot.value));
     rotZ = (parseInt(inputs.zRot.value));
 
-    // Limpar o canvas antes de desenhar
-    context.clearRect(0, 0, canvas.width, canvas.height);
     drawSquare();
+    
 
   };
 
