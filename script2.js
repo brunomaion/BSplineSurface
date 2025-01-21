@@ -8,38 +8,47 @@ class malha {
   }
   
   printPoligono() {
-    //console.log(this.pontosSru);
+    console.log(this.pontosSRT);
   }
+
+
 
   pontosSRUtoSRT(pontos) {
     let novosPontosSRT = [];
-    for (let i = 0; i < pontos.length; i++) {
-      let pontoSRU = pontos[i];
-      let pontoSRT = projAxonometrica(pontoSRU);
-      //let pontoSRT = funTeste(pontoSRU);
-      novosPontosSRT.push(pontoSRT);
-    }
-    return novosPontosSRT;
-  }
+    if (visao = 'perspectiva') {
+      for (let i = 0; i < pontos.length; i++) {
+        let pontoSRU = pontos[i];
+        let pontoSRT = projPersp(pontoSRU);
+        //let pontoSRT = funTeste(pontoSRU);
+        novosPontosSRT.push(pontoSRT);
+      }
+      return novosPontosSRT;
 
+    } else if (visao = 'axonometrica') {
+      for (let i = 0; i < pontos.length; i++) {
+        let pontoSRU = pontos[i];
+        let pontoSRT = projAxonometrica(pontoSRU);
+        //let pontoSRT = funTeste(pontoSRU);
+        novosPontosSRT.push(pontoSRT);
+      }
+      return novosPontosSRT
+    }
+  }
 }
 
-
+var visao = 'axonometrica';
 
 //////////// FUNCOES ////////////////////////////////////////////////
-
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
 }
-
 function produtoEscalar(vetorA, vetorB) {
   if (vetorA.length !== vetorB.length) {
     throw new Error("Os vetores devem ter o mesmo tamanho");
   }
   return vetorA.reduce((sum, val, index) => sum + val * vetorB[index], 0);
 }
-
 function produtoVetorial(vetorA, vetorB) {
   if (vetorA.length !== 3 || vetorB.length !== 3) {
     throw new Error("Os vetores devem ter tamanho 3");
@@ -50,7 +59,6 @@ function produtoVetorial(vetorA, vetorB) {
     vetorA[0] * vetorB[1] - vetorA[1] * vetorB[0]
   ];
 }
-
 function matriz44(a, b) {
   let result = [];
   for (let i = 0; i < 4; i++) {
@@ -64,7 +72,6 @@ function matriz44(a, b) {
   }
   return result;
 }
-
 function matriz44x41(matrix4x4, ponto) {
   //console.log(ponto);
   let matrix4x1 = [ponto[0], ponto[1], ponto[2], fatH];
@@ -79,14 +86,9 @@ function matriz44x41(matrix4x4, ponto) {
   //console.log(result);
   return result; 
 }
-
 function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
 }
-
-
-
-
 /////////////////////////////////////////////////////////////////////
 
 
@@ -107,7 +109,10 @@ var vetVrp = [25, 15, 80];
 var vetP = [20, 10, 25];
 
 
-function projPersp(ponto) {
+//////// PROJECAO /////////////////////////////////////////////////
+// PONTO = [x, y, z, 1] 
+
+function projPersp(ponto) { 
 
   let vetN = [
     vetVrp[0] - vetP[0],
@@ -164,13 +169,11 @@ function projPersp(ponto) {
 };
 
 function projAxonometrica(ponto) {
-
   let vetN = [
     vetVrp[0] - vetP[0],
     vetVrp[1] - vetP[1],
     vetVrp[2] - vetP[2]
   ];
-
   let vetNunitario = vetorUnitario(vetN);
   let yn = produtoEscalar(viewUp, vetNunitario);
   let vetV = [
@@ -202,7 +205,7 @@ function projAxonometrica(ponto) {
     [0, 0, 1, 0],
     [0, 0, 0, 1]
   ];
-  
+
   let matrizJP = [
     [((uMax-uMin)/(xMax-xMin)), 0, 0, ((-(xMin) * ((uMax-uMin)/(xMax-xMin))) + uMin)],
     [0, ((vMin-vMax)/(yMax-yMin)), 0, (((yMin) * ((vMax-vMin)/(yMax-yMin))) + vMax)],
@@ -218,6 +221,7 @@ function projAxonometrica(ponto) {
   return pontoASRT;
 };
 
+/////////////////////////////////////////////////////////////////////
 
 /*
 let fatH= 1;
@@ -242,8 +246,9 @@ malha1.printPoligono();
 
 
 
-document.getElementById('aplicarBtn').addEventListener('click', function() {
-  malha1.printPoligono();
-}); 
+document.getElementById('aplicarBtn').addEventListener('click', function () {
+  const tipoProj = document.getElementById('visao').value;
+  console.log(tipoProj);
+});
 
 
