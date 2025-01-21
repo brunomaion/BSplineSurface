@@ -83,6 +83,9 @@ function fatorHomogeneo(vetor) {
     [1]];
 }
 
+
+
+
 function projPersp(mSruSrt, ponto) {
   let pontoSRT = matriz44x41(mSruSrt, ponto);
   return fatorHomogeneo(pontoSRT);
