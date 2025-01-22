@@ -11,11 +11,9 @@ class malha {
     console.log(this.pontosSRT);
   }
 
-
-
   pontosSRUtoSRT(pontos) {
     let novosPontosSRT = [];
-    if (visao = 'perspectiva') {
+    if (visao == 'perspectiva') {
       for (let i = 0; i < pontos.length; i++) {
         let pontoSRU = pontos[i];
         let pontoSRT = projPersp(pontoSRU);
@@ -24,7 +22,7 @@ class malha {
       }
       return novosPontosSRT;
 
-    } else if (visao = 'axonometrica') {
+    } else if (visao == 'axonometrica') {
       for (let i = 0; i < pontos.length; i++) {
         let pontoSRU = pontos[i];
         let pontoSRT = projAxonometrica(pontoSRU);
@@ -34,9 +32,37 @@ class malha {
       return novosPontosSRT
     }
   }
+
+  updateValores() {
+    console.log('atualizando valores');
+    this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
+    this.printPoligono();
+  }
+
 }
 
+//////// variaveis globais ////////////////////////////////////////
+
 var visao = 'axonometrica';
+var vetMalha = []
+
+/// camera 
+var xMin = -8;
+var xMax = 8;
+var yMin = -6;
+var yMax = 6;
+
+var uMin = 0;
+var uMax = 319;
+var vMin = 0;
+var vMax = 239;
+
+var dp = 40;
+var viewUp = [0, 1, 0];
+var vetVrp = [25, 15, 80];
+var vetP = [20, 10, 25];
+
+
 
 //////////// FUNCOES ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
@@ -92,21 +118,6 @@ function fatorHomogeneo(vetor) {
 /////////////////////////////////////////////////////////////////////
 
 
-/// camera 
-var xMin = -8;
-var xMax = 8;
-var yMin = -6;
-var yMax = 6;
-
-var uMin = 0;
-var uMax = 319;
-var vMin = 0;
-var vMax = 239;
-
-var dp = 40;
-var viewUp = [0, 1, 0];
-var vetVrp = [25, 15, 80];
-var vetP = [20, 10, 25];
 
 
 //////// PROJECAO /////////////////////////////////////////////////
@@ -163,7 +174,7 @@ function projPersp(ponto) {
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizPersp), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
   novoPonto = fatorHomogeneo(pontoASRT);
-  console.log(novoPonto);
+  //console.log(novoPonto);
 
   return novoPonto;
 };
@@ -216,7 +227,7 @@ function projAxonometrica(ponto) {
   let matrizSruSrc = matriz44(matrizR, matrizT);
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizAxono), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
-  console.log(pontoASRT);
+  //console.log(pontoASRT);
 
   return pontoASRT;
 };
@@ -231,24 +242,27 @@ let ponto3 = [0,0,1, fatH];
 let ponto4 = [1,0,3, fatH];
 //*/
 
+
+///// teste 
 let fatH = 1;
 let ponto1 = [21.2, 0.7, 42.3, 1];
 let ponto2 = [34.1, 3.4, 27.2, 1];
 let ponto3 = [18.8, 5.6, 14.6, 1];
 let ponto4 = [5.9, 2.9, 29.7, 1];
-
-
-
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-
 malha1 = new malha(pontosMalha);
-malha1.printPoligono();
+vetMalha.push(malha1);
 
 
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
-  const tipoProj = document.getElementById('visao').value;
-  console.log(tipoProj);
+  visao = document.getElementById('visao').value;
+  //console.log(visao);
+  
+  for (let i = 0; i < vetMalha.length; i++) {
+    vetMalha[i].updateValores();
+  }
+
 });
 
 
