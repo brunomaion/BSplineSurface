@@ -3,7 +3,7 @@
 
 
 var m = 6;
-var n = 0;
+var n = 3;
 var totalFaces = (m+1)*(n+1);
 
 p1 = [100, 100, 10, 1];
@@ -36,9 +36,12 @@ var incrPontosInternosN1y = tamanhoTotalArestaN1y / (n+1);
 
 var tamanhoTotalArestaN2x = (p4[0] - p1[0]);
 var incrPontosInternosN2x = tamanhoTotalArestaN2x / (n+1);
-var tamanhoTotalArestaN2y = (p4[1] - p4[1]);
+var tamanhoTotalArestaN2y = (p4[1] - p1[1]);
 var incrPontosInternosN2y = tamanhoTotalArestaN2y / (n+1);
 
+console.log('(p4, p1',p4, p1);
+console.log('incrPontosInternosN2x',incrPontosInternosN2x);
+console.log('incrPontosInternosN2y',incrPontosInternosN2y);
 
 
 
@@ -50,6 +53,7 @@ pontosM2.push(p4);
 
 pontosN1 = []
 pontosN1.push(p2);
+
 pontosN2 = []
 pontosN2.push(p1);
 
@@ -83,11 +87,23 @@ for (let i = 1; i <= m; i++) {
     pontosN2.push([pontoX2n, pontoY2n]);
 }
 
+
+for (let i = 1; i <= n; i++) {
+    pontoX1n += incrPontosInternosN1x;
+    pontoY1n += incrPontosInternosN1y;
+    pontosN1.push([pontoX1n, pontoY1n]);
+
+    pontoX2n += incrPontosInternosN2x;
+    pontoY2n += incrPontosInternosN2y;
+    pontosN2.push([pontoX2n, pontoY2n]);
+}
+
+
 pontosM1.push(p2);
 pontosM2.push(p3);
 
-pontosM1.push(p2);
-pontosM2.push(p1);
+pontosN1.push(p2);
+pontosN2.push(p1);
 
 
 
@@ -117,5 +133,5 @@ for (let i = 0; i < totalM; i++) {
     ponton2 = pontosN2[i];
 
     drawLine(pontom1[0], pontom1[1], pontom2[0], pontom2[1]);
-    //drawLine(ponton2[0], ponton2[1], ponton1[0], ponton1[1]);
+    drawLine(ponton2[0], ponton2[1], ponton1[0], ponton1[1]);
 }
