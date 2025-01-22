@@ -9,6 +9,10 @@ class malha {
   
   printPoligono() {
     console.log(this.pontosSRT);
+    console.log(vetVrp);
+    console.log(vetP);
+    console.log(dp);
+    
   }
 
   pontosSRUtoSRT(pontos) {
@@ -37,25 +41,62 @@ class malha {
     console.log('atualizando valores');
     this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
     this.printPoligono();
+    this.draw();
   }
 
+  draw() {
+    const canvas = document.getElementById('viewport'); // Corrigido para o ID correto
+    if (!canvas) {
+        console.error('Canvas element not found!');
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    for (let i = 0; i < this.pontosSRT.length; i++) {
+        let startPoint = this.pontosSRT[i];
+        let endPoint = this.pontosSRT[(i + 1) % this.pontosSRT.length];
+        ctx.moveTo(startPoint[0], startPoint[1]);
+        ctx.lineTo(endPoint[0], endPoint[1]);
+    }
+    ctx.stroke();
 }
+
+
+}
+
+
+
 
 //////// variaveis globais ////////////////////////////////////////
 
 var visao = 'axonometrica';
 var vetMalha = []
 
+function drawVetMalhas() {
+  for (let i = 0; i < vetMalha.length; i++) {
+    vetMalha[i].draw();
+  }
+}
+
+function updateVetMalhas() {
+  for (let i = 0; i < vetMalha.length; i++) {
+    vetMalha[i].updateValores();
+  }
+}
+
 /// camera 
-var xMin = -8;
-var xMax = 8;
-var yMin = -6;
-var yMax = 6;
+var xMin = -20;
+var xMax = 20;
+var yMin = -15;
+var yMax = 15;
 
 var uMin = 0;
-var uMax = 319;
+var uMax = 1099;
 var vMin = 0;
-var vMax = 239;
+var vMax = 699;
 
 var dp = 40;
 var viewUp = [0, 1, 0];
@@ -252,17 +293,36 @@ let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha);
 vetMalha.push(malha1);
-
+drawVetMalhas();
 
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
-  //console.log(visao);
-  
-  for (let i = 0; i < vetMalha.length; i++) {
-    vetMalha[i].updateValores();
-  }
-
+  updateVetMalhas();
 });
 
+function onFieldChange() {
+  xVrp = parseInt(document.getElementById('xVrp').value) || 0;
+  yVrp = parseInt(document.getElementById('yVrp').value) || 0;
+  zVrp = parseInt(document.getElementById('zVrp').value) || 0;
+  vetVrp = [xVrp, yVrp, zVrp];
 
+  xP = parseInt(document.getElementById('xP').value) || 0;
+  yP = parseInt(document.getElementById('yP').value) || 0;
+  zP = parseInt(document.getElementById('zP').value) || 0;
+  vetP = [xP, yP, zP];
+
+  dp = parseInt(document.getElementById('dpValue').value) || 0;
+
+  console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
+  updateVetMalhas();
+}
+
+// Adicionando os listeners para os campos
+document.getElementById('xVrp').addEventListener('input', onFieldChange);
+document.getElementById('yVrp').addEventListener('input', onFieldChange);
+document.getElementById('zVrp').addEventListener('input', onFieldChange);
+document.getElementById('xP').addEventListener('input', onFieldChange);
+document.getElementById('yP').addEventListener('input', onFieldChange);
+document.getElementById('zP').addEventListener('input', onFieldChange);
+document.getElementById('dpValue').addEventListener('input', onFieldChange);

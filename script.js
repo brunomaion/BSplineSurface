@@ -334,13 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Seleciona os inputs existentes pelo ID
   const inputs = {
-    xVrp: document.getElementById('xVrp'),
-    yVrp: document.getElementById('yVrp'),
-    zVrp: document.getElementById('zVrp'),
-    xP: document.getElementById('xP'),
-    yP: document.getElementById('yP'),
-    zP: document.getElementById('zP'),
-    dpValue: document.getElementById('dpValue'),
+
     xRot: document.getElementById('xRot'),
     yRot: document.getElementById('yRot'),
     zRot: document.getElementById('zRot')
@@ -377,15 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Atualiza os vetores e valores
-    vetVrp = [parseInt(inputs.xVrp.value), parseInt(inputs.yVrp.value), parseInt(inputs.zVrp.value)];
-    vetP = [parseInt(inputs.xP.value), parseInt(inputs.yP.value), parseInt(inputs.zP.value)];
-    dp = parseInt(inputs.dpValue.value);
-    
 
-    // Ajustar antes de usar na rotação
-    rotX = (parseInt(inputs.xRot.value));
-    rotY = (parseInt(inputs.yRot.value));
-    rotZ = (parseInt(inputs.zRot.value));
 
     drawSquare();
     
