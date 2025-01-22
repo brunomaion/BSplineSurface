@@ -4,7 +4,8 @@ class malha {
   constructor(pontosdamalha) {
     this.pontosSru = pontosdamalha;
     this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
-
+    this.listaArestas = 1;
+    this.arestas = this.calcArestasIncremental(this.pontosSRT);
   }
   
   printPoligono() {
@@ -42,6 +43,10 @@ class malha {
     this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
     this.printPoligono();
     this.draw();
+  }
+
+  calcArestasIncremental(pontos) {
+    /////
   }
 
   draw() {

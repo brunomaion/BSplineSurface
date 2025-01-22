@@ -1,0 +1,7 @@
+    pontoX1n += incrPontosInternosn1x;
+    pontoY1n += incrPontosInternosn1y;
+    pontosn1.push([pontoX1n, pontoY1n]);
+
+    pontoX2n += incrPontosInternosn2x;
+    pontoY2n += incrPontosInternosn2y;
+    pontosn2.push([pontoX2n, pontoY2n]);
