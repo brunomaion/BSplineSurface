@@ -23,14 +23,17 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
     let incrPontosInternosM1x = tamanhoTotalArestaM1x / (m+1);
     let tamanhoTotalArestaM1y = (p2[1] - p1[1]);
     let incrPontosInternosM1y = tamanhoTotalArestaM1y / (m+1);
-    let tamanhoTotalArestaM1z = (p2[1] - p1[1]);
+    let tamanhoTotalArestaM1z = (p2[2] - p1[2]);
     let incrPontosInternosM1z = tamanhoTotalArestaM1z / (m+1);
+
+    console.log(incrPontosInternosM1z);
+    
 
     let tamanhoTotalArestam2x = (p3[0] - p4[0]);
     let incrPontosInternosm2x = tamanhoTotalArestam2x / (m+1);
     let tamanhoTotalArestam2y = (p3[1] - p4[1]);
     let incrPontosInternosm2y = tamanhoTotalArestam2y / (m+1);
-    let tamanhoTotalArestam2z = (p3[1] - p4[1]);
+    let tamanhoTotalArestam2z = (p3[2] - p4[2]);
     let incrPontosInternosm2z = tamanhoTotalArestam2z / (m+1);
 
 
@@ -38,14 +41,14 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
     let incrPontosInternosN1x = tamanhoTotalArestaN1x / (n+1);
     let tamanhoTotalArestaN1y = (p3[1] - p2[1]);
     let incrPontosInternosN1y = tamanhoTotalArestaN1y / (n+1);
-    let tamanhoTotalArestaN1z = (p3[1] - p2[1]);
+    let tamanhoTotalArestaN1z = (p3[2] - p2[2]);
     let incrPontosInternosN1z = tamanhoTotalArestaN1z / (n+1);
 
     let tamanhoTotalArestaN2x = (p4[0] - p1[0]);
     let incrPontosInternosN2x = tamanhoTotalArestaN2x / (n+1);
     let tamanhoTotalArestaN2y = (p4[1] - p1[1]);
     let incrPontosInternosN2y = tamanhoTotalArestaN2y / (n+1);
-    let tamanhoTotalArestaN2z = (p4[1] - p1[1]);
+    let tamanhoTotalArestaN2z = (p4[2] - p1[2]);
     let incrPontosInternosN2z = tamanhoTotalArestaN2z / (n+1);
 
     pontosM1 = []
@@ -104,8 +107,6 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
 
     pontosN1.push(p3);
     pontosN2.push(p4);
-
-
 
  return [pontosM1, pontosM2, pontosN1, pontosN2];
 }
@@ -170,8 +171,8 @@ function drawCircle(x, y, radius, color) {
     ctx.fill();
 }
 
-let m = 10;
-let n = 10;
+let m = 0;
+let n = 8;
 
 let p1 = [100, 100, 10];
 let p2 = [100, 400, -10];
@@ -180,7 +181,12 @@ let p4 = [500, 100, 10];
 
 pontosEntrada = [p1, p2, p3, p4];
 let gridMalha = createMalha(pontosEntrada, m, n);
-console.log(gridMalha);
+//console.log(gridMalha);
 let faces = getFaces(gridMalha, m, n)
-paintFace(faces[20], 'blue');
+
+console.log(faces);
+
+
+
 drawMalha(gridMalha, m, n);
+paintFace(faces[0], 'blue');

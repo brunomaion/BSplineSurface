@@ -97,12 +97,10 @@ var xMin = -20;
 var xMax = 20;
 var yMin = -15;
 var yMax = 15;
-
 var uMin = 0;
 var uMax = 1099;
 var vMin = 0;
 var vMax = 699;
-
 var dp = 40;
 var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
