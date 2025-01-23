@@ -6,6 +6,9 @@ Construir:
 0. problema . paintFaces
 
 1. Rotação
+FAZENDO A ROTAÇÃO ERRADA CONFERIR COMO FAZ
+
+
 2. Escala
 3. Listagem de malhas e manipalçao de diversas malhas
 

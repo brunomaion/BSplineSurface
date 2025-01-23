@@ -9,20 +9,22 @@ class malha {
   }
   
   printPoligono() {
-    console.log(this.pontosSRT);
-    console.log(vetVrp);
-    console.log(vetP);
-    console.log(dp);
+    //console.log(this.pontosSRT);
+    //console.log(vetVrp);
+    //console.log(vetP);
+    //console.log(dp);
     
   }
 
   pontosSRUtoSRT(pontos) {
     let novosPontosSRT = [];
+
+    pontos = rotacao(pontos);
+
     if (visao == 'perspectiva') {
       for (let i = 0; i < pontos.length; i++) {
         let pontoSRU = pontos[i];
         let pontoSRT = projPersp(pontoSRU);
-        //let pontoSRT = funTeste(pontoSRU);
         novosPontosSRT.push(pontoSRT);
       }
       return novosPontosSRT;
@@ -31,7 +33,6 @@ class malha {
       for (let i = 0; i < pontos.length; i++) {
         let pontoSRU = pontos[i];
         let pontoSRT = projAxonometrica(pontoSRU);
-        //let pontoSRT = funTeste(pontoSRU);
         novosPontosSRT.push(pontoSRT);
       }
       return novosPontosSRT
@@ -39,7 +40,7 @@ class malha {
   }
 
   updateValores() {
-    console.log('atualizando valores');
+    //console.log('atualizando valores');
     this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
     this.printPoligono();
     this.draw();
@@ -69,14 +70,12 @@ class malha {
     ctx.stroke();
 }
 
-
 }
 
 
 
 
 //////// variaveis globais ////////////////////////////////////////
-
 var visao = 'axonometrica';
 var vetMalha = []
 
@@ -105,6 +104,11 @@ var dp = 40;
 var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
 var vetP = [20, 10, 25];
+
+// transformaçoes
+var rotX = 0;
+var rotY = 0;
+var rotZ = 0;
 
 
 
@@ -222,7 +226,6 @@ function projPersp(ponto) {
 
   return novoPonto;
 };
-
 function projAxonometrica(ponto) {
   let vetN = [
     vetVrp[0] - vetP[0],
@@ -276,6 +279,67 @@ function projAxonometrica(ponto) {
   return pontoASRT;
 };
 
+//////// ROT ////////////////////////////////////////////////
+
+function rotacao(pontos) {
+  
+  function rotacaoX(pontoX, angulo) {
+    console.log('rotX: ', rotX);
+    //angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
+    console.log('angulo', angulo);
+    console.log(Math.cos(angulo));
+    console.log('pointX', pontoX);
+    
+    
+    let matrizRotacao = [
+      [1, 0, 0, 0],
+      [0, Math.cos(angulo), -Math.sin(angulo), 0],
+      [0, Math.sin(angulo), Math.cos(angulo), 0],
+      [0, 0, 0, 1]
+    ];
+    console.log(matriz44x41(matrizRotacao, pontoX));
+    
+    return matriz44x41(matrizRotacao, pontoX);
+  }
+
+  function rotacaoY(pontoY, angulo) {
+    angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
+    let matrizRotacao = [
+      [Math.cos(angulo), 0, Math.sin(angulo), 0],
+      [0, 1, 0, 0],
+      [-Math.sin(angulo), 0, Math.cos(angulo), 0],
+      [0, 0, 0, 1]
+    ];
+    return matriz44x41(matrizRotacao, pontoY);
+  }
+
+  function rotacaoZ(pontoZ, angulo) {
+    angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
+    let matrizRotacao = [
+      [Math.cos(angulo), -Math.sin(angulo), 0, 0],
+      [Math.sin(angulo), Math.cos(angulo), 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ];
+    return matriz44x41(matrizRotacao, pontoZ);
+  }
+
+  let pontosRotacionado = [];
+  for (let i = 0; i < pontos.length; i++) {
+    let x = pontos[i][0];
+    let y = pontos[i][1];
+    let z = pontos[i][2];
+    //let ponto = [x, y, z, 1];
+    let ponto = [rotacaoX(x, rotX), 
+                  rotacaoY(y, rotY), 
+                  rotacaoZ(z, rotZ), 1];
+
+    pontosRotacionado.push(ponto);
+  }
+
+  return pontosRotacionado; 
+}
+
 /////////////////////////////////////////////////////////////////////
 
 /*
@@ -317,7 +381,13 @@ function onFieldChange() {
 
   dp = parseInt(document.getElementById('dpValue').value) || 0;
 
-  console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
+  xRot = parseInt(document.getElementById('xRot').value) || 0;
+  console.log(xRot);
+  
+  yRot = parseInt(document.getElementById('yRot').value) || 0;
+  zRot = parseInt(document.getElementById('zRot').value) || 0;
+
+  //console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
   updateVetMalhas();
 }
 
@@ -329,3 +399,7 @@ document.getElementById('xP').addEventListener('input', onFieldChange);
 document.getElementById('yP').addEventListener('input', onFieldChange);
 document.getElementById('zP').addEventListener('input', onFieldChange);
 document.getElementById('dpValue').addEventListener('input', onFieldChange);
+
+document.getElementById('xRot').addEventListener('input', onFieldChange);
+document.getElementById('yRot').addEventListener('input', onFieldChange);
+document.getElementById('zRot').addEventListener('input', onFieldChange);
