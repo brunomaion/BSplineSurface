@@ -20,6 +20,8 @@ class malha {
     let novosPontosSRT = [];
 
     pontos = rotacao(pontos);
+    pontos = escala(pontos);
+    pontos = translacao(pontos);
 
     if (visao == 'perspectiva') {
       for (let i = 0; i < pontos.length; i++) {
@@ -72,10 +74,7 @@ class malha {
 
 }
 
-
-
-
-//////// variaveis globais ////////////////////////////////////////
+//////// VARIRAVEIS GLOBAIS ////////////////////////////////////////
 var visao = 'axonometrica';
 var vetMalha = []
 
@@ -84,7 +83,6 @@ function drawVetMalhas() {
     vetMalha[i].draw();
   }
 }
-
 function updateVetMalhas() {
   for (let i = 0; i < vetMalha.length; i++) {
     vetMalha[i].updateValores();
@@ -110,6 +108,11 @@ var rotX = 0;
 var rotY = 0;
 var rotZ = 0;
 
+var scl = 1.0;
+
+var translX = 0;
+var translY = 0;
+var translZ = 0;
 
 
 //////////// FUNCOES ////////////////////////////////////////////////
@@ -279,31 +282,56 @@ function projAxonometrica(ponto) {
   return pontoASRT;
 };
 
-//////// ROT ////////////////////////////////////////////////
+//////// TRANSFORMACAO ////////////////////////////////////////////////
 
 function rotacao(pontos) {
+  let centrX = 0;
+  let centrY = 0;
+  let centrZ = 0;
+  for (let i = 0; i < pontos.length; i++) {
+    centrX += pontos[i][0];
+    centrY += pontos[i][1];
+    centrZ += pontos[i][2]; 
+  };
+  centrX = centrX / pontos.length;
+  centrY = centrY / pontos.length;
+  centrZ = centrZ / pontos.length;
+  centroide = [centrX, centrY, centrZ, 1];
+
+  function translN(pontoN) {
+    let pontoTranslado = [
+      [1, 0, 0, -centroide[0]],
+      [0, 1, 0, -centroide[1]],
+      [0, 0, 1, -centroide[2]],
+      [0, 0, 0, 1]
+    ];
+    return matriz44x41(pontoTranslado, pontoN);
+  }
+
+  function translP(pontoN) {
+    let pontoTranslado = [
+      [1, 0, 0, centroide[0]],
+      [0, 1, 0, centroide[1]],
+      [0, 0, 1, centroide[2]],
+      [0, 0, 0, 1]
+    ];
+    return matriz44x41(pontoTranslado, pontoN);
+  }
   
-  function rotacaoX(pontoX, angulo) {
-    console.log('rotX: ', rotX);
-    //angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
-    console.log('angulo', angulo);
-    console.log(Math.cos(angulo));
-    console.log('pointX', pontoX);
-    
-    
+  function rotacaoX(pontoX) {
+    let angulo = rotX;    
     let matrizRotacao = [
       [1, 0, 0, 0],
       [0, Math.cos(angulo), -Math.sin(angulo), 0],
       [0, Math.sin(angulo), Math.cos(angulo), 0],
       [0, 0, 0, 1]
     ];
-    console.log(matriz44x41(matrizRotacao, pontoX));
-    
+
     return matriz44x41(matrizRotacao, pontoX);
   }
 
-  function rotacaoY(pontoY, angulo) {
-    angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
+  function rotacaoY(pontoY) {
+    let angulo = rotY;
     let matrizRotacao = [
       [Math.cos(angulo), 0, Math.sin(angulo), 0],
       [0, 1, 0, 0],
@@ -313,8 +341,8 @@ function rotacao(pontos) {
     return matriz44x41(matrizRotacao, pontoY);
   }
 
-  function rotacaoZ(pontoZ, angulo) {
-    angulo = grausParaRadianos(angulo);  // ✅ Converte para radianos
+  function rotacaoZ(pontoZ) {
+    let angulo = rotZ;
     let matrizRotacao = [
       [Math.cos(angulo), -Math.sin(angulo), 0, 0],
       [Math.sin(angulo), Math.cos(angulo), 0, 0],
@@ -323,22 +351,54 @@ function rotacao(pontos) {
     ];
     return matriz44x41(matrizRotacao, pontoZ);
   }
-
   let pontosRotacionado = [];
   for (let i = 0; i < pontos.length; i++) {
-    let x = pontos[i][0];
-    let y = pontos[i][1];
-    let z = pontos[i][2];
-    //let ponto = [x, y, z, 1];
-    let ponto = [rotacaoX(x, rotX), 
-                  rotacaoY(y, rotY), 
-                  rotacaoZ(z, rotZ), 1];
-
+    let ponto = pontos[i];
+    ponto = translN(ponto);
+    ponto = rotacaoX(ponto);
+    ponto = rotacaoY(ponto);
+    ponto = rotacaoZ(ponto);
+    ponto = translP(ponto);
     pontosRotacionado.push(ponto);
   }
-
   return pontosRotacionado; 
-}
+};
+function escala(pontos) {
+
+  let matrizS = [
+    [scl, 0, 0, 0],
+    [0, scl, 0, 0],
+    [0, 0, scl, 0],
+    [0, 0, 0, 1]
+  ];
+
+  let pontosEscalados = [];
+  for (let i = 0; i < pontos.length; i++) {
+    let ponto = pontos[i];
+    let pontoEscalado = matriz44x41(matrizS, ponto);
+    pontosEscalados.push(pontoEscalado);
+  }
+
+  return pontosEscalados;
+};
+function translacao(pontos) {
+
+  let matrizT = [
+    [1, 0, 0, translX],
+    [0, 1, 0, translY],
+    [0, 0, 1, translZ],
+    [0, 0, 0, 1]
+  ];
+
+  let pontosTransladados = [];
+  for (let i = 0; i < pontos.length; i++) {
+    let ponto = pontos[i];
+    let pontoTransladado = matriz44x41(matrizT, ponto);
+    pontosTransladados.push(pontoTransladado);
+  }
+
+  return pontosTransladados;
+};
 
 /////////////////////////////////////////////////////////////////////
 
@@ -381,11 +441,15 @@ function onFieldChange() {
 
   dp = parseInt(document.getElementById('dpValue').value) || 0;
 
-  xRot = parseInt(document.getElementById('xRot').value) || 0;
-  console.log(xRot);
-  
-  yRot = parseInt(document.getElementById('yRot').value) || 0;
-  zRot = parseInt(document.getElementById('zRot').value) || 0;
+  rotX = parseInt(document.getElementById('xRot').value) || 0;
+  rotY = parseInt(document.getElementById('yRot').value) || 0;
+  rotZ = parseInt(document.getElementById('zRot').value) || 0;
+
+  scl = parseFloat(document.getElementById('scl').value) || 0;
+
+  translX = parseFloat(document.getElementById('translX').value) || 0;
+  translY = parseFloat(document.getElementById('translY').value) || 0;
+  translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   //console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
   updateVetMalhas();
@@ -403,3 +467,9 @@ document.getElementById('dpValue').addEventListener('input', onFieldChange);
 document.getElementById('xRot').addEventListener('input', onFieldChange);
 document.getElementById('yRot').addEventListener('input', onFieldChange);
 document.getElementById('zRot').addEventListener('input', onFieldChange);
+
+document.getElementById('scl').addEventListener('input', onFieldChange);
+
+document.getElementById('translX').addEventListener('input', onFieldChange);
+document.getElementById('translY').addEventListener('input', onFieldChange);
+document.getElementById('translZ').addEventListener('input', onFieldChange);

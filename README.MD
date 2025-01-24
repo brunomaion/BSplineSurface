@@ -6,7 +6,8 @@ Construir:
 0. problema . paintFaces
 
 1. Rotação
-FAZENDO A ROTAÇÃO ERRADA CONFERIR COMO FAZ
+FAZENDO A ROTAÇÃO ERRADA CONFERIR COMO FAZ ok
+mudar os inteiros para graus
 
 
 2. Escala
