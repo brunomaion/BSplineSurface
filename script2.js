@@ -13,6 +13,7 @@ class malha {
     //console.log(vetVrp);
     //console.log(vetP);
     //console.log(dp);
+    console.log(Math.cos(60));
     
   }
 
@@ -319,7 +320,7 @@ function rotacao(pontos) {
   }
   
   function rotacaoX(pontoX) {
-    let angulo = rotX;    
+    let angulo = rotX  * (Math.PI / 180);   
     let matrizRotacao = [
       [1, 0, 0, 0],
       [0, Math.cos(angulo), -Math.sin(angulo), 0],
@@ -331,7 +332,7 @@ function rotacao(pontos) {
   }
 
   function rotacaoY(pontoY) {
-    let angulo = rotY;
+    let angulo = rotY * (Math.PI / 180);
     let matrizRotacao = [
       [Math.cos(angulo), 0, Math.sin(angulo), 0],
       [0, 1, 0, 0],
@@ -342,7 +343,7 @@ function rotacao(pontos) {
   }
 
   function rotacaoZ(pontoZ) {
-    let angulo = rotZ;
+    let angulo = rotZ * (Math.PI / 180);;
     let matrizRotacao = [
       [Math.cos(angulo), -Math.sin(angulo), 0, 0],
       [Math.sin(angulo), Math.cos(angulo), 0, 0],
