@@ -4,7 +4,7 @@ class malha {
   constructor(pontosdamalha) {
     this.pontosSru = pontosdamalha;
     this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
-    this.mMalha = 4;
+    this.mMalha = 10;
     this.nMalha = 4;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
   }
@@ -65,9 +65,6 @@ class malha {
       let incrPontosInternosM1y = tamanhoTotalArestaM1y / (m+1);
       let tamanhoTotalArestaM1z = (p2[2] - p1[2]);
       let incrPontosInternosM1z = tamanhoTotalArestaM1z / (m+1);
-
-      console.log(incrPontosInternosM1z);
-      
 
       let tamanhoTotalArestam2x = (p3[0] - p4[0]);
       let incrPontosInternosm2x = tamanhoTotalArestam2x / (m+1);
@@ -161,9 +158,15 @@ function drawLine(x1, y1, x2, y2) {
   ctx.lineTo(x2, y2); // Desenha até o ponto final
   ctx.stroke(); // Renderiza a linha
 }
-
 function drawMalha (gridMalha, m, n) {
 
+  const canvas = document.getElementById('viewport'); // Corrigido para o ID correto
+  
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.stroke();
+  
   let pontosM1 = gridMalha[0];
   let pontosM2 = gridMalha[1];
   let pontosN1 = gridMalha[2];
@@ -198,10 +201,8 @@ function drawCircle(x, y, radius, color) {
   ctx.fillStyle = color;
   ctx.fill();
 }
-
 function drawVetMalhas() {
   for (let i = 0; i < vetMalha.length; i++) {
-    draw(vetMalha[i]);
     drawMalha(vetMalha[i].gridMalha, vetMalha[i].mMalha, vetMalha[i].nMalha);
   }
 }
@@ -212,7 +213,7 @@ function updateVetMalhas() {
 }
 
 
-//////// VARIRAVEIS GLOBAIS ////////////////////////////////////////
+{//////////////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
 var vetMalha = []
 
@@ -235,12 +236,12 @@ var rotX = 0;
 var rotY = 0;
 var rotZ = 0;
 
-var scl = 1.0;
+    var scl = 1.0;
 
 var translX = 0;
 var translY = 0;
 var translZ = 0;
-
+}
 
 //////////// FUNCOES ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
@@ -529,43 +530,6 @@ function translacao(pontos) {
 
 /////////////////////////////////////////////////////////////////////
 
-function draw(malha) {
-  const canvas = document.getElementById('viewport'); // Corrigido para o ID correto
-  
-  if (!canvas) {
-      console.error('Canvas element not found!');
-      return;
-  }
-
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  ctx.beginPath();
-  
-  let pontosSRT = malha.pontosSRT;
-  for (let i = 0; i < pontosSRT.length; i++) {
-      let startPoint = pontosSRT[i];
-      let endPoint = pontosSRT[(i + 1) % pontosSRT.length];
-      ctx.moveTo(startPoint[0], startPoint[1]);
-      ctx.lineTo(endPoint[0], endPoint[1]);
-  }
-  ctx.stroke();
-}
-
-
-
-/////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////
-
 /*
 let fatH= 1;
 let ponto1 = [0,0,4, fatH];
@@ -587,33 +551,7 @@ vetMalha.push(malha1);
 drawVetMalhas();
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////// HTML
+////////////////////////////////////////// HTML //////////////////////////////////////////
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;

@@ -51,31 +51,31 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
     let tamanhoTotalArestaN2z = (p4[2] - p1[2]);
     let incrPontosInternosN2z = tamanhoTotalArestaN2z / (n+1);
 
-    pontosM1 = []
+    let pontosM1 = []
     pontosM1.push(p1);
-    pontosM2 = []
+    let pontosM2 = []
     pontosM2.push(p4);
 
-    pontosN1 = []
+    let pontosN1 = []
     pontosN1.push(p2);
-    pontosN2 = []
+    let pontosN2 = []
     pontosN2.push(p1);
 
-    pontoX1m = p1[0];
-    pontoY1m = p1[1];
-    pontoZ1m = p1[2];
+    let pontoX1m = p1[0];
+    let pontoY1m = p1[1];
+    let pontoZ1m = p1[2];
 
-    pontoX2m = p4[0];
-    pontoY2m = p4[1];
-    pontoZ2m = p4[2];
+    let pontoX2m = p4[0];
+    let pontoY2m = p4[1];
+    let pontoZ2m = p4[2];
 
-    pontoX1n = p2[0];
-    pontoY1n = p2[1];
-    pontoZ1n = p2[2];
+    let pontoX1n = p2[0];
+    let pontoY1n = p2[1];
+    let pontoZ1n = p2[2];
 
-    pontoX2n = p1[0];
-    pontoY2n = p1[1];
-    pontoZ2n = p1[2];
+    let pontoX2n = p1[0];
+    let pontoY2n = p1[1];
+    let pontoZ2n = p1[2];
 
     for (let i = 0; i < m; i++) {
         pontoX1m += incrPontosInternosM1x;
@@ -108,9 +108,9 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
     pontosN1.push(p3);
     pontosN2.push(p4);
 
- return [pontosM1, pontosM2, pontosN1, pontosN2];
+return [pontosM1, pontosM2, pontosN1, pontosN2];
 }
-function getFaces(gridMalha, m, n) {
+function getFaces(gridMalha, m) {
     let pontosM1 = gridMalha[0];
     let pontosM2 = gridMalha[1];
     let faces = [];
@@ -170,9 +170,37 @@ function drawCircle(x, y, radius, color) {
     ctx.fillStyle = color;
     ctx.fill();
 }
+function pontosDeControle(gridMalha) {
+
+    function posicaoPontoControle(inicio, fim, pontosControle) {
+        let pontos = [];
+        for (let i = 0; i <= pontosControle; i++) {
+            let t = i / pontosControle; // Parâmetro de interpolação (de 0 a 1)
+            
+            let x = inicio[0] + t * (fim[0] - inicio[0]);
+            let y = inicio[1] + t * (fim[1] - inicio[1]);
+            let z = inicio[2] + t * (fim[2] - inicio[2]);
+            
+            pontos.push([x, y, z]);
+        }
+        return pontos;
+    }
+
+
+    
+
+    let pontoC = [];
+    for (let index = 0; index < array.length; index++) {
+        const element = array[index];
+        
+    }
+}
+
+
 
 let m = 0;
 let n = 8;
+let pontosControle = 1;
 
 let p1 = [100, 100, 10];
 let p2 = [100, 400, -10];
@@ -181,11 +209,8 @@ let p4 = [500, 100, 10];
 
 pontosEntrada = [p1, p2, p3, p4];
 let gridMalha = createMalha(pontosEntrada, m, n);
-//console.log(gridMalha);
+console.log(gridMalha);
 let faces = getFaces(gridMalha, m, n)
-
-console.log(faces);
-
 
 
 drawMalha(gridMalha, m, n);

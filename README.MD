@@ -11,6 +11,8 @@ mudar os inteiros para graus
 
 
 2. Escala
+
+
 3. Listagem de malhas e manipalçao de diversas malhas
 
 
@@ -25,3 +27,10 @@ mudar os inteiros para graus
 
 Os pontos de controle são por interseções?
 
+
+
+## horas gasta
+?? - 4
+22/1 - 3,5
+23/1 - 4
+24/1 - 3,5
