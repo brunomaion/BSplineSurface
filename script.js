@@ -124,12 +124,13 @@ class malha {
 
 }
 
-function drawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.beginPath(); // Inicia o caminho
   ctx.moveTo(x1, y1); // Move para o ponto inicial
   ctx.lineTo(x2, y2); // Desenha até o ponto final
+  ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
 function drawMalha (gridMalha, m, n) {
@@ -239,9 +240,9 @@ function printEixo3d(){
   
   if (eixoBool) {
     console.log('desenhando eixo');
-    drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1]);
-    drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1]);
-    drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1]);
+    drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
+    drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
+    drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
     var canvas = document.getElementById('viewport');
     var ctx = canvas.getContext('2d');
     ctx.font = '12px Arial';
@@ -589,6 +590,7 @@ let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha);
 vetMalha.push(malha1);
+
 drawVetMalhas();
 printEixo3d();
 
