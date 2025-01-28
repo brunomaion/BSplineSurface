@@ -2,14 +2,12 @@
 
 Construir:
 
-bug pontos sru srt para fora UPDATE!!
-
-0. problema . paintFaces
-
-
-
-
 3. Listagem de malhas e manipalçao de diversas malhas
+Clean CVX ERRO!!!
+
+Quando mudar axonometrica sim rotaçoes nao, mudar updates !!!
+
+
 4. aplicar Bspline
 0.zbuffer
 5. cores e background

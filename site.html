@@ -8,7 +8,44 @@
 </head>
 <body>
 
-  <div class="sidebar">
+  <div class="sidebarLeft">
+    <div class="tipoBspline"> 
+      <label>B-Splines:</label><br>
+      <select id="tipoBspline" name="tipoBspline">
+        <option value="bsplineOpen">Normal</option>
+        <option value="bsplineClamped">Clamped</option>
+        <option value="bsplineClosed">Closed</option>
+      </select>
+    </div>
+
+    <div class="pontosControle">
+      <label>Pontos de Controle:</label><br>
+      <label for="mPontos">M (4 &le; m &le; 100):</label>
+      <input type="number" id="mPontos" name="mPontos" min="4" max="100" value="4"><br>
+      <label for="nPontos">N (4 &le; n &le; 100):</label>
+      <input type="number" id="nPontos" name="nPontos" min="4" max="100" value="4">
+    </div>
+
+    <div class="numeroSegmentos">
+      <label for="numSegmentos">Número de Segmentos:</label>
+      <input type="number" id="numSegmentos" name="numSegmentos" min="1" max="50" value="1">
+    </div>
+
+    <button id="aplicarBtn">Aplicar</button>
+
+
+    <div class="objetoMalha">
+      <label for="malhaSelecionada">Objeto Malha:</label><br>
+      <select id="malhaSelecionada" name="malhaSelecionada">
+        <!-- As opções serão adicionadas dinamicamente via JavaScript -->
+      </select>
+    </div>
+
+  </div>
+
+
+
+  <div class="sidebarRight">
 
     <div class="selectVisao"> 
       <label>VISÃO:</label><br>

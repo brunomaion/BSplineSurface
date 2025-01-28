@@ -1,10 +1,10 @@
 class malha {
 
-  constructor(pontosdamalha) {
+  constructor(pontosdamalha, m, n) {
     this.pontosSru = pontosdamalha;
     this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
-    this.mMalha = 10;
-    this.nMalha = 4;
+    this.mMalha = m;
+    this.nMalha = n;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
   }
   
@@ -121,6 +121,15 @@ class malha {
 
   return [pontosM1, pontosM2, pontosN1, pontosN2];
   }
+
+}
+
+function createMalha2(pontosMalha, m, n){ // pontos = [p1, p2 ]
+  
+
+
+
+
 
 }
 
@@ -252,7 +261,7 @@ function printEixo3d(){
   } 
 }
 
-{//////////////// VARIRAVEIS GLOBAIS ////////////////
+{//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
 var vetMalha = []
 
@@ -285,7 +294,7 @@ var translZ = 0;
 eixoBool = true;
 } ////////////////////////////////////////////////
 
-{//////////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
+{//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
@@ -587,8 +596,17 @@ let ponto2 = [34.1, 3.4, 27.2, 1];
 let ponto3 = [18.8, 5.6, 14.6, 1];
 let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha);
+malha1 = new malha(pontosMalha, 10, 4);
 vetMalha.push(malha1);
+
+ponto1 = [15.2, 0.7, 42.3, 1];
+ponto2 = [40.1, 3.4, 27.2, 1];
+ponto3 = [20.8, 5.6, 14.6, 1];
+ponto4 = [10, 2.9, 29.7, 1];
+pontosMalha = [ponto1, ponto2, ponto3, ponto4]
+
+malha2 = new malha(pontosMalha, 10, 8);
+vetMalha.push(malha2);
 
 drawVetMalhas();
 printEixo3d();
@@ -653,4 +671,16 @@ document.getElementById('translZ').addEventListener('input', onFieldChange);
 
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 
+
+
+const selectMalha = document.getElementById("malhaSelecionada"); // Certifique-se de que o ID está correto
+vetMalha.forEach((malha, index) => {
+    let option = document.createElement("option");
+    option.value = index;  // O valor pode ser um índice ou outro identificador único
+    option.textContent = `Malha ${index + 1}`;  // Agora, exibe corretamente o nome da malha da lista
+    selectMalha.appendChild(option);
+});
+
 }/////////////////////////////////////////////////////////////////////////////////////////
+
+

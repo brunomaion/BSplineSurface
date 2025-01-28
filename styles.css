@@ -52,7 +52,12 @@ button:hover {
   margin-top: 5px; /* Espaço acima da primeira sub-div */
 }
 
-.escala, .eixo3d > div {
+.escala > div {
+  margin-bottom: 5px; /* Espaço entre as sub-divs */
+  margin-top: 5px; /* Espaço acima da primeira sub-div */
+}
+
+.eixo3d > div {
   margin-bottom: 5px; /* Espaço entre as sub-divs */
   margin-top: 5px; /* Espaço acima da primeira sub-div */
 }
@@ -78,17 +83,30 @@ button:hover {
   width: 35px;
 }
 
-.sidebar > div {
-  margin-top: 20px;
-}
 
-
-.sidebar {
-
+.sidebarLeft, .sidebarRight {
+  position: absolute;
+  top: 0;
   width: 250px;
+  height: 100vh;
   background-color: #f4f4f4;
   padding: 10px;
-  box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.1); /* Sombra para dar destaque à sidebar */
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarLeft > div, .sidebarRight > div {
+  margin-top: 10px;
+  margin-bottom: 10px;
+
+}
+
+.sidebarLeft {
+  left: 0;
+}
+
+.sidebarRight {
+  right: 0;
+  box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.1);
 }
 
 
