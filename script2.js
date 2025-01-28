@@ -1,9 +1,8 @@
-
 class malha {
 
   constructor(pontosdamalha) {
     this.pontosSru = pontosdamalha;
-    this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
+    this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
     this.mMalha = 10;
     this.nMalha = 4;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
@@ -18,34 +17,9 @@ class malha {
     
   }
 
-  pontosSRUtoSRT(pontos) {
-    let novosPontosSRT = [];
-
-    pontos = rotacao(pontos);
-    pontos = escala(pontos);
-    pontos = translacao(pontos);
-
-    if (visao == 'perspectiva') {
-      for (let i = 0; i < pontos.length; i++) {
-        let pontoSRU = pontos[i];
-        let pontoSRT = projPersp(pontoSRU);
-        novosPontosSRT.push(pontoSRT);
-      }
-      return novosPontosSRT;
-
-    } else if (visao == 'axonometrica') {
-      for (let i = 0; i < pontos.length; i++) {
-        let pontoSRU = pontos[i];
-        let pontoSRT = projAxonometrica(pontoSRU);
-        novosPontosSRT.push(pontoSRT);
-      }
-      return novosPontosSRT
-    }
-  }
-
   updateValores() {
     //console.log('atualizando valores');
-    this.pontosSRT = this.pontosSRUtoSRT(this.pontosSru);
+    this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
     this.printPoligono();
     drawVetMalhas();
@@ -150,12 +124,13 @@ class malha {
 
 }
 
-function drawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.beginPath(); // Inicia o caminho
   ctx.moveTo(x1, y1); // Move para o ponto inicial
   ctx.lineTo(x2, y2); // Desenha até o ponto final
+  ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
 function drawMalha (gridMalha, m, n) {
@@ -211,7 +186,72 @@ function updateVetMalhas() {
     vetMalha[i].updateValores();
   }
 }
+function pontosSRUtoSRT(pontos) {
+  let novosPontosSRT = [];
 
+  pontos = rotacao(pontos);
+  pontos = escala(pontos);
+  pontos = translacao(pontos);
+
+  if (visao == 'perspectiva') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projPersp(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT;
+
+  } else if (visao == 'axonometrica') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projAxonometrica(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT
+  }
+}
+function eixoPontosSRUtoSRT(pontos) {
+  let novosPontosSRT = [];
+  if (visao == 'perspectiva') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projPersp(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT;
+
+  } else if (visao == 'axonometrica') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projAxonometrica(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT
+  }
+}
+function printEixo3d(){
+  let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
+  let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
+  let eixoZSRU = [[0, 0, 0, 1], [0, 0, 10, 1]];
+  
+  eixoXSRT = eixoPontosSRUtoSRT(eixoXSRU);
+  eixoYSRT = eixoPontosSRUtoSRT(eixoYSRU);
+  eixoZSRT = eixoPontosSRUtoSRT(eixoZSRU);
+  
+  if (eixoBool) {
+    console.log('desenhando eixo');
+    drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
+    drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
+    drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
+    var canvas = document.getElementById('viewport');
+    var ctx = canvas.getContext('2d');
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText('X', eixoXSRT[1][0], eixoXSRT[1][1]);
+    ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
+    ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
+  } 
+}
 
 {//////////////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
@@ -241,9 +281,12 @@ var rotZ = 0;
 var translX = 0;
 var translY = 0;
 var translZ = 0;
-}
 
-//////////// FUNCOES ////////////////////////////////////////////////
+//eixo
+eixoBool = true;
+} ////////////////////////////////////////////////
+
+{//////////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
@@ -294,12 +337,9 @@ function matriz44x41(matrix4x4, ponto) {
 function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
 }
-/////////////////////////////////////////////////////////////////////
+}/////////////////////////////////////////////////////////////////////
 
-
-
-
-//////// PROJECAO /////////////////////////////////////////////////
+{//////// PROJECAO /////////////////////////////////////////////////
 // PONTO = [x, y, z, 1] 
 
 function projPersp(ponto) { 
@@ -410,7 +450,9 @@ function projAxonometrica(ponto) {
   return pontoASRT;
 };
 
-//////// TRANSFORMACAO ////////////////////////////////////////////////
+}/////////////////////////////////////////////////////////////////////
+
+{//////// TRANSFORMACAO ////////////////////////////////////////////////
 
 function rotacao(pontos) {
   let centrX = 0;
@@ -528,7 +570,7 @@ function translacao(pontos) {
   return pontosTransladados;
 };
 
-/////////////////////////////////////////////////////////////////////
+}/////////////////////////////////////////////////////////////////////
 
 /*
 let fatH= 1;
@@ -548,14 +590,17 @@ let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha);
 vetMalha.push(malha1);
+
 drawVetMalhas();
+printEixo3d();
 
 
-////////////////////////////////////////// HTML //////////////////////////////////////////
+{////////////////////////////////////////// HTML //////////////////////////////////////////
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
   updateVetMalhas();
+  printEixo3d();
 });
 
 function onFieldChange() {
@@ -581,8 +626,11 @@ function onFieldChange() {
   translY = parseFloat(document.getElementById('translY').value) || 0;
   translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
+  eixoBool = document.getElementById('eixo3d').checked;
+
   //console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
   updateVetMalhas();
+  printEixo3d();
 }
 
 // Adicionando os listeners para os campos
@@ -603,3 +651,7 @@ document.getElementById('scl').addEventListener('input', onFieldChange);
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
+
+document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+
+}/////////////////////////////////////////////////////////////////////////////////////////

@@ -239,7 +239,6 @@ function printEixo3d(){
   eixoZSRT = eixoPontosSRUtoSRT(eixoZSRU);
   
   if (eixoBool) {
-    console.log('desenhando eixo');
     drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
     drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
     drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
