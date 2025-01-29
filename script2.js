@@ -1,31 +1,33 @@
 class malha {
 
-  constructor(pontosdamalha) {
-    this.pontosSru = pontosdamalha;
-    this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
-    this.mMalha = 10;
-    this.nMalha = 4;
+  constructor(pontosdamalha, m, n, desc) {
+    //TRANSFORMACOES
+    this.scl = 1.0;
+    this.rotX = 0;
+    this.rotY = 0;
+    this.rotZ = 0;
+    this.translX = 0;
+    this.translY = 0;
+    this.translZ = 0;  
+
+    this.pontosSRU_original = pontosdamalha;
+    this.pontosSRU = this.pontosSRU_original;
+    this.pontosSRT = this.transformacaoSRT(this.pontosSRU);
+    this.mMalha = m;
+    this.nMalha = n;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
-  }
+    this.desc = desc;
+    this.visibilidadeMalha = true;
+  };
+
+  updateMalha() {
+    this.pontosSRU = this.escala(this.pontosSRU_original);
+    this.pontosSRU = this.rotacao(this.pontosSRU);
+    this.pontosSRU = this.translacao(this.pontosSRU);
+    this.pontosSRT = pontosSRUtoSRT(this.pontosSRU);
+    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
+  };
   
-  printPoligono() {
-    //console.log(this.pontosSRT);
-    //console.log(vetVrp);
-    //console.log(vetP);
-    //console.log(dp);
-    //console.log(Math.cos(60));
-    
-  }
-
-  updateValores() {
-    //console.log('atualizando valores');
-    this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
-    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
-    this.printPoligono();
-    drawVetMalhas();
-    drawMalha(this.gridMalha, this.mMalha, this.nMalha);
-  }
-
   createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
 
       let p1 = pontosMalha[0];
@@ -120,9 +122,142 @@ class malha {
       pontosN2.push(p4);
 
   return [pontosM1, pontosM2, pontosN1, pontosN2];
-  }
+  };
 
+  escala(pontos) {
+    console.log(pontos);
+    
+    let matrizS = [
+      [this.scl, 0, 0, 0],
+      [0, this.scl, 0, 0],
+      [0, 0, this.scl, 0],
+      [0, 0, 0, 1]
+    ];
+    let pontosEscalados = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let pontoEscalado = matriz44x41(matrizS, ponto);
+      pontosEscalados.push(pontoEscalado);
+    }
+    return pontosEscalados;
+
+  };
+
+  rotacao(pontos) {
+    console.log('rotacao', this.rotX , this.rotY, this.rotZ);
+
+    let var_rotacaoX = this.rotX * (Math.PI / 180);
+    let var_rotacaoY = this.rotY * (Math.PI / 180);
+    let var_rotacaoZ = this.rotZ * (Math.PI / 180);
+  
+    let centrX = 0;
+    let centrY = 0;
+    let centrZ = 0;
+    for (let i = 0; i < pontos.length; i++) {
+      centrX += pontos[i][0];
+      centrY += pontos[i][1];
+      centrZ += pontos[i][2]; 
+    };
+    centrX = centrX / pontos.length;
+    centrY = centrY / pontos.length;
+    centrZ = centrZ / pontos.length;
+    let centroide = [centrX, centrY, centrZ, 1];
+  
+    function translN(pontoN) {
+      let pontoTranslado = [
+        [1, 0, 0, -centroide[0]],
+        [0, 1, 0, -centroide[1]],
+        [0, 0, 1, -centroide[2]],
+        [0, 0, 0, 1]
+      ];
+      return matriz44x41(pontoTranslado, pontoN);
+    }
+  
+    function translP(pontoN) {
+      let pontoTranslado = [
+        [1, 0, 0, centroide[0]],
+        [0, 1, 0, centroide[1]],
+        [0, 0, 1, centroide[2]],
+        [0, 0, 0, 1]
+      ];
+      return matriz44x41(pontoTranslado, pontoN);
+    }
+    
+    function rotacaoX(pontoX) {
+      let angulo = var_rotacaoX;
+      let matrizRotacao = [
+        [1, 0, 0, 0],
+        [0, Math.cos(angulo), -Math.sin(angulo), 0],
+        [0, Math.sin(angulo), Math.cos(angulo), 0],
+        [0, 0, 0, 1]
+      ];
+  
+      return matriz44x41(matrizRotacao, pontoX);
+    }
+  
+    function rotacaoY(pontoY) {
+      let angulo = var_rotacaoY;
+      let matrizRotacao = [
+        [Math.cos(angulo), 0, Math.sin(angulo), 0],
+        [0, 1, 0, 0],
+        [-Math.sin(angulo), 0, Math.cos(angulo), 0],
+        [0, 0, 0, 1]
+      ];
+      return matriz44x41(matrizRotacao, pontoY);
+    }
+  
+    function rotacaoZ(pontoZ) {
+      let angulo = var_rotacaoZ;
+      let matrizRotacao = [
+        [Math.cos(angulo), -Math.sin(angulo), 0, 0],
+        [Math.sin(angulo), Math.cos(angulo), 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+      ];
+      return matriz44x41(matrizRotacao, pontoZ);
+    }
+
+    let pontosRotacionado = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      ponto = translN(ponto);
+      ponto = rotacaoX(ponto);
+      ponto = rotacaoY(ponto);
+      ponto = rotacaoZ(ponto);
+      ponto = translP(ponto);
+      pontosRotacionado.push(ponto);
+    }
+    return pontosRotacionado; 
+  };
+  
+  translacao(pontos) {
+  
+    let matrizT = [
+      [1, 0, 0, this.translX],
+      [0, 1, 0, this.translY],
+      [0, 0, 1, this.translZ],
+      [0, 0, 0, 1]
+    ];
+  
+    let pontosTransladados = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let pontoTransladado = matriz44x41(matrizT, ponto);
+      pontosTransladados.push(pontoTransladado);
+    }
+  
+    return pontosTransladados;
+  };
+
+  transformacaoSRT(pontos) {
+    let pontosEscalados = this.escala(pontos);
+    let pontosRotacionados = this.rotacao(pontosEscalados);
+    let pontosTransladados = this.translacao(pontosRotacionados);
+    let pontosSRT = pontosSRUtoSRT(pontosTransladados);
+    return pontosSRT;
+  };
 }
+
 
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -133,65 +268,14 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
-function drawMalha (gridMalha, m, n) {
-
-  const canvas = document.getElementById('viewport'); // Corrigido para o ID correto
-  
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath();
-  ctx.stroke();
-  
-  let pontosM1 = gridMalha[0];
-  let pontosM2 = gridMalha[1];
-  let pontosN1 = gridMalha[2];
-  let pontosN2 = gridMalha[3];
-
-  for (let i = 0; i < m+2; i++) {
-      pontom1 = pontosM1[i];
-      pontom2 = pontosM2[i];
-      drawLine(pontom1[0], pontom1[1], pontom2[0], pontom2[1]);
-  }
-
-  for (let i = 0; i < (n+2); i++) {
-      ponton1 = pontosN1[i];
-      ponton2 = pontosN2[i];
-      drawLine(ponton1[0], ponton1[1], ponton2[0], ponton2[1]);
-  }
-
-  for (let i = 0; i < m+2; i++) {
-      for (let j = 0; j < n+2; j++) {
-          let x = pontosM1[i][0] + (pontosM2[i][0] - pontosM1[i][0]) * (j / (n+1));
-          let y = pontosM1[i][1] + (pontosM2[i][1] - pontosM1[i][1]) * (j / (n+1));
-          drawCircle(x, y, 1, 'red');
-      }
-  }
-}
-function drawCircle(x, y, radius, color) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-function drawVetMalhas() {
-  for (let i = 0; i < vetMalha.length; i++) {
-    drawMalha(vetMalha[i].gridMalha, vetMalha[i].mMalha, vetMalha[i].nMalha);
-  }
-}
-function updateVetMalhas() {
-  for (let i = 0; i < vetMalha.length; i++) {
-    vetMalha[i].updateValores();
-  }
-}
 function pontosSRUtoSRT(pontos) {
   let novosPontosSRT = [];
 
-  pontos = rotacao(pontos);
-  pontos = escala(pontos);
-  pontos = translacao(pontos);
+  //pontos = escala(pontos);
+  
+  //pontos = rotacao(pontos);
+  
+  //pontos = translacao(pontos);
 
   if (visao == 'perspectiva') {
     for (let i = 0; i < pontos.length; i++) {
@@ -210,7 +294,7 @@ function pontosSRUtoSRT(pontos) {
     return novosPontosSRT
   }
 }
-function eixoPontosSRUtoSRT(pontos) {
+function eixopontosSRUtoSRT(pontos) {
   let novosPontosSRT = [];
   if (visao == 'perspectiva') {
     for (let i = 0; i < pontos.length; i++) {
@@ -234,12 +318,11 @@ function printEixo3d(){
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
   let eixoZSRU = [[0, 0, 0, 1], [0, 0, 10, 1]];
   
-  eixoXSRT = eixoPontosSRUtoSRT(eixoXSRU);
-  eixoYSRT = eixoPontosSRUtoSRT(eixoYSRU);
-  eixoZSRT = eixoPontosSRUtoSRT(eixoZSRU);
+  eixoXSRT = eixopontosSRUtoSRT(eixoXSRU);
+  eixoYSRT = eixopontosSRUtoSRT(eixoYSRU);
+  eixoZSRT = eixopontosSRUtoSRT(eixoZSRU);
   
   if (eixoBool) {
-    console.log('desenhando eixo');
     drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
     drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
     drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
@@ -252,8 +335,34 @@ function printEixo3d(){
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
 }
+function drawMalhas(vetMalha) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  printEixo3d();
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    let gridMalha = malha.gridMalha;
+    if (malha.visibilidadeMalha == true) {
+      for (let j = 0; j < gridMalha.length; j++) {
+        let pontos = gridMalha[j];
+        for (let k = 0; k < pontos.length - 1; k++) {
+          let ponto1 = pontos[k];
+          let ponto2 = pontos[k + 1];
+          drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
+        }
+      }
+    }
+  }
+}
+function updateVetMalha() {
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    malha.updateMalha();
+  }
+}
 
-{//////////////// VARIRAVEIS GLOBAIS ////////////////
+{//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
 var vetMalha = []
 
@@ -271,22 +380,13 @@ var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
 var vetP = [20, 10, 25];
 
-// transformaçoes
-var rotX = 0;
-var rotY = 0;
-var rotZ = 0;
 
-    var scl = 1.0;
-
-var translX = 0;
-var translY = 0;
-var translZ = 0;
 
 //eixo
 eixoBool = true;
 } ////////////////////////////////////////////////
 
-{//////////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
+{//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
@@ -321,17 +421,13 @@ function matriz44(a, b) {
   return result;
 }
 function matriz44x41(matrix4x4, ponto) {
-  //console.log(ponto);
   let matrix4x1 = [ponto[0], ponto[1], ponto[2], fatH];
-  //console.log(matrix4x1);
-  // Inicializa o vetor resultado 4x1
   const result = Array(4).fill(0);
   for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
           result[i] += matrix4x4[i][j] * matrix4x1[j];
       }
   }
-  //console.log(result);
   return result; 
 }
 function fatorHomogeneo(vetor) {
@@ -343,7 +439,6 @@ function fatorHomogeneo(vetor) {
 // PONTO = [x, y, z, 1] 
 
 function projPersp(ponto) { 
-
   let vetN = [
     vetVrp[0] - vetP[0],
     vetVrp[1] - vetP[1],
@@ -393,8 +488,6 @@ function projPersp(ponto) {
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizPersp), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
   novoPonto = fatorHomogeneo(pontoASRT);
-  //console.log(novoPonto);
-
   return novoPonto;
 };
 function projAxonometrica(ponto) {
@@ -445,7 +538,6 @@ function projAxonometrica(ponto) {
   let matrizSruSrc = matriz44(matrizR, matrizT);
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizAxono), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
-  //console.log(pontoASRT);
 
   return pontoASRT;
 };
@@ -454,121 +546,7 @@ function projAxonometrica(ponto) {
 
 {//////// TRANSFORMACAO ////////////////////////////////////////////////
 
-function rotacao(pontos) {
-  let centrX = 0;
-  let centrY = 0;
-  let centrZ = 0;
-  for (let i = 0; i < pontos.length; i++) {
-    centrX += pontos[i][0];
-    centrY += pontos[i][1];
-    centrZ += pontos[i][2]; 
-  };
-  centrX = centrX / pontos.length;
-  centrY = centrY / pontos.length;
-  centrZ = centrZ / pontos.length;
-  centroide = [centrX, centrY, centrZ, 1];
 
-  function translN(pontoN) {
-    let pontoTranslado = [
-      [1, 0, 0, -centroide[0]],
-      [0, 1, 0, -centroide[1]],
-      [0, 0, 1, -centroide[2]],
-      [0, 0, 0, 1]
-    ];
-    return matriz44x41(pontoTranslado, pontoN);
-  }
-
-  function translP(pontoN) {
-    let pontoTranslado = [
-      [1, 0, 0, centroide[0]],
-      [0, 1, 0, centroide[1]],
-      [0, 0, 1, centroide[2]],
-      [0, 0, 0, 1]
-    ];
-    return matriz44x41(pontoTranslado, pontoN);
-  }
-  
-  function rotacaoX(pontoX) {
-    let angulo = rotX  * (Math.PI / 180);   
-    let matrizRotacao = [
-      [1, 0, 0, 0],
-      [0, Math.cos(angulo), -Math.sin(angulo), 0],
-      [0, Math.sin(angulo), Math.cos(angulo), 0],
-      [0, 0, 0, 1]
-    ];
-
-    return matriz44x41(matrizRotacao, pontoX);
-  }
-
-  function rotacaoY(pontoY) {
-    let angulo = rotY * (Math.PI / 180);
-    let matrizRotacao = [
-      [Math.cos(angulo), 0, Math.sin(angulo), 0],
-      [0, 1, 0, 0],
-      [-Math.sin(angulo), 0, Math.cos(angulo), 0],
-      [0, 0, 0, 1]
-    ];
-    return matriz44x41(matrizRotacao, pontoY);
-  }
-
-  function rotacaoZ(pontoZ) {
-    let angulo = rotZ * (Math.PI / 180);;
-    let matrizRotacao = [
-      [Math.cos(angulo), -Math.sin(angulo), 0, 0],
-      [Math.sin(angulo), Math.cos(angulo), 0, 0],
-      [0, 0, 1, 0],
-      [0, 0, 0, 1]
-    ];
-    return matriz44x41(matrizRotacao, pontoZ);
-  }
-  let pontosRotacionado = [];
-  for (let i = 0; i < pontos.length; i++) {
-    let ponto = pontos[i];
-    ponto = translN(ponto);
-    ponto = rotacaoX(ponto);
-    ponto = rotacaoY(ponto);
-    ponto = rotacaoZ(ponto);
-    ponto = translP(ponto);
-    pontosRotacionado.push(ponto);
-  }
-  return pontosRotacionado; 
-};
-function escala(pontos) {
-
-  let matrizS = [
-    [scl, 0, 0, 0],
-    [0, scl, 0, 0],
-    [0, 0, scl, 0],
-    [0, 0, 0, 1]
-  ];
-
-  let pontosEscalados = [];
-  for (let i = 0; i < pontos.length; i++) {
-    let ponto = pontos[i];
-    let pontoEscalado = matriz44x41(matrizS, ponto);
-    pontosEscalados.push(pontoEscalado);
-  }
-
-  return pontosEscalados;
-};
-function translacao(pontos) {
-
-  let matrizT = [
-    [1, 0, 0, translX],
-    [0, 1, 0, translY],
-    [0, 0, 1, translZ],
-    [0, 0, 0, 1]
-  ];
-
-  let pontosTransladados = [];
-  for (let i = 0; i < pontos.length; i++) {
-    let ponto = pontos[i];
-    let pontoTransladado = matriz44x41(matrizT, ponto);
-    pontosTransladados.push(pontoTransladado);
-  }
-
-  return pontosTransladados;
-};
 
 }/////////////////////////////////////////////////////////////////////
 
@@ -588,19 +566,27 @@ let ponto2 = [34.1, 3.4, 27.2, 1];
 let ponto3 = [18.8, 5.6, 14.6, 1];
 let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha);
+malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);
 
-drawVetMalhas();
-printEixo3d();
+ponto1 = [15.2, 0.7, 42.3, 1];
+ponto2 = [40.1, 3.4, 27.2, 1];
+ponto3 = [20.8, 5.6, 14.6, 1];
+ponto4 = [10, 2.9, 29.7, 1];
+pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
+
+malha2 = new malha(pontosMalha, 10, 8, 2222);
+vetMalha.push(malha2);
+
+drawMalhas(vetMalha);
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
-  updateVetMalhas();
-  printEixo3d();
+  updateVetMalha();
+  drawMalhas(vetMalha);
 });
 
 function onFieldChange() {
@@ -616,21 +602,19 @@ function onFieldChange() {
 
   dp = parseInt(document.getElementById('dpValue').value) || 0;
 
-  rotX = parseInt(document.getElementById('xRot').value) || 0;
-  rotY = parseInt(document.getElementById('yRot').value) || 0;
-  rotZ = parseInt(document.getElementById('zRot').value) || 0;
-
-  scl = parseFloat(document.getElementById('scl').value) || 0;
-
-  translX = parseFloat(document.getElementById('translX').value) || 0;
-  translY = parseFloat(document.getElementById('translY').value) || 0;
-  translZ = parseFloat(document.getElementById('translZ').value) || 0;
+  selectedMalha.rotX = parseInt(document.getElementById('xRot').value) || 0;
+  selectedMalha.rotY = parseInt(document.getElementById('yRot').value) || 0;
+  selectedMalha.rotZ = parseInt(document.getElementById('zRot').value) || 0;
+  selectedMalha.scl = parseFloat(document.getElementById('scl').value) || 0;
+  selectedMalha.translX = parseFloat(document.getElementById('translX').value) || 0;
+  selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
+  selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
+  selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
 
-  //console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
-  updateVetMalhas();
-  printEixo3d();
+  updateVetMalha();
+  drawMalhas(vetMalha);
 }
 
 // Adicionando os listeners para os campos
@@ -641,17 +625,63 @@ document.getElementById('xP').addEventListener('input', onFieldChange);
 document.getElementById('yP').addEventListener('input', onFieldChange);
 document.getElementById('zP').addEventListener('input', onFieldChange);
 document.getElementById('dpValue').addEventListener('input', onFieldChange);
-
 document.getElementById('xRot').addEventListener('input', onFieldChange);
 document.getElementById('yRot').addEventListener('input', onFieldChange);
 document.getElementById('zRot').addEventListener('input', onFieldChange);
-
 document.getElementById('scl').addEventListener('input', onFieldChange);
-
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
-
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
+
+// Seleciona o elemento <select> e o elemento para exibir a descrição
+const selectMalha = document.getElementById("malhaSelecionada");
+const malhaDescricao = document.getElementById("malhaDescricao");
+
+// Seleciona os inputs de rotação
+const sclInput = document.getElementById("scl");
+const rotXInput = document.getElementById("xRot");
+const rotYInput = document.getElementById("yRot");
+const rotZInput = document.getElementById("zRot");
+const translXInput = document.getElementById("translX");
+const translYInput = document.getElementById("translY");
+const translZInput = document.getElementById("translZ");
+const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
+
+// Função para atualizar os valores de rotação nos inputs
+function atualizarInputsMalha(malha) {
+  sclInput.value = malha.scl;
+  rotXInput.value = malha.rotX;
+  rotYInput.value = malha.rotY;
+  rotZInput.value = malha.rotZ;
+  translXInput.value = malha.translX;
+  translYInput.value = malha.translY;
+  translZInput.value = malha.translZ;
+  visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
+}
+
+// Preenche o seletor com as opções de malha
+vetMalha.forEach((malha, index) => {
+  let option = document.createElement("option");
+  option.value = index;  // O valor pode ser um índice ou outro identificador único
+  option.textContent = `Malha ${index + 1}`;  // Exibe o nome da malha
+  selectMalha.appendChild(option);
+});
+
+// Define a primeira malha (vetMalha[0]) como selecionada por padrão
+selectMalha.selectedIndex = 0; // Seleciona a primeira opção
+var selectedMalha = vetMalha[0];
+malhaDescricao.textContent = vetMalha[0].desc; // Exibe a descrição da primeira malha
+atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
+
+selectMalha.addEventListener("change", () => {
+  const selectedIndex = selectMalha.value; // Índice da malha selecionada
+  selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
+  malhaDescricao.textContent = selectedMalha.desc; // Exibe a descrição
+  atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
+});
 
 }/////////////////////////////////////////////////////////////////////////////////////////
+
+

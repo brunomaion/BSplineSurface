@@ -17,7 +17,7 @@ class malha {
     this.nMalha = n;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
     this.desc = desc;
-    this.visibilidadeFace = true;
+    this.visibilidadeMalha = true;
   };
 
   updateMalha() {
@@ -343,12 +343,14 @@ function drawMalhas(vetMalha) {
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     let gridMalha = malha.gridMalha;
-    for (let j = 0; j < gridMalha.length; j++) {
-      let pontos = gridMalha[j];
-      for (let k = 0; k < pontos.length - 1; k++) {
-        let ponto1 = pontos[k];
-        let ponto2 = pontos[k + 1];
-        drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
+    if (malha.visibilidadeMalha == true) {
+      for (let j = 0; j < gridMalha.length; j++) {
+        let pontos = gridMalha[j];
+        for (let k = 0; k < pontos.length - 1; k++) {
+          let ponto1 = pontos[k];
+          let ponto2 = pontos[k + 1];
+          drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
+        }
       }
     }
   }
@@ -609,6 +611,7 @@ function onFieldChange() {
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
+  selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
 
   updateVetMalha();
   drawMalhas(vetMalha);
@@ -630,6 +633,7 @@ document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
 
 // Seleciona o elemento <select> e o elemento para exibir a descrição
 const selectMalha = document.getElementById("malhaSelecionada");
@@ -643,7 +647,7 @@ const rotZInput = document.getElementById("zRot");
 const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
-
+const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
@@ -654,6 +658,7 @@ function atualizarInputsMalha(malha) {
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
+  visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
 }
 
 // Preenche o seletor com as opções de malha
