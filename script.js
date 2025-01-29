@@ -9,7 +9,7 @@ class malha {
     this.desc = desc;
     
     //TRANSFORMACOES
-    this.scl_malha = 1.0;
+    this.scl = 1.0;
     this.rotX_malha = 0;
     this.rotY_malha = 0;
     this.rotZ_malha = 0;
@@ -114,9 +114,9 @@ class malha {
   escala() {
     let pontos = this.pontosSru;
     let matrizS = [
-      [this.scl_malha, 0, 0, 0],
-      [0, this.scl_malha, 0, 0],
-      [0, 0, this.scl_malha, 0],
+      [this.scl, 0, 0, 0],
+      [0, this.scl, 0, 0],
+      [0, 0, this.scl, 0],
       [0, 0, 0, 1]
     ];
     let pontosEscalados = [];
@@ -567,9 +567,9 @@ function onFieldChange() {
   rotY = parseInt(document.getElementById('yRot').value) || 0;
   rotZ = parseInt(document.getElementById('zRot').value) || 0;
 
-  selectedMalha.scl_malha = parseFloat(document.getElementById('scl').value) || 0;
+  selectedMalha.scl = parseFloat(document.getElementById('scl').value) || 0;
   console.log(selectedMalha.desc);
-  console.log(selectedMalha.scl_malha);
+  console.log(selectedMalha.scl);
   
 
   translX = parseFloat(document.getElementById('translX').value) || 0;
@@ -612,7 +612,7 @@ const sclInput = document.getElementById("scl");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
-  sclInput.value = malha.scl_malha;
+  sclInput.value = malha.scl;
 }
 
 // Preenche o seletor com as opções de malha
