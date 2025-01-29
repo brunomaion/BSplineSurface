@@ -1,30 +1,33 @@
 class malha {
 
-  constructor(pontosdamalha, m, n) {
+  constructor(pontosdamalha, m, n, desc) {
     this.pontosSru = pontosdamalha;
     this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
     this.mMalha = m;
     this.nMalha = n;
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
+    this.desc = desc;
+    
+    //TRANSFORMACOES
+    this.scl_malha = 1.0;
+    this.rotX_malha = 0;
+    this.rotY_malha = 0;
+    this.rotZ_malha = 0;
   }
   
-  printPoligono() {
-    //console.log(this.pontosSRT);
-    //console.log(vetVrp);
-    //console.log(vetP);
-    //console.log(dp);
-    //console.log(Math.cos(60));
-    
-  }
-
   updateValores() {
+    //this.scl_malha = scl;
+    this.rotX_malharotX = rotX;
+    this.rotY_malharotY = rotY;
+    this.rotZ_malharotZ = rotZ;
+    this.escala();
+
     //console.log('atualizando valores');
     this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
     this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
-    this.printPoligono();
-    drawVetMalhas();
-    drawMalha(this.gridMalha, this.mMalha, this.nMalha);
   }
+
+
 
   createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
 
@@ -122,14 +125,22 @@ class malha {
   return [pontosM1, pontosM2, pontosN1, pontosN2];
   }
 
-}
-
-function createMalha2(pontosMalha, m, n){ // pontos = [p1, p2 ]
-  
-
-
-
-
+  escala() {
+    let pontos = this.pontosSru;
+    let matrizS = [
+      [this.scl_malha, 0, 0, 0],
+      [0, this.scl_malha, 0, 0],
+      [0, 0, this.scl_malha, 0],
+      [0, 0, 0, 1]
+    ];
+    let pontosEscalados = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let pontoEscalado = matriz44x41(matrizS, ponto);
+      pontosEscalados.push(pontoEscalado);
+    }
+    this.pontosSru = pontosEscalados;
+  };
 
 }
 
@@ -142,64 +153,9 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
-function drawMalha (gridMalha, m, n) {
-
-  const canvas = document.getElementById('viewport'); // Corrigido para o ID correto
-  
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath();
-  ctx.stroke();
-  
-  let pontosM1 = gridMalha[0];
-  let pontosM2 = gridMalha[1];
-  let pontosN1 = gridMalha[2];
-  let pontosN2 = gridMalha[3];
-
-  for (let i = 0; i < m+2; i++) {
-      pontom1 = pontosM1[i];
-      pontom2 = pontosM2[i];
-      drawLine(pontom1[0], pontom1[1], pontom2[0], pontom2[1]);
-  }
-
-  for (let i = 0; i < (n+2); i++) {
-      ponton1 = pontosN1[i];
-      ponton2 = pontosN2[i];
-      drawLine(ponton1[0], ponton1[1], ponton2[0], ponton2[1]);
-  }
-
-  for (let i = 0; i < m+2; i++) {
-      for (let j = 0; j < n+2; j++) {
-          let x = pontosM1[i][0] + (pontosM2[i][0] - pontosM1[i][0]) * (j / (n+1));
-          let y = pontosM1[i][1] + (pontosM2[i][1] - pontosM1[i][1]) * (j / (n+1));
-          drawCircle(x, y, 1, 'red');
-      }
-  }
-}
-function drawCircle(x, y, radius, color) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-function drawVetMalhas() {
-  for (let i = 0; i < vetMalha.length; i++) {
-    drawMalha(vetMalha[i].gridMalha, vetMalha[i].mMalha, vetMalha[i].nMalha);
-  }
-}
-function updateVetMalhas() {
-  for (let i = 0; i < vetMalha.length; i++) {
-    vetMalha[i].updateValores();
-  }
-}
 function pontosSRUtoSRT(pontos) {
   let novosPontosSRT = [];
-
   pontos = rotacao(pontos);
-  pontos = escala(pontos);
   pontos = translacao(pontos);
 
   if (visao == 'perspectiva') {
@@ -261,6 +217,34 @@ function printEixo3d(){
   } 
 }
 
+/// FUNCOES GERAIS (FOR EM VETOR DE MALHAS)
+function updateVetMalhas() {
+  /*
+  for (let i = 0; i < vetMalha.length; i++) {
+    vetMalha[i].updateValores();
+  }//*/
+  drawMalhas(vetMalha);
+}
+
+function drawMalhas(vetMalha) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  printEixo3d();
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    let gridMalha = malha.gridMalha;
+    for (let j = 0; j < gridMalha.length; j++) {
+      let pontos = gridMalha[j];
+      for (let k = 0; k < pontos.length - 1; k++) {
+        let ponto1 = pontos[k];
+        let ponto2 = pontos[k + 1];
+        drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
+      }
+    }
+  }
+}
+
 {//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
 var vetMalha = []
@@ -284,7 +268,7 @@ var rotX = 0;
 var rotY = 0;
 var rotZ = 0;
 
-    var scl = 1.0;
+var scl = 1.0;
 
 var translX = 0;
 var translY = 0;
@@ -329,17 +313,13 @@ function matriz44(a, b) {
   return result;
 }
 function matriz44x41(matrix4x4, ponto) {
-  //console.log(ponto);
   let matrix4x1 = [ponto[0], ponto[1], ponto[2], fatH];
-  //console.log(matrix4x1);
-  // Inicializa o vetor resultado 4x1
   const result = Array(4).fill(0);
   for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
           result[i] += matrix4x4[i][j] * matrix4x1[j];
       }
   }
-  //console.log(result);
   return result; 
 }
 function fatorHomogeneo(vetor) {
@@ -351,7 +331,6 @@ function fatorHomogeneo(vetor) {
 // PONTO = [x, y, z, 1] 
 
 function projPersp(ponto) { 
-
   let vetN = [
     vetVrp[0] - vetP[0],
     vetVrp[1] - vetP[1],
@@ -401,8 +380,6 @@ function projPersp(ponto) {
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizPersp), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
   novoPonto = fatorHomogeneo(pontoASRT);
-  //console.log(novoPonto);
-
   return novoPonto;
 };
 function projAxonometrica(ponto) {
@@ -453,7 +430,6 @@ function projAxonometrica(ponto) {
   let matrizSruSrc = matriz44(matrizR, matrizT);
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizAxono), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
-  //console.log(pontoASRT);
 
   return pontoASRT;
 };
@@ -541,24 +517,7 @@ function rotacao(pontos) {
   }
   return pontosRotacionado; 
 };
-function escala(pontos) {
 
-  let matrizS = [
-    [scl, 0, 0, 0],
-    [0, scl, 0, 0],
-    [0, 0, scl, 0],
-    [0, 0, 0, 1]
-  ];
-
-  let pontosEscalados = [];
-  for (let i = 0; i < pontos.length; i++) {
-    let ponto = pontos[i];
-    let pontoEscalado = matriz44x41(matrizS, ponto);
-    pontosEscalados.push(pontoEscalado);
-  }
-
-  return pontosEscalados;
-};
 function translacao(pontos) {
 
   let matrizT = [
@@ -596,7 +555,7 @@ let ponto2 = [34.1, 3.4, 27.2, 1];
 let ponto3 = [18.8, 5.6, 14.6, 1];
 let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, 10, 4);
+malha1 = new malha(pontosMalha, 10, 4, 2222);
 vetMalha.push(malha1);
 
 ponto1 = [15.2, 0.7, 42.3, 1];
@@ -605,19 +564,17 @@ ponto3 = [20.8, 5.6, 14.6, 1];
 ponto4 = [10, 2.9, 29.7, 1];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
-malha2 = new malha(pontosMalha, 10, 8);
+
+malha2 = new malha(pontosMalha, 10, 8, 1111);
 vetMalha.push(malha2);
 
-drawVetMalhas();
-printEixo3d();
-
+drawMalhas(vetMalha);
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
   updateVetMalhas();
-  printEixo3d();
 });
 
 function onFieldChange() {
@@ -637,17 +594,16 @@ function onFieldChange() {
   rotY = parseInt(document.getElementById('yRot').value) || 0;
   rotZ = parseInt(document.getElementById('zRot').value) || 0;
 
-  scl = parseFloat(document.getElementById('scl').value) || 0;
+  selectedMalha.scl_malha = parseFloat(document.getElementById('scl').value) || 0;
+  console.log(selectedMalha.scl_malha);
+  
 
   translX = parseFloat(document.getElementById('translX').value) || 0;
   translY = parseFloat(document.getElementById('translY').value) || 0;
   translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
-
-  //console.log('vetVrp:', vetVrp, 'vetP:', vetP, 'dp:', dp);
   updateVetMalhas();
-  printEixo3d();
 }
 
 // Adicionando os listeners para os campos
@@ -672,13 +628,44 @@ document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 
 
+// Seleciona o elemento <select> e o elemento para exibir a descrição
+const selectMalha = document.getElementById("malhaSelecionada");
+const malhaDescricao = document.getElementById("malhaDescricao");
 
-const selectMalha = document.getElementById("malhaSelecionada"); // Certifique-se de que o ID está correto
+// Seleciona os inputs de rotação
+const xRotInput = document.getElementById("xRot");
+const yRotInput = document.getElementById("yRot");
+const zRotInput = document.getElementById("zRot");
+const sclInput = document.getElementById("scl");
+
+// Função para atualizar os valores de rotação nos inputs
+function atualizarInputsMalha(malha) {
+  xRotInput.value = malha.rotX_malha;
+  yRotInput.value = malha.rotY_malha;
+  zRotInput.value = malha.rotZ_malha;
+  sclInput.value = malha.scl_malha;
+}
+
+// Preenche o seletor com as opções de malha
 vetMalha.forEach((malha, index) => {
-    let option = document.createElement("option");
-    option.value = index;  // O valor pode ser um índice ou outro identificador único
-    option.textContent = `Malha ${index + 1}`;  // Agora, exibe corretamente o nome da malha da lista
-    selectMalha.appendChild(option);
+  let option = document.createElement("option");
+  option.value = index;  // O valor pode ser um índice ou outro identificador único
+  option.textContent = `Malha ${index + 1}`;  // Exibe o nome da malha
+  selectMalha.appendChild(option);
+});
+
+// Define a primeira malha (vetMalha[0]) como selecionada por padrão
+selectMalha.selectedIndex = 0; // Seleciona a primeira opção
+var selectedMalha = vetMalha[0];
+malhaDescricao.textContent = vetMalha[0].desc; // Exibe a descrição da primeira malha
+atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
+
+// Adiciona um evento para exibir a descrição e atualizar os inputs de rotação
+selectMalha.addEventListener("change", () => {
+  const selectedIndex = selectMalha.value; // Índice da malha selecionada
+  var selectedMalha = vetMalha[selectedIndex]; // Malha selecionada
+  malhaDescricao.textContent = selectedMalha.desc; // Exibe a descrição
+  atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
 });
 
 }/////////////////////////////////////////////////////////////////////////////////////////

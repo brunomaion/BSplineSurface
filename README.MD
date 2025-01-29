@@ -2,6 +2,11 @@
 
 Construir:
 
+
+
+UPDATE
+VALORES DA CLASSE E VALORES GERAIS
+
 3. Listagem de malhas e manipalçao de diversas malhas
 Clean CVX ERRO!!!
 
