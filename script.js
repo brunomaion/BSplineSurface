@@ -15,20 +15,6 @@ class malha {
     this.rotZ_malha = 0;
   }
   
-  updateValores() {
-    //this.scl_malha = scl;
-    this.rotX_malharotX = rotX;
-    this.rotY_malharotY = rotY;
-    this.rotZ_malharotZ = rotZ;
-    this.escala();
-
-    //console.log('atualizando valores');
-    this.pontosSRT = pontosSRUtoSRT(this.pontosSru);
-    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
-  }
-
-
-
   createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
 
       let p1 = pontosMalha[0];
@@ -216,16 +202,6 @@ function printEixo3d(){
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
 }
-
-/// FUNCOES GERAIS (FOR EM VETOR DE MALHAS)
-function updateVetMalhas() {
-  /*
-  for (let i = 0; i < vetMalha.length; i++) {
-    vetMalha[i].updateValores();
-  }//*/
-  drawMalhas(vetMalha);
-}
-
 function drawMalhas(vetMalha) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -268,9 +244,7 @@ var rotX = 0;
 var rotY = 0;
 var rotZ = 0;
 
-var scl = 1.0;
-
-var translX = 0;
+var translX =0;
 var translY = 0;
 var translZ = 0;
 
@@ -555,7 +529,7 @@ let ponto2 = [34.1, 3.4, 27.2, 1];
 let ponto3 = [18.8, 5.6, 14.6, 1];
 let ponto4 = [5.9, 2.9, 29.7, 1];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, 10, 4, 2222);
+malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);
 
 ponto1 = [15.2, 0.7, 42.3, 1];
@@ -565,7 +539,7 @@ ponto4 = [10, 2.9, 29.7, 1];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 
-malha2 = new malha(pontosMalha, 10, 8, 1111);
+malha2 = new malha(pontosMalha, 10, 8, 2222);
 vetMalha.push(malha2);
 
 drawMalhas(vetMalha);
@@ -574,7 +548,6 @@ drawMalhas(vetMalha);
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
-  updateVetMalhas();
 });
 
 function onFieldChange() {
@@ -595,6 +568,7 @@ function onFieldChange() {
   rotZ = parseInt(document.getElementById('zRot').value) || 0;
 
   selectedMalha.scl_malha = parseFloat(document.getElementById('scl').value) || 0;
+  console.log(selectedMalha.desc);
   console.log(selectedMalha.scl_malha);
   
 
@@ -603,7 +577,8 @@ function onFieldChange() {
   translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
-  updateVetMalhas();
+
+  drawMalhas(vetMalha);
 }
 
 // Adicionando os listeners para os campos
@@ -633,16 +608,10 @@ const selectMalha = document.getElementById("malhaSelecionada");
 const malhaDescricao = document.getElementById("malhaDescricao");
 
 // Seleciona os inputs de rotação
-const xRotInput = document.getElementById("xRot");
-const yRotInput = document.getElementById("yRot");
-const zRotInput = document.getElementById("zRot");
 const sclInput = document.getElementById("scl");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
-  xRotInput.value = malha.rotX_malha;
-  yRotInput.value = malha.rotY_malha;
-  zRotInput.value = malha.rotZ_malha;
   sclInput.value = malha.scl_malha;
 }
 
@@ -660,10 +629,9 @@ var selectedMalha = vetMalha[0];
 malhaDescricao.textContent = vetMalha[0].desc; // Exibe a descrição da primeira malha
 atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
 
-// Adiciona um evento para exibir a descrição e atualizar os inputs de rotação
 selectMalha.addEventListener("change", () => {
   const selectedIndex = selectMalha.value; // Índice da malha selecionada
-  var selectedMalha = vetMalha[selectedIndex]; // Malha selecionada
+  selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
   malhaDescricao.textContent = selectedMalha.desc; // Exibe a descrição
   atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
 });

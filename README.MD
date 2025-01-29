@@ -2,10 +2,16 @@
 
 Construir:
 
+FAZER O UPDATE
 
+VALORES DA CLASSE 
+- ESCALA
+- ROT
 
-UPDATE
-VALORES DA CLASSE E VALORES GERAIS
+E VALORES GERAIS
+- VRP
+- P 
+- ILUMINACAO
 
 3. Listagem de malhas e manipalçao de diversas malhas
 Clean CVX ERRO!!!
