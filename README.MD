@@ -2,7 +2,9 @@
 
 Construir:
 
-FAZER O UPDATE
+
+retirar fator homogeneo
+criar os pontos de controle
 
 VALORES DA CLASSE 
 - ESCALA
@@ -35,3 +37,11 @@ Os pontos de controle são por interseções?
 22/1 - 3,5
 23/1 - 4
 24/1 - 3,5
+
+
+
+
+
+##### INFORMAÇOES PERTINENTES
+
+- Fatoe homogeneo -> adicionado depois e removido depois  

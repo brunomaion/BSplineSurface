@@ -125,8 +125,7 @@ class malha {
   };
 
   escala(pontos) {
-    console.log(pontos);
-    
+  
     let matrizS = [
       [this.scl, 0, 0, 0],
       [0, this.scl, 0, 0],
@@ -144,8 +143,6 @@ class malha {
   };
 
   rotacao(pontos) {
-    console.log('rotacao', this.rotX , this.rotY, this.rotZ);
-
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
@@ -254,8 +251,20 @@ class malha {
     let pontosRotacionados = this.rotacao(pontosEscalados);
     let pontosTransladados = this.translacao(pontosRotacionados);
     let pontosSRT = pontosSRUtoSRT(pontosTransladados);
+    
+    //remover fat H
+    for (let i = 0; i < pontosSRT.length; i++) {
+      pontosSRT[i] = addFatH(pontosSRT[i]);
+    }
+    console.log(pontosSRT);
+    
     return pontosSRT;
   };
+}
+
+function addFatH(p) {
+  p.pop();
+  return p;
 }
 
 
@@ -268,6 +277,7 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
+
 function pontosSRUtoSRT(pontos) {
   let novosPontosSRT = [];
 
