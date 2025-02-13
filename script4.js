@@ -110,6 +110,7 @@ function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ]
 
 return [pontosM1, pontosM2, pontosN1, pontosN2];
 }
+
 function getFaces(gridMalha, m) {
   let pontosM1 = gridMalha[0];
   let pontosM2 = gridMalha[1];

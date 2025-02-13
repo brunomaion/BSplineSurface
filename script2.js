@@ -1,5 +1,4 @@
 class malha {
-
   constructor(pontosdamalha, m, n, desc) {
     //TRANSFORMACOES
     this.scl = 1.0;
@@ -523,7 +522,7 @@ function projAxonometrica(ponto) {
 }/////////////////////////////////////////////////////////////////////
 
 {//////// TRANSFORMACAO DE TELA////////////////////////////////////////////////
-  
+
 function pontosSRUtoSRT(pontos) {
   let novosPontosSRT = [];
   if (visao == 'perspectiva') {

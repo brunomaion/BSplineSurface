@@ -1,5 +1,4 @@
 class malha {
-
   constructor(pontosdamalha, m, n, desc) {
     //TRANSFORMACOES
     this.scl = 1.0;
@@ -10,22 +9,19 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
-    this.mMalha = m;
-    this.nMalha = n;
     this.pontosSRU_original = pontosdamalha;
     this.pontosSRU = this.pontosSRU_original;
-    this.gridMalha = this.createMalha(this.pontosSRU, this.mMalha, this.nMalha);
-    this.gridSRT = this.malhaGridSRT(this.gridMalha);
+    this.pontosSRT = this.pipelineSruSrt(this.pontosSRU);
+    this.mMalha = m;
+    this.nMalha = n;
+    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
     this.desc = desc;
     this.visibilidadeMalha = true;
   };
 
   updateMalha() {
-    this.pontosSRU = this.escala(this.pontosSRU_original);
-    this.pontosSRU = this.rotacao(this.pontosSRU);
-    this.pontosSRU = this.translacao(this.pontosSRU);
-    this.gridMalha = this.createMalha(this.pontosSRU, this.mMalha, this.nMalha);
-    this.gridSRT = this.malhaGridSRT(this.gridMalha);
+    this.pontosSRT = this.pipelineSruSrt(this.pontosSRU_original);
+    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
   };
   
   createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
@@ -120,23 +116,9 @@ class malha {
 
       pontosN1.push(p3);
       pontosN2.push(p4);
-      
 
   return [pontosM1, pontosM2, pontosN1, pontosN2];
   };
-
-  malhaGridSRT(gridMalha) {
-
-    // GRID SRT [PONTOS M1, PONTOS M2, PONTOS N1, PONTOS N2]
-      // PONTOS M1 EXEMPLO [P1, P2, P3, P4, P5, P6, P7, P8]
-
-    let gridSRT = [];
-    for (let i = 0; i < gridMalha.length; i++) {
-      gridSRT.push(pontosSRUtoSRT(gridMalha[i]));
-    }
-    return gridSRT;
-  };
-
 
   escala(pontos) {
     let matrizS = [
@@ -259,14 +241,89 @@ class malha {
     return pontosTransladados;
   };
 
-  transformacaoSRT(pontos) {
-    let pontosEscalados = this.escala(pontos);
+  pipelineSruSrt(pSRU) {
+    pSRU = addFatH(pSRU);
+    let pontosEscalados = this.escala(pSRU);
     let pontosRotacionados = this.rotacao(pontosEscalados);
     let pontosTransladados = this.translacao(pontosRotacionados);
     let pontosSRT = pontosSRUtoSRT(pontosTransladados);
+    pontosSRT = removeFatH(pontosSRT);
     return pontosSRT;
   };
 }
+
+{//////// FUNCOES BASICAS ////////////////////////////////////////////////
+
+  function addFatH(vetor) {
+  for (let i = 0; i < vetor.length; i++) {
+    vetor[i].push(fatH);
+  }
+  return vetor;
+}
+
+function removeFatH(vetor) {
+  for (let i = 0; i < vetor.length; i++) {
+    vetor[i].pop();   
+  }
+  return vetor;
+}
+
+}
+
+{//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
+function vetorUnitario(vetor) {
+  let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
+  return vetor.map(val => val / magnitude);
+}
+
+function produtoEscalar(vetorA, vetorB) {
+  if (vetorA.length !== vetorB.length) {
+    throw new Error("Os vetores devem ter o mesmo tamanho");
+  }
+  return vetorA.reduce((sum, val, index) => sum + val * vetorB[index], 0);
+}
+
+function produtoVetorial(vetorA, vetorB) {
+  if (vetorA.length !== 3 || vetorB.length !== 3) {
+    throw new Error("Os vetores devem ter tamanho 3");
+  }
+  return [
+    vetorA[1] * vetorB[2] - vetorA[2] * vetorB[1],
+    vetorA[2] * vetorB[0] - vetorA[0] * vetorB[2],
+    vetorA[0] * vetorB[1] - vetorA[1] * vetorB[0]
+  ];
+}
+
+function matriz44(a, b) {
+  let result = [];
+  for (let i = 0; i < 4; i++) {
+    result[i] = [];
+    for (let j = 0; j < 4; j++) {
+      result[i][j] = 0;
+      for (let k = 0; k < 4; k++) {
+        result[i][j] += a[i][k] * b[k][j];
+      }
+    }
+  }
+  return result;
+}
+
+function matriz44x41(matrix4x4, ponto) {
+  let listaResultado = Array(4).fill(0);
+  for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+          listaResultado[i] += matrix4x4[i][j] * ponto[j];
+      }
+  }
+  return listaResultado; 
+}
+
+function fatorHomogeneo(vetor) {
+  return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
+}
+
+}/////////////////////////////////////////////////////////////////////
+
 
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -277,51 +334,9 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
-function pontosSRUtoSRT(pontos) {
-  let novosPontosSRT = [];
 
-  //pontos = escala(pontos);
-  
-  //pontos = rotacao(pontos);
-  
-  //pontos = translacao(pontos);
 
-  if (visao == 'perspectiva') {
-    for (let i = 0; i < pontos.length; i++) {
-      let pontoSRU = pontos[i];
-      let pontoSRT = projPersp(pontoSRU);
-      novosPontosSRT.push(pontoSRT);
-    }
-    return novosPontosSRT;
 
-  } else if (visao == 'axonometrica') {
-    for (let i = 0; i < pontos.length; i++) {
-      let pontoSRU = pontos[i];
-      let pontoSRT = projAxonometrica(pontoSRU);
-      novosPontosSRT.push(pontoSRT);
-    }
-    return novosPontosSRT
-  }
-}
-function eixopontosSRUtoSRT(pontos) {
-  let novosPontosSRT = [];
-  if (visao == 'perspectiva') {
-    for (let i = 0; i < pontos.length; i++) {
-      let pontoSRU = pontos[i];
-      let pontoSRT = projPersp(pontoSRU);
-      novosPontosSRT.push(pontoSRT);
-    }
-    return novosPontosSRT;
-
-  } else if (visao == 'axonometrica') {
-    for (let i = 0; i < pontos.length; i++) {
-      let pontoSRU = pontos[i];
-      let pontoSRT = projAxonometrica(pontoSRU);
-      novosPontosSRT.push(pontoSRT);
-    }
-    return novosPontosSRT
-  }
-}
 function printEixo3d(){
   let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
@@ -344,6 +359,7 @@ function printEixo3d(){
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
 }
+
 function drawMalhas(vetMalha) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -351,12 +367,15 @@ function drawMalhas(vetMalha) {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
-    let gridSRT = malha.gridSRT;
-    
+    let gridMalha = malha.gridMalha;
     if (malha.visibilidadeMalha == true) {
-      for (let j = 0; j < gridSRT.length; j++) {
-        
-
+      for (let j = 0; j < gridMalha.length; j++) {
+        let pontos = gridMalha[j];
+        for (let k = 0; k < pontos.length - 1; k++) {
+          let ponto1 = pontos[k];
+          let ponto2 = pontos[k + 1];
+          drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
+        }
       }
     }
   }
@@ -386,61 +405,12 @@ var dp = 40;
 var viewUp = [0, 1, 0];
 var vetVrp = [25, 15, 80];
 var vetP = [20, 10, 25];
-
+var fatH = 1;
 
 
 //eixo
 eixoBool = true;
 } ////////////////////////////////////////////////
-
-{//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
-function vetorUnitario(vetor) {
-  let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
-  return vetor.map(val => val / magnitude);
-}
-function produtoEscalar(vetorA, vetorB) {
-  if (vetorA.length !== vetorB.length) {
-    throw new Error("Os vetores devem ter o mesmo tamanho");
-  }
-  return vetorA.reduce((sum, val, index) => sum + val * vetorB[index], 0);
-}
-function produtoVetorial(vetorA, vetorB) {
-  if (vetorA.length !== 3 || vetorB.length !== 3) {
-    throw new Error("Os vetores devem ter tamanho 3");
-  }
-  return [
-    vetorA[1] * vetorB[2] - vetorA[2] * vetorB[1],
-    vetorA[2] * vetorB[0] - vetorA[0] * vetorB[2],
-    vetorA[0] * vetorB[1] - vetorA[1] * vetorB[0]
-  ];
-}
-function matriz44(a, b) {
-  let result = [];
-  for (let i = 0; i < 4; i++) {
-    result[i] = [];
-    for (let j = 0; j < 4; j++) {
-      result[i][j] = 0;
-      for (let k = 0; k < 4; k++) {
-        result[i][j] += a[i][k] * b[k][j];
-      }
-    }
-  }
-  return result;
-}
-function matriz44x41(matrix4x4, ponto) {
-  let matrix4x1 = [ponto[0], ponto[1], ponto[2], fatH];
-  const result = Array(4).fill(0);
-  for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
-          result[i] += matrix4x4[i][j] * matrix4x1[j];
-      }
-  }
-  return result; 
-}
-function fatorHomogeneo(vetor) {
-  return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
-}
-}/////////////////////////////////////////////////////////////////////
 
 {//////// PROJECAO /////////////////////////////////////////////////
 // PONTO = [x, y, z, 1] 
@@ -497,6 +467,7 @@ function projPersp(ponto) {
   novoPonto = fatorHomogeneo(pontoASRT);
   return novoPonto;
 };
+
 function projAxonometrica(ponto) {
   let vetN = [
     vetVrp[0] - vetP[0],
@@ -545,14 +516,53 @@ function projAxonometrica(ponto) {
   let matrizSruSrc = matriz44(matrizR, matrizT);
   let matrizSruSrt = matriz44(matriz44(matrizJP, matrizAxono), matrizSruSrc);
   pontoASRT = matriz44x41(matrizSruSrt,ponto);
-
   return pontoASRT;
 };
 
 }/////////////////////////////////////////////////////////////////////
 
-{//////// TRANSFORMACAO ////////////////////////////////////////////////
+{//////// TRANSFORMACAO DE TELA////////////////////////////////////////////////
 
+function pontosSRUtoSRT(pontos) {
+  let novosPontosSRT = [];
+  if (visao == 'perspectiva') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projPersp(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    novosPontosSRT = removeFatH(novosPontosSRT);
+    return novosPontosSRT;
+
+  } else if (visao == 'axonometrica') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projAxonometrica(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT
+  }
+}
+
+function eixopontosSRUtoSRT(pontos) {
+  let novosPontosSRT = [];
+  if (visao == 'perspectiva') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projPersp(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT;
+
+  } else if (visao == 'axonometrica') {
+    for (let i = 0; i < pontos.length; i++) {
+      let pontoSRU = pontos[i];
+      let pontoSRT = projAxonometrica(pontoSRU);
+      novosPontosSRT.push(pontoSRT);
+    }
+    return novosPontosSRT
+  }
+}
 
 
 }/////////////////////////////////////////////////////////////////////
@@ -567,29 +577,23 @@ let ponto4 = [1,0,3, fatH];
 
 
 ///// teste 
-let fatH = 1;
-let ponto1 = [21.2, 0.7, 42.3, 1];
-let ponto2 = [34.1, 3.4, 27.2, 1];
-let ponto3 = [18.8, 5.6, 14.6, 1];
-let ponto4 = [5.9, 2.9, 29.7, 1];
-
+let ponto1 = [21.2, 0.7, 42.3];
+let ponto2 = [34.1, 3.4, 27.2];
+let ponto3 = [18.8, 5.6, 14.6];
+let ponto4 = [5.9, 2.9, 29.7];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, 4, 4, 1111);
+malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);
-console.log('MalhaGridSRT',malha1.gridSRT);
 
-
-/*
-ponto1 = [15.2, 0.7, 42.3, 1];
-ponto2 = [40.1, 3.4, 27.2, 1];
-ponto3 = [20.8, 5.6, 14.6, 1];
-ponto4 = [10, 2.9, 29.7, 1];
+ponto1 = [15.2, 0.7, 42.3];
+ponto2 = [40.1, 3.4, 27.2];
+ponto3 = [20.8, 5.6, 14.6];
+ponto4 = [10, 2.9, 29.7];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 
-malha2 = new malha(pontosMalha, 2, 2, 2222);
+malha2 = new malha(pontosMalha, 10, 8, 2222);
 vetMalha.push(malha2);
-*/
 
 drawMalhas(vetMalha);
 
@@ -695,5 +699,4 @@ selectMalha.addEventListener("change", () => {
 });
 
 }/////////////////////////////////////////////////////////////////////////////////////////
-
 
