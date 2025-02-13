@@ -44,4 +44,17 @@ Os pontos de controle são por interseções?
 
 ##### INFORMAÇOES PERTINENTES
 
-- Fatoe homogeneo -> adicionado depois e removido depois  
+- Fator homogeneo -> adicionado depois e removido depois  
+  - REMOVIDO na funcao 'pontosSRUtoSRT'
+
+- Funcoes de projecoes CONVERTE APENAS 1 ponto!
+
+- funçao 'pipelineSruSrt'
+  - Escala, transformação, rotação, camera, projecao 
+  - CONVERTE 1 vetor de pontos -> pipeline completo  
+  - Entrada [[x, y z]...[x, y, z]]
+  - FATOR HOMOGENIO é adicionado na função de multiplicação de matrizes 4x4 * 4x1 [x, y, z, fatH] 
+  - Retorno [[x, y z]...[x, y, z]]
+
+  - Por que é um método de classe?
+    R: Apesar de acessar funções com variavéis globais, o pipeline é feito com pontos do OBJETO.
