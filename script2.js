@@ -415,8 +415,18 @@ var vMin = 0;
 var vMax = 699;
 var dp = 40;
 var viewUp = [0, 1, 0];
-var vetVrp = [25,25,25];
-var vetP = [0,0,0];
+
+var xVrp = document.getElementById('xVrp').value || 0;
+var yVrp = document.getElementById('yVrp').value || 0;
+var zVrp = document.getElementById('zVrp').value || 0;
+
+var vetVrp = [xVrp,yVrp,zVrp];
+
+var xP = document.getElementById('xP').value || 0;
+var yP = document.getElementById('yP').value || 0;
+var zP = document.getElementById('zP').value || 0;
+
+var vetP = [xP,yP,zP];
 var fatH = 1;
 
 
@@ -589,10 +599,10 @@ let ponto4 = [1,0,3, fatH];
 
 
 ///// teste 
-let ponto1 = [5,10,10];
-let ponto2 = [10,10,10];
-let ponto3 = [10,5,0];
-let ponto4 = [5,5,5];
+let ponto1 = [0,10,0];
+let ponto2 = [0,15,0];
+let ponto3 = [10,15,0];
+let ponto4 = [10,10,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);
