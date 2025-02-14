@@ -3,7 +3,9 @@
 Construir:
 
 
-retirar fator homogeneo
+retirar fator homogeneo -ok
+
+AJEITAR PARAEMETROS DA CAMERA
 criar os pontos de controle
 
 VALORES DA CLASSE 

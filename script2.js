@@ -371,9 +371,14 @@ function drawMalhas(vetMalha) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
+    
     let malha = vetMalha[i];
     let gridMalha = malha.gridMalha;
+    let m = malha.mMalha;
+    let n = malha.nMalha;
+
     if (malha.visibilidadeMalha == true) {
+      
       for (let j = 0; j < gridMalha.length; j++) {
         let pontos = gridMalha[j];
         for (let k = 0; k < pontos.length - 1; k++) {
@@ -382,6 +387,8 @@ function drawMalhas(vetMalha) {
           drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
         }
       }
+    
+    
     }
   }
 }
@@ -408,8 +415,8 @@ var vMin = 0;
 var vMax = 699;
 var dp = 40;
 var viewUp = [0, 1, 0];
-var vetVrp = [25, 15, 80];
-var vetP = [20, 10, 25];
+var vetVrp = [25,25,25];
+var vetP = [0,0,0];
 var fatH = 1;
 
 
@@ -582,10 +589,10 @@ let ponto4 = [1,0,3, fatH];
 
 
 ///// teste 
-let ponto1 = [21.2, 0.7, 42.3];
-let ponto2 = [34.1, 3.4, 27.2];
-let ponto3 = [18.8, 5.6, 14.6];
-let ponto4 = [5.9, 2.9, 29.7];
+let ponto1 = [5,10,10];
+let ponto2 = [10,10,10];
+let ponto3 = [10,5,0];
+let ponto4 = [5,5,5];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);

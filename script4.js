@@ -139,9 +139,8 @@ function drawMalha (gridMalha, m, n) {
 
   let pontosM1 = gridMalha[0];
   let pontosM2 = gridMalha[1];
-  let pontosN1 = gridMalha[2];
-  let pontosN2 = gridMalha[3];
 
+  /*
   for (let i = 0; i < m+2; i++) {
       pontom1 = pontosM1[i];
       pontom2 = pontosM2[i];
@@ -153,6 +152,7 @@ function drawMalha (gridMalha, m, n) {
       ponton2 = pontosN2[i];
       drawLine(ponton1[0], ponton1[1], ponton2[0], ponton2[1]);
   }
+  */
 
   for (let i = 0; i < m+2; i++) {
       for (let j = 0; j < n+2; j++) {
@@ -162,6 +162,7 @@ function drawMalha (gridMalha, m, n) {
       }
   }
 }
+
 function drawCircle(x, y, radius, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -171,31 +172,7 @@ function drawCircle(x, y, radius, color) {
   ctx.fillStyle = color;
   ctx.fill();
 }
-function pontosDeControle(gridMalha) {
 
-  function posicaoPontoControle(inicio, fim, pontosControle) {
-      let pontos = [];
-      for (let i = 0; i <= pontosControle; i++) {
-          let t = i / pontosControle; // Parâmetro de interpolação (de 0 a 1)
-          
-          let x = inicio[0] + t * (fim[0] - inicio[0]);
-          let y = inicio[1] + t * (fim[1] - inicio[1]);
-          let z = inicio[2] + t * (fim[2] - inicio[2]);
-          
-          pontos.push([x, y, z]);
-      }
-      return pontos;
-  }
-
-
-  
-
-  let pontoC = [];
-  for (let index = 0; index < array.length; index++) {
-      const element = array[index];
-      
-  }
-}
 
 
 const tamPontoControle = 5;
@@ -216,4 +193,4 @@ let faces = getFaces(gridMalha, m, n)
 
 
 drawMalha(gridMalha, m, n);
-paintFace(faces[0], 'blue');
+//paintFace(faces[0], 'blue');
