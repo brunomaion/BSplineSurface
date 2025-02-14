@@ -83,6 +83,15 @@ button:hover {
   width: 35px;
 }
 
+.pontosMalha > div {
+  margin-bottom: 5px; /* Espaço entre as sub-divs */
+  margin-top: 5px; /* Espaço acima da primeira sub-div */
+}
+
+#p1X, #p1Y, #p1Z, #p2X, #p2Y, #p2Z, #p3X, #p3Y, #p3Z, #p4X, #p4Y, #p4Z {	
+  width: 45px;
+}
+
 
 .sidebarLeft, .sidebarRight {
   position: absolute;

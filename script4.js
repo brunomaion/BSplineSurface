@@ -158,7 +158,7 @@ function drawMalha (gridMalha, m, n) {
       for (let j = 0; j < n+2; j++) {
           let x = pontosM1[i][0] + (pontosM2[i][0] - pontosM1[i][0]) * (j / (n+1));
           let y = pontosM1[i][1] + (pontosM2[i][1] - pontosM1[i][1]) * (j / (n+1));
-          drawCircle(x, y, 1, 'red');
+          drawCircle(x, y, tamPontoControle, 'red');
       }
   }
 }
@@ -198,9 +198,10 @@ function pontosDeControle(gridMalha) {
 }
 
 
+const tamPontoControle = 5;
 
-let m = 0;
-let n = 8;
+let m = 4;
+let n = 4;
 let pontosControle = 1;
 
 let p1 = [100, 100, 10];

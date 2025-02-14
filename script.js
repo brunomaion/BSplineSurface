@@ -1,6 +1,11 @@
 class malha {
   constructor(pontosdamalha, m, n, desc) {
     //TRANSFORMACOES
+    this.p1 = pontosdamalha[0];
+    this.p2 = pontosdamalha[1];
+    this.p3 = pontosdamalha[2];
+    this.p4 = pontosdamalha[3];
+    
     this.scl = 1.0;
     this.rotX = 0;
     this.rotY = 0;
@@ -9,7 +14,7 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
-    this.pontosSRU_original = pontosdamalha;
+    this.pontosSRU_original = [this.p1, this.p2, this.p3, this.p4];
     this.pontosSRU = this.pontosSRU_original;
     this.pontosSRT = this.pipelineSruSrt(this.pontosSRU);
     this.mMalha = m;
@@ -585,10 +590,10 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, 10, 4, 1111);
 vetMalha.push(malha1);
 
-ponto1 = [15.2, 0.7, 42.3];
-ponto2 = [40.1, 3.4, 27.2];
-ponto3 = [20.8, 5.6, 14.6];
-ponto4 = [10, 2.9, 29.7];
+ponto1 = [0,0,0];
+ponto2 = [0,0,10];
+ponto3 = [10, 0, 10];
+ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 
@@ -626,6 +631,19 @@ function onFieldChange() {
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
+  selectedMalha.p1[0] = parseFloat(document.getElementById('p1X').value) || 0;
+  selectedMalha.p1[1] = parseFloat(document.getElementById('p1Y').value) || 0;
+  selectedMalha.p1[2] = parseFloat(document.getElementById('p1Z').value) || 0;
+  selectedMalha.p2[0] = parseFloat(document.getElementById('p2X').value) || 0;
+  selectedMalha.p2[1] = parseFloat(document.getElementById('p2Y').value) || 0;
+  selectedMalha.p2[2] = parseFloat(document.getElementById('p2Z').value) || 0;
+  selectedMalha.p3[0] = parseFloat(document.getElementById('p3X').value) || 0;
+  selectedMalha.p3[1] = parseFloat(document.getElementById('p3Y').value) || 0;
+  selectedMalha.p3[2] = parseFloat(document.getElementById('p3Z').value) || 0;
+  selectedMalha.p4[0] = parseFloat(document.getElementById('p4X').value) || 0;
+  selectedMalha.p4[1] = parseFloat(document.getElementById('p4Y').value) || 0;
+  selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
+
   eixoBool = document.getElementById('eixo3d').checked;
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
 
@@ -651,6 +669,19 @@ document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
 
+document.getElementById('p1X').addEventListener('input', onFieldChange);
+document.getElementById('p1Y').addEventListener('input', onFieldChange);
+document.getElementById('p1Z').addEventListener('input', onFieldChange);
+document.getElementById('p2X').addEventListener('input', onFieldChange);
+document.getElementById('p2Y').addEventListener('input', onFieldChange);
+document.getElementById('p2Z').addEventListener('input', onFieldChange);
+document.getElementById('p3X').addEventListener('input', onFieldChange);
+document.getElementById('p3Y').addEventListener('input', onFieldChange);
+document.getElementById('p3Z').addEventListener('input', onFieldChange);
+document.getElementById('p4X').addEventListener('input', onFieldChange);
+document.getElementById('p4Y').addEventListener('input', onFieldChange);
+document.getElementById('p4Z').addEventListener('input', onFieldChange);
+
 // Seleciona o elemento <select> e o elemento para exibir a descrição
 const selectMalha = document.getElementById("malhaSelecionada");
 const malhaDescricao = document.getElementById("malhaDescricao");
@@ -665,6 +696,20 @@ const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
 const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
 
+const p1InputX = document.getElementById("p1X");
+const p1InputY = document.getElementById("p1Y");
+const p1InputZ = document.getElementById("p1Z");
+const p2InputX = document.getElementById("p2X");
+const p2InputY = document.getElementById("p2Y");
+const p2InputZ = document.getElementById("p2Z");
+const p3InputX = document.getElementById("p3X");
+const p3InputY = document.getElementById("p3Y");
+const p3InputZ = document.getElementById("p3Z");
+const p4InputX = document.getElementById("p4X");
+const p4InputY = document.getElementById("p4Y");
+const p4InputZ = document.getElementById("p4Z");
+
+
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
@@ -675,6 +720,19 @@ function atualizarInputsMalha(malha) {
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
   visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
+  
+  p1InputX.value = malha.p1[0];
+  p1InputY.value = malha.p1[1];
+  p1InputZ.value = malha.p1[2];
+  p2InputX.value = malha.p2[0];
+  p2InputY.value = malha.p2[1];
+  p2InputZ.value = malha.p2[2];
+  p3InputX.value = malha.p3[0];
+  p3InputY.value = malha.p3[1];
+  p3InputZ.value = malha.p3[2];
+  p4InputX.value = malha.p4[0];
+  p4InputY.value = malha.p4[1];
+  p4InputZ.value = malha.p4[2];
 }
 
 // Preenche o seletor com as opções de malha
@@ -699,4 +757,3 @@ selectMalha.addEventListener("change", () => {
 });
 
 }/////////////////////////////////////////////////////////////////////////////////////////
-
