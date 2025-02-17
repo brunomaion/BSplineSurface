@@ -17,14 +17,11 @@ class malha {
     this.mMalha = 4;
     this.nMalha = 4;
 
-    this.pontosSRU_original = [this.p1, this.p2, this.p3, this.p4];
-    this.pontosSRU = this.pontosSRU_original;
-
+    this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.visibilidadeMalha = true;
     this.visibilidadePC = true;
-    this.drawPontosControle = drawPontosControle;
   };
 
   debugPrint() {
@@ -54,44 +51,43 @@ class malha {
   };
 
   rotacao(pontos) {
+    let pontosOriginais = [this.p1, this.p2, this.p3, this.p4];
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
   
-    let centrX = 0;
-    let centrY = 0;
-    let centrZ = 0;
-    for (let i = 0; i < pontos.length; i++) {
-      centrX += pontos[i][0];
-      centrY += pontos[i][1];
-      centrZ += pontos[i][2]; 
-    };
-    centrX = centrX / pontos.length;
-    centrY = centrY / pontos.length;
-    centrZ = centrZ / pontos.length;
-    let centroide = [centrX, centrY, centrZ, 1];
-  
-    function translN(pontoN) {
-      let pontoTranslado = [
+    
+    let centroide = [0, 0, 0];
+    for (let i = 0; i < pontosOriginais.length; i++) {
+      centroide[0] += pontosOriginais[i][0];
+      centroide[1] += pontosOriginais[i][1];
+      centroide[2] += pontosOriginais[i][2];
+    }
+    centroide[0] /= pontosOriginais.length;
+    centroide[1] /= pontosOriginais.length;
+    centroide[2] /= pontosOriginais.length;
+
+    function translN(pontoTN) {
+      let matrizTranslado = [
         [1, 0, 0, -centroide[0]],
         [0, 1, 0, -centroide[1]],
         [0, 0, 1, -centroide[2]],
         [0, 0, 0, 1]
       ];
-      return matriz44x41(pontoTranslado, pontoN);
+      return matriz44x41(matrizTranslado, pontoTN);
     }
   
-    function translP(pontoN) {
-      let pontoTranslado = [
+    function translP(pontoTP) {
+      let matrizTranslado = [
         [1, 0, 0, centroide[0]],
         [0, 1, 0, centroide[1]],
         [0, 0, 1, centroide[2]],
         [0, 0, 0, 1]
       ];
-      return matriz44x41(pontoTranslado, pontoN);
+      return matriz44x41(matrizTranslado, pontoTP);
     }
     
-    function rotacaoX(pontoX) {
+    function rotacaoX(pontoY) {
       let angulo = var_rotacaoX;
       let matrizRotacao = [
         [1, 0, 0, 0],
@@ -99,8 +95,7 @@ class malha {
         [0, Math.sin(angulo), Math.cos(angulo), 0],
         [0, 0, 0, 1]
       ];
-  
-      return matriz44x41(matrizRotacao, pontoX);
+      return matriz44x41(matrizRotacao, pontoY);
     }
   
     function rotacaoY(pontoY) {
@@ -129,9 +124,9 @@ class malha {
     for (let i = 0; i < pontos.length; i++) {
       let ponto = pontos[i];
       ponto = translN(ponto);
-      ponto = rotacaoX(ponto);
-      ponto = rotacaoY(ponto);
       ponto = rotacaoZ(ponto);
+      ponto = rotacaoY(ponto);
+      ponto = rotacaoX(ponto);
       ponto = translP(ponto);
       pontosRotacionado.push(ponto);
     }
@@ -200,7 +195,6 @@ class malha {
   }
 
   pipelineSruSrt(pSRU) {
-    
     pSRU = addFatH(pSRU);
     let pontosEscalados = this.escala(pSRU);
     let pontosRotacionados = this.rotacao(pontosEscalados);
@@ -221,21 +215,19 @@ class malha {
 
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
 
-  function addFatH(vetor) {
-  for (let i = 0; i < vetor.length; i++) {
-    vetor[i].push(fatH);
-  }
-  return vetor;
+function addFatH(vetor) {
+  let novoVetor = vetor.map((ponto) => [...ponto, this.fatH]);
+  return novoVetor;
 }
 
 function removeFatH(vetor) {
-  for (let i = 0; i < vetor.length; i++) {
-    vetor[i].pop();   
-  }
-  return vetor;
+  let novoVetor = vetor.map((ponto) => ponto.slice(0, -1));
+  return novoVetor;
 }
 
 }
+
+
 
 {//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
@@ -637,6 +629,7 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
+///*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -646,6 +639,7 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
+//*/
 
 drawMalhas(vetMalha);
 
@@ -673,6 +667,7 @@ function onFieldChange() {
   selectedMalha.rotX = parseInt(document.getElementById('xRot').value) || 0;
   selectedMalha.rotY = parseInt(document.getElementById('yRot').value) || 0;
   selectedMalha.rotZ = parseInt(document.getElementById('zRot').value) || 0;
+
   selectedMalha.scl = parseFloat(document.getElementById('scl').value) || 0;
   selectedMalha.translX = parseFloat(document.getElementById('translX').value) || 0;
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
@@ -693,7 +688,6 @@ function onFieldChange() {
 
   eixoBool = document.getElementById('eixo3d').checked;
   lenPontosControle = document.getElementById('tamPC').value || 4;
-  console.log(lenPontosControle);
 
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
@@ -713,13 +707,16 @@ document.getElementById('xP').addEventListener('input', onFieldChange);
 document.getElementById('yP').addEventListener('input', onFieldChange);
 document.getElementById('zP').addEventListener('input', onFieldChange);
 document.getElementById('dpValue').addEventListener('input', onFieldChange);
+
 document.getElementById('xRot').addEventListener('input', onFieldChange);
 document.getElementById('yRot').addEventListener('input', onFieldChange);
 document.getElementById('zRot').addEventListener('input', onFieldChange);
+
 document.getElementById('scl').addEventListener('input', onFieldChange);
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
+
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('tamPC').addEventListener('input', onFieldChange);
 
@@ -747,9 +744,11 @@ const selectMalha = document.getElementById("malhaSelecionada");
 
 // Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");
+
 const rotXInput = document.getElementById("xRot");
 const rotYInput = document.getElementById("yRot");
 const rotZInput = document.getElementById("zRot");
+
 const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
@@ -777,9 +776,11 @@ const nPontosInput = document.getElementById("nPontos");
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
+
   rotXInput.value = malha.rotX;
   rotYInput.value = malha.rotY;
   rotZInput.value = malha.rotZ;
+
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;

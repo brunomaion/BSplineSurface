@@ -1,5 +1,5 @@
 class malha {
-  constructor(pontosdamalha, m, n, desc) {
+  constructor(pontosdamalha, drawPontosControle) {
     //TRANSFORMACOES
     this.p1 = pontosdamalha[0];
     this.p2 = pontosdamalha[1];
@@ -14,117 +14,25 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
-    this.pontosSRU_original = [this.p1, this.p2, this.p3, this.p4];
-    this.pontosSRU = this.pontosSRU_original;
-    this.pontosSRT = this.pipelineSruSrt(this.pontosSRU);
-    this.mMalha = m;
-    this.nMalha = n;
-    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
-    this.desc = desc;
+    this.mMalha = 4;
+    this.nMalha = 4;
+
+    this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
+    this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
+    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.visibilidadeMalha = true;
+    this.visibilidadePC = true;
+  };
+
+  debugPrint() {
   };
 
   updateMalha() {
-    this.pontosSRT = this.pipelineSruSrt(this.pontosSRU_original);
-    this.gridMalha = this.createMalha(this.pontosSRT, this.mMalha, this.nMalha);
+    this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
+    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
+    this.debugPrint();
   };
   
-  createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
-
-      let p1 = pontosMalha[0];
-      let p2 = pontosMalha[1];
-      let p3 = pontosMalha[2];
-      let p4 = pontosMalha[3];
-
-      let tamanhoTotalArestaM1x = (p2[0] - p1[0]);
-      let incrPontosInternosM1x = tamanhoTotalArestaM1x / (m+1);
-      let tamanhoTotalArestaM1y = (p2[1] - p1[1]);
-      let incrPontosInternosM1y = tamanhoTotalArestaM1y / (m+1);
-      let tamanhoTotalArestaM1z = (p2[2] - p1[2]);
-      let incrPontosInternosM1z = tamanhoTotalArestaM1z / (m+1);
-
-      let tamanhoTotalArestam2x = (p3[0] - p4[0]);
-      let incrPontosInternosm2x = tamanhoTotalArestam2x / (m+1);
-      let tamanhoTotalArestam2y = (p3[1] - p4[1]);
-      let incrPontosInternosm2y = tamanhoTotalArestam2y / (m+1);
-      let tamanhoTotalArestam2z = (p3[2] - p4[2]);
-      let incrPontosInternosm2z = tamanhoTotalArestam2z / (m+1);
-
-
-      let tamanhoTotalArestaN1x = (p3[0] - p2[0]);
-      let incrPontosInternosN1x = tamanhoTotalArestaN1x / (n+1);
-      let tamanhoTotalArestaN1y = (p3[1] - p2[1]);
-      let incrPontosInternosN1y = tamanhoTotalArestaN1y / (n+1);
-      let tamanhoTotalArestaN1z = (p3[2] - p2[2]);
-      let incrPontosInternosN1z = tamanhoTotalArestaN1z / (n+1);
-
-      let tamanhoTotalArestaN2x = (p4[0] - p1[0]);
-      let incrPontosInternosN2x = tamanhoTotalArestaN2x / (n+1);
-      let tamanhoTotalArestaN2y = (p4[1] - p1[1]);
-      let incrPontosInternosN2y = tamanhoTotalArestaN2y / (n+1);
-      let tamanhoTotalArestaN2z = (p4[2] - p1[2]);
-      let incrPontosInternosN2z = tamanhoTotalArestaN2z / (n+1);
-
-      let pontosM1 = []
-      pontosM1.push(p1);
-      let pontosM2 = []
-      pontosM2.push(p4);
-
-      let pontosN1 = []
-      pontosN1.push(p2);
-      let pontosN2 = []
-      pontosN2.push(p1);
-
-      let pontoX1m = p1[0];
-      let pontoY1m = p1[1];
-      let pontoZ1m = p1[2];
-
-      let pontoX2m = p4[0];
-      let pontoY2m = p4[1];
-      let pontoZ2m = p4[2];
-
-      let pontoX1n = p2[0];
-      let pontoY1n = p2[1];
-      let pontoZ1n = p2[2];
-
-      let pontoX2n = p1[0];
-      let pontoY2n = p1[1];
-      let pontoZ2n = p1[2];
-
-      for (let i = 0; i < m; i++) {
-          pontoX1m += incrPontosInternosM1x;
-          pontoY1m += incrPontosInternosM1y;
-          pontoZ1m += incrPontosInternosM1z;
-          pontosM1.push([pontoX1m, pontoY1m, pontoZ1m]);
-
-          pontoX2m += incrPontosInternosm2x;
-          pontoY2m += incrPontosInternosm2y;
-          pontoZ2m += incrPontosInternosm2z;
-          pontosM2.push([pontoX2m, pontoY2m, pontoZ2m]);
-
-      }
-
-      for (let i = 0; i < n; i++) {
-          pontoX1n += incrPontosInternosN1x;
-          pontoY1n += incrPontosInternosN1y;
-          pontoZ1n += incrPontosInternosN1z;
-          pontosN1.push([pontoX1n, pontoY1n, pontoZ1n]);
-
-          pontoX2n += incrPontosInternosN2x;
-          pontoY2n += incrPontosInternosN2y;
-          pontoZ2n += incrPontosInternosN2z;
-          pontosN2.push([pontoX2n, pontoY2n, pontoZ2n]);
-      }
-
-      pontosM1.push(p2);
-      pontosM2.push(p3);
-
-      pontosN1.push(p3);
-      pontosN2.push(p4);
-
-  return [pontosM1, pontosM2, pontosN1, pontosN2];
-  };
-
   escala(pontos) {
     let matrizS = [
       [this.scl, 0, 0, 0],
@@ -143,44 +51,43 @@ class malha {
   };
 
   rotacao(pontos) {
+    let pontosOriginais = [this.p1, this.p2, this.p3, this.p4];
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
   
-    let centrX = 0;
-    let centrY = 0;
-    let centrZ = 0;
-    for (let i = 0; i < pontos.length; i++) {
-      centrX += pontos[i][0];
-      centrY += pontos[i][1];
-      centrZ += pontos[i][2]; 
-    };
-    centrX = centrX / pontos.length;
-    centrY = centrY / pontos.length;
-    centrZ = centrZ / pontos.length;
-    let centroide = [centrX, centrY, centrZ, 1];
-  
-    function translN(pontoN) {
-      let pontoTranslado = [
+    
+    let centroide = [0, 0, 0];
+    for (let i = 0; i < pontosOriginais.length; i++) {
+      centroide[0] += pontosOriginais[i][0];
+      centroide[1] += pontosOriginais[i][1];
+      centroide[2] += pontosOriginais[i][2];
+    }
+    centroide[0] /= pontosOriginais.length;
+    centroide[1] /= pontosOriginais.length;
+    centroide[2] /= pontosOriginais.length;
+
+    function translN(pontoTN) {
+      let matrizTranslado = [
         [1, 0, 0, -centroide[0]],
         [0, 1, 0, -centroide[1]],
         [0, 0, 1, -centroide[2]],
         [0, 0, 0, 1]
       ];
-      return matriz44x41(pontoTranslado, pontoN);
+      return matriz44x41(matrizTranslado, pontoTN);
     }
   
-    function translP(pontoN) {
-      let pontoTranslado = [
+    function translP(pontoTP) {
+      let matrizTranslado = [
         [1, 0, 0, centroide[0]],
         [0, 1, 0, centroide[1]],
         [0, 0, 1, centroide[2]],
         [0, 0, 0, 1]
       ];
-      return matriz44x41(pontoTranslado, pontoN);
+      return matriz44x41(matrizTranslado, pontoTP);
     }
     
-    function rotacaoX(pontoX) {
+    function rotacaoX(pontoY) {
       let angulo = var_rotacaoX;
       let matrizRotacao = [
         [1, 0, 0, 0],
@@ -188,8 +95,7 @@ class malha {
         [0, Math.sin(angulo), Math.cos(angulo), 0],
         [0, 0, 0, 1]
       ];
-  
-      return matriz44x41(matrizRotacao, pontoX);
+      return matriz44x41(matrizRotacao, pontoY);
     }
   
     function rotacaoY(pontoY) {
@@ -218,9 +124,9 @@ class malha {
     for (let i = 0; i < pontos.length; i++) {
       let ponto = pontos[i];
       ponto = translN(ponto);
-      ponto = rotacaoX(ponto);
-      ponto = rotacaoY(ponto);
       ponto = rotacaoZ(ponto);
+      ponto = rotacaoY(ponto);
+      ponto = rotacaoX(ponto);
       ponto = translP(ponto);
       pontosRotacionado.push(ponto);
     }
@@ -246,6 +152,48 @@ class malha {
     return pontosTransladados;
   };
 
+  matrizPontosControle(pontos, m, n) {
+    function calculoTaxaPontos(p0, p1, x) {
+        let taxaX = (p1[0] - p0[0]) / (x - 1);
+        let taxaY = (p1[1] - p0[1]) / (x - 1);
+        let taxaZ = (p1[2] - p0[2]) / (x - 1);
+        return [taxaX, taxaY, taxaZ];
+    }
+    
+    function calculoVetorPontos(p0, p1, x) {
+        let vetor = [];
+        let [taxaX, taxaY, taxaZ] = calculoTaxaPontos(p0, p1, x);
+        vetor.push(p0);
+        let y = x - 2;
+        let pX = p0[0];
+        let pY = p0[1];
+        let pZ = p0[2];
+        for (let i = 0; i < y; i++) {
+            pX += taxaX;
+            pY += taxaY;
+            pZ += taxaZ;
+            let ponto = [pX, pY, pZ];
+            vetor.push(ponto);
+        }
+        vetor.push(p1);
+        return vetor;
+    }
+
+    let p1 = pontos[0];
+    let p2 = pontos[1];
+    let p3 = pontos[2];
+    let p4 = pontos[3];
+    let vetM1 = calculoVetorPontos(p1, p2, m);
+    let vetM2 = calculoVetorPontos(p4, p3, m);
+
+    let matrizPontosControleControle = [];
+    for (let i = 0; i < vetM1.length; i++) {
+        let ponto = calculoVetorPontos(vetM1[i], vetM2[i], n);
+        matrizPontosControleControle.push(ponto);
+    }
+    return matrizPontosControleControle;
+  }
+
   pipelineSruSrt(pSRU) {
     pSRU = addFatH(pSRU);
     let pontosEscalados = this.escala(pSRU);
@@ -255,25 +203,31 @@ class malha {
     pontosSRT = removeFatH(pontosSRT);
     return pontosSRT;
   };
+
+  pipelineMatrizSruSrt(matriz) {
+    let novaMatriz = [];
+    for (let i = 0; i < matriz.length; i++) {
+      novaMatriz.push(this.pipelineSruSrt(matriz[i]));  
+    };
+    return novaMatriz;
+  };
 }
 
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
 
-  function addFatH(vetor) {
-  for (let i = 0; i < vetor.length; i++) {
-    vetor[i].push(fatH);
-  }
-  return vetor;
+function addFatH(vetor) {
+  let novoVetor = vetor.map((ponto) => [...ponto, this.fatH]);
+  return novoVetor;
 }
 
 function removeFatH(vetor) {
-  for (let i = 0; i < vetor.length; i++) {
-    vetor[i].pop();   
-  }
-  return vetor;
+  let novoVetor = vetor.map((ponto) => ponto.slice(0, -1));
+  return novoVetor;
 }
 
 }
+
+
 
 {//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
@@ -340,8 +294,6 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.stroke(); // Renderiza a linha
 }
 
-
-
 function printEixo3d(){
   let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
@@ -372,19 +324,91 @@ function drawMalhas(vetMalha) {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
-    let gridMalha = malha.gridMalha;
-    if (malha.visibilidadeMalha == true) {
-      for (let j = 0; j < gridMalha.length; j++) {
-        let pontos = gridMalha[j];
-        for (let k = 0; k < pontos.length - 1; k++) {
-          let ponto1 = pontos[k];
-          let ponto2 = pontos[k + 1];
-          drawLine(ponto1[0], ponto1[1], ponto2[0], ponto2[1], color='black');
-        }
+
+    if (malha.visibilidadeMalha) {
+      drawMalha(malha.gridControleSRT);
+    }
+    if (malha.visibilidadePC) {
+      drawPontosControle(malha.gridControleSRT);
+    }
+
+  }
+}
+
+function matrizPontosControle(pontos, m, n) {
+  function calculoTaxaPontos(p0, p1, x) {
+      let taxaX = (p1[0] - p0[0]) / (x - 1);
+      let taxaY = (p1[1] - p0[1]) / (x - 1);
+      let taxaZ = (p1[2] - p0[2]) / (x - 1);
+      return [taxaX, taxaY, taxaZ];
+  }
+  
+  function calculoVetorPontos(p0, p1, x) {
+      let vetor = [];
+      let [taxaX, taxaY, taxaZ] = calculoTaxaPontos(p0, p1, x);
+      vetor.push(p0);
+      let y = x - 2;
+      let pX = p0[0];
+      let pY = p0[1];
+      let pZ = p0[2];
+      for (let i = 0; i < y; i++) {
+          pX += taxaX;
+          pY += taxaY;
+          pZ += taxaZ;
+          let ponto = [pX, pY, pZ];
+          vetor.push(ponto);
       }
+      vetor.push(p1);
+      return vetor;
+  }
+
+  let p1 = pontos[0];
+  let p2 = pontos[1];
+  let p3 = pontos[2];
+  let p4 = pontos[3];
+  let vetM1 = calculoVetorPontos(p1, p2, m);
+  let vetM2 = calculoVetorPontos(p4, p3, m);
+
+  let matrizPontosControleControle = [];
+  for (let i = 0; i < vetM1.length; i++) {
+      let ponto = calculoVetorPontos(vetM1[i], vetM2[i], n);
+      matrizPontosControleControle.push(ponto);
+  }
+  return matrizPontosControleControle;
+}
+
+function drawMalha(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+      for (let j = 0; j < gridControle[i].length - 1; j++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
+      }
+  }
+  for (let j = 0; j < gridControle[0].length; j++) {
+      for (let i = 0; i < gridControle.length - 1; i++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
+      }
+  }
+
+
+}
+
+function drawPontosControle(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+    for (let j = 0; j < gridControle[i].length; j++) {
+        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
     }
   }
 }
+
+function drawCircle(x, y, radius, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.fillStyle = color;
+  ctx.fill();
+  }
 
 function updateVetMalha() {
   for (let i = 0; i < vetMalha.length; i++) {
@@ -408,11 +432,22 @@ var vMin = 0;
 var vMax = 699;
 var dp = 40;
 var viewUp = [0, 1, 0];
-var vetVrp = [25, 15, 80];
-var vetP = [20, 10, 25];
+
+var xVrp = document.getElementById('xVrp').value || 0;
+var yVrp = document.getElementById('yVrp').value || 0;
+var zVrp = document.getElementById('zVrp').value || 0;
+
+var vetVrp = [xVrp,yVrp,zVrp];
+
+var xP = document.getElementById('xP').value || 0;
+var yP = document.getElementById('yP').value || 0;
+var zP = document.getElementById('zP').value || 0;
+
+var vetP = [xP,yP,zP];
 var fatH = 1;
 
-
+//Tamanho dos pontos de controle
+var lenPontosControle = document.getElementById('tamPC').value || 4;
 //eixo
 eixoBool = true;
 } ////////////////////////////////////////////////
@@ -582,14 +617,19 @@ let ponto4 = [1,0,3, fatH];
 
 
 ///// teste 
-let ponto1 = [21.2, 0.7, 42.3];
-let ponto2 = [34.1, 3.4, 27.2];
-let ponto3 = [18.8, 5.6, 14.6];
-let ponto4 = [5.9, 2.9, 29.7];
+
+let m = 4
+let n = 4
+
+let ponto1 = [0,10,0];
+let ponto2 = [0,15,0];
+let ponto3 = [10,15,0];
+let ponto4 = [10,10,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, 10, 4, 1111);
+malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
+/*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -597,8 +637,9 @@ ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 
-malha2 = new malha(pontosMalha, 10, 8, 2222);
+malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
+*/
 
 drawMalhas(vetMalha);
 
@@ -626,6 +667,7 @@ function onFieldChange() {
   selectedMalha.rotX = parseInt(document.getElementById('xRot').value) || 0;
   selectedMalha.rotY = parseInt(document.getElementById('yRot').value) || 0;
   selectedMalha.rotZ = parseInt(document.getElementById('zRot').value) || 0;
+
   selectedMalha.scl = parseFloat(document.getElementById('scl').value) || 0;
   selectedMalha.translX = parseFloat(document.getElementById('translX').value) || 0;
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
@@ -645,7 +687,13 @@ function onFieldChange() {
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
+  lenPontosControle = document.getElementById('tamPC').value || 4;
+
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
+  selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
+
+  selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
+  selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
 
   updateVetMalha();
   drawMalhas(vetMalha);
@@ -659,15 +707,21 @@ document.getElementById('xP').addEventListener('input', onFieldChange);
 document.getElementById('yP').addEventListener('input', onFieldChange);
 document.getElementById('zP').addEventListener('input', onFieldChange);
 document.getElementById('dpValue').addEventListener('input', onFieldChange);
+
 document.getElementById('xRot').addEventListener('input', onFieldChange);
 document.getElementById('yRot').addEventListener('input', onFieldChange);
 document.getElementById('zRot').addEventListener('input', onFieldChange);
+
 document.getElementById('scl').addEventListener('input', onFieldChange);
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
+
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+document.getElementById('tamPC').addEventListener('input', onFieldChange);
+
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
+document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
 
 document.getElementById('p1X').addEventListener('input', onFieldChange);
 document.getElementById('p1Y').addEventListener('input', onFieldChange);
@@ -682,19 +736,24 @@ document.getElementById('p4X').addEventListener('input', onFieldChange);
 document.getElementById('p4Y').addEventListener('input', onFieldChange);
 document.getElementById('p4Z').addEventListener('input', onFieldChange);
 
-// Seleciona o elemento <select> e o elemento para exibir a descrição
+document.getElementById('mPontos').addEventListener('input', onFieldChange);
+document.getElementById('nPontos').addEventListener('input', onFieldChange);
+
+// Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
-const malhaDescricao = document.getElementById("malhaDescricao");
 
 // Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");
+
 const rotXInput = document.getElementById("xRot");
 const rotYInput = document.getElementById("yRot");
 const rotZInput = document.getElementById("zRot");
+
 const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
 const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
+const visibilidadePCInput = document.getElementById("visibilidadePC");
 
 const p1InputX = document.getElementById("p1X");
 const p1InputY = document.getElementById("p1Y");
@@ -709,17 +768,24 @@ const p4InputX = document.getElementById("p4X");
 const p4InputY = document.getElementById("p4Y");
 const p4InputZ = document.getElementById("p4Z");
 
+const mPontosInput = document.getElementById("mPontos");
+const nPontosInput = document.getElementById("nPontos");
+
+
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
+
   rotXInput.value = malha.rotX;
   rotYInput.value = malha.rotY;
   rotZInput.value = malha.rotZ;
+
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
   visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
+  visibilidadePCInput.checked = malha.visibilidadePC;
   
   p1InputX.value = malha.p1[0];
   p1InputY.value = malha.p1[1];
@@ -733,6 +799,9 @@ function atualizarInputsMalha(malha) {
   p4InputX.value = malha.p4[0];
   p4InputY.value = malha.p4[1];
   p4InputZ.value = malha.p4[2];
+
+  mPontosInput.value = malha.mMalha;
+  nPontosInput.value = malha.nMalha;
 }
 
 // Preenche o seletor com as opções de malha
@@ -746,13 +815,11 @@ vetMalha.forEach((malha, index) => {
 // Define a primeira malha (vetMalha[0]) como selecionada por padrão
 selectMalha.selectedIndex = 0; // Seleciona a primeira opção
 var selectedMalha = vetMalha[0];
-malhaDescricao.textContent = vetMalha[0].desc; // Exibe a descrição da primeira malha
 atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
 
 selectMalha.addEventListener("change", () => {
   const selectedIndex = selectMalha.value; // Índice da malha selecionada
   selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
-  malhaDescricao.textContent = selectedMalha.desc; // Exibe a descrição
   atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
 });
 

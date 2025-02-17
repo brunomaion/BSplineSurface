@@ -11,6 +11,8 @@ Alterar N e M em tempo de execução
 ARRUMAR ROTACAO X
 
 # 
+FATOR H
+
 
 
 VALORES DA CLASSE 
