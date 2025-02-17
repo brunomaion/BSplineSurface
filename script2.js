@@ -403,7 +403,7 @@ function drawMalha(gridControle) {
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
     for (let j = 0; j < gridControle[i].length; j++) {
-        drawCircle(gridControle[i][j][0], gridControle[i][j][1], 4, 'red');
+        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
     }
   }
 }
@@ -455,7 +455,7 @@ var vetP = [xP,yP,zP];
 var fatH = 1;
 
 //Tamanho dos pontos de controle
-const lenPontosControle = 4;
+var lenPontosControle = document.getElementById('tamPC').value || 4;
 //eixo
 eixoBool = true;
 } ////////////////////////////////////////////////
@@ -692,6 +692,9 @@ function onFieldChange() {
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
+  lenPontosControle = document.getElementById('tamPC').value || 4;
+  console.log(lenPontosControle);
+
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
@@ -718,6 +721,7 @@ document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+document.getElementById('tamPC').addEventListener('input', onFieldChange);
 
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
@@ -740,7 +744,6 @@ document.getElementById('nPontos').addEventListener('input', onFieldChange);
 
 // Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
-const malhadrawPontosControlericao = document.getElementById("malhadrawPontosControlericao");
 
 // Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");

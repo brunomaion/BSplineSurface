@@ -52,6 +52,11 @@ button:hover {
   margin-top: 5px; /* Espaço acima da primeira sub-div */
 }
 
+.tamanhoPC > div {
+  margin-bottom: 5px; /* Espaço entre as sub-divs */
+  margin-top: 5px; /* Espaço acima da primeira sub-div */
+}
+
 .escala > div {
   margin-bottom: 5px; /* Espaço entre as sub-divs */
   margin-top: 5px; /* Espaço acima da primeira sub-div */
