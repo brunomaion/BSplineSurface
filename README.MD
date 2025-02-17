@@ -60,3 +60,8 @@ Os pontos de controle são por interseções?
 
   - Por que é um método de classe?
     R: Apesar de acessar funções com variavéis globais, o pipeline é feito com pontos do OBJETO.
+
+- Calculo Pontos de controle
+  - função - > matriz pontos de controle
+    Entrada (pontosEntradaInicias =[p1, p2, p3, p4], m , n)
+    Saída matriz em que M (ou i) = horizontais, N (ou j) = verticais 

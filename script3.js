@@ -12,104 +12,7 @@ function paintFace(face, color) {
     ctx.fillStyle = color;
     ctx.fill();
 }
-function createMalha (pontosMalha, m, n){ // pontos = [p1, p2 ] 
 
-    let p1 = pontosMalha[0];
-    let p2 = pontosMalha[1];
-    let p3 = pontosMalha[2];
-    let p4 = pontosMalha[3];
-
-    let tamanhoTotalArestaM1x = (p2[0] - p1[0]);
-    let incrPontosInternosM1x = tamanhoTotalArestaM1x / (m+1);
-    let tamanhoTotalArestaM1y = (p2[1] - p1[1]);
-    let incrPontosInternosM1y = tamanhoTotalArestaM1y / (m+1);
-    let tamanhoTotalArestaM1z = (p2[2] - p1[2]);
-    let incrPontosInternosM1z = tamanhoTotalArestaM1z / (m+1);
-
-    console.log(incrPontosInternosM1z);
-    
-
-    let tamanhoTotalArestam2x = (p3[0] - p4[0]);
-    let incrPontosInternosm2x = tamanhoTotalArestam2x / (m+1);
-    let tamanhoTotalArestam2y = (p3[1] - p4[1]);
-    let incrPontosInternosm2y = tamanhoTotalArestam2y / (m+1);
-    let tamanhoTotalArestam2z = (p3[2] - p4[2]);
-    let incrPontosInternosm2z = tamanhoTotalArestam2z / (m+1);
-
-
-    let tamanhoTotalArestaN1x = (p3[0] - p2[0]);
-    let incrPontosInternosN1x = tamanhoTotalArestaN1x / (n+1);
-    let tamanhoTotalArestaN1y = (p3[1] - p2[1]);
-    let incrPontosInternosN1y = tamanhoTotalArestaN1y / (n+1);
-    let tamanhoTotalArestaN1z = (p3[2] - p2[2]);
-    let incrPontosInternosN1z = tamanhoTotalArestaN1z / (n+1);
-
-    let tamanhoTotalArestaN2x = (p4[0] - p1[0]);
-    let incrPontosInternosN2x = tamanhoTotalArestaN2x / (n+1);
-    let tamanhoTotalArestaN2y = (p4[1] - p1[1]);
-    let incrPontosInternosN2y = tamanhoTotalArestaN2y / (n+1);
-    let tamanhoTotalArestaN2z = (p4[2] - p1[2]);
-    let incrPontosInternosN2z = tamanhoTotalArestaN2z / (n+1);
-
-    let pontosM1 = []
-    pontosM1.push(p1);
-    let pontosM2 = []
-    pontosM2.push(p4);
-
-    let pontosN1 = []
-    pontosN1.push(p2);
-    let pontosN2 = []
-    pontosN2.push(p1);
-
-    let pontoX1m = p1[0];
-    let pontoY1m = p1[1];
-    let pontoZ1m = p1[2];
-
-    let pontoX2m = p4[0];
-    let pontoY2m = p4[1];
-    let pontoZ2m = p4[2];
-
-    let pontoX1n = p2[0];
-    let pontoY1n = p2[1];
-    let pontoZ1n = p2[2];
-
-    let pontoX2n = p1[0];
-    let pontoY2n = p1[1];
-    let pontoZ2n = p1[2];
-
-    for (let i = 0; i < m; i++) {
-        pontoX1m += incrPontosInternosM1x;
-        pontoY1m += incrPontosInternosM1y;
-        pontoZ1m += incrPontosInternosM1z;
-        pontosM1.push([pontoX1m, pontoY1m, pontoZ1m]);
-
-        pontoX2m += incrPontosInternosm2x;
-        pontoY2m += incrPontosInternosm2y;
-        pontoZ2m += incrPontosInternosm2z;
-        pontosM2.push([pontoX2m, pontoY2m, pontoZ2m]);
-
-    }
-
-    for (let i = 0; i < n; i++) {
-        pontoX1n += incrPontosInternosN1x;
-        pontoY1n += incrPontosInternosN1y;
-        pontoZ1n += incrPontosInternosN1z;
-        pontosN1.push([pontoX1n, pontoY1n, pontoZ1n]);
-
-        pontoX2n += incrPontosInternosN2x;
-        pontoY2n += incrPontosInternosN2y;
-        pontoZ2n += incrPontosInternosN2z;
-        pontosN2.push([pontoX2n, pontoY2n, pontoZ2n]);
-    }
-
-    pontosM1.push(p2);
-    pontosM2.push(p3);
-
-    pontosN1.push(p3);
-    pontosN2.push(p4);
-
-return [pontosM1, pontosM2, pontosN1, pontosN2];
-}
 function getFaces(gridMalha, m) {
     let pontosM1 = gridMalha[0];
     let pontosM2 = gridMalha[1];
@@ -125,6 +28,7 @@ function getFaces(gridMalha, m) {
     }
     return faces;
 }
+
 function drawLine(x1, y1, x2, y2) {
     var canvas = document.getElementById('viewport');
     var ctx = canvas.getContext('2d');
@@ -134,33 +38,7 @@ function drawLine(x1, y1, x2, y2) {
     ctx.lineTo(x2, y2); // Desenha até o ponto final
     ctx.stroke(); // Renderiza a linha
 }
-function drawMalha (gridMalha, m, n) {
 
-    let pontosM1 = gridMalha[0];
-    let pontosM2 = gridMalha[1];
-    let pontosN1 = gridMalha[2];
-    let pontosN2 = gridMalha[3];
-
-    for (let i = 0; i < m+2; i++) {
-        pontom1 = pontosM1[i];
-        pontom2 = pontosM2[i];
-        drawLine(pontom1[0], pontom1[1], pontom2[0], pontom2[1]);
-    }
-
-    for (let i = 0; i < (n+2); i++) {
-        ponton1 = pontosN1[i];
-        ponton2 = pontosN2[i];
-        drawLine(ponton1[0], ponton1[1], ponton2[0], ponton2[1]);
-    }
-
-    for (let i = 0; i < m+2; i++) {
-        for (let j = 0; j < n+2; j++) {
-            let x = pontosM1[i][0] + (pontosM2[i][0] - pontosM1[i][0]) * (j / (n+1));
-            let y = pontosM1[i][1] + (pontosM2[i][1] - pontosM1[i][1]) * (j / (n+1));
-            drawCircle(x, y, 1, 'red');
-        }
-    }
-}
 function drawCircle(x, y, radius, color) {
     var canvas = document.getElementById('viewport');
     var ctx = canvas.getContext('2d');
@@ -170,48 +48,88 @@ function drawCircle(x, y, radius, color) {
     ctx.fillStyle = color;
     ctx.fill();
 }
-function pontosDeControle(gridMalha) {
 
-    function posicaoPontoControle(inicio, fim, pontosControle) {
-        let pontos = [];
-        for (let i = 0; i <= pontosControle; i++) {
-            let t = i / pontosControle; // Parâmetro de interpolação (de 0 a 1)
-            
-            let x = inicio[0] + t * (fim[0] - inicio[0]);
-            let y = inicio[1] + t * (fim[1] - inicio[1]);
-            let z = inicio[2] + t * (fim[2] - inicio[2]);
-            
-            pontos.push([x, y, z]);
+function matrizPontosControle(pontos, m, n) {
+    function calculoTaxaPontos(p0, p1, x) {
+        let taxaX = (p1[0] - p0[0]) / (x - 1);
+        let taxaY = (p1[1] - p0[1]) / (x - 1);
+        let taxaZ = (p1[2] - p0[2]) / (x - 1);
+        return [taxaX, taxaY, taxaZ];
+    }
+    
+    function calculoVetorPontos(p0, p1, x) {
+        let vetor = [];
+        let [taxaX, taxaY, taxaZ] = calculoTaxaPontos(p0, p1, x);
+        vetor.push(p0);
+        let y = x - 2;
+        let pX = p0[0];
+        let pY = p0[1];
+        let pZ = p0[2];
+        for (let i = 0; i < y; i++) {
+            pX += taxaX;
+            pY += taxaY;
+            pZ += taxaZ;
+            let ponto = [pX, pY, pZ];
+            vetor.push(ponto);
         }
-        return pontos;
+        vetor.push(p1);
+        return vetor;
     }
 
+    let p1 = pontos[0];
+    let p2 = pontos[1];
+    let p3 = pontos[2];
+    let p4 = pontos[3];
+    let vetM1 = calculoVetorPontos(p1, p2, m);
+    let vetM2 = calculoVetorPontos(p4, p3, m);
 
-    
+    let matrizPontosControleControle = [];
+    for (let i = 0; i < vetM1.length; i++) {
+        let ponto = calculoVetorPontos(vetM1[i], vetM2[i], n);
+        matrizPontosControleControle.push(ponto);
+    }
+    return matrizPontosControleControle;
+}
 
-    let pontoC = [];
-    for (let index = 0; index < array.length; index++) {
-        const element = array[index];
-        
+function drawMalha(gridMalha) {
+    for (let i = 0; i < gridMalha.length; i++) {
+        for (let j = 0; j < gridMalha[i].length - 1; j++) {
+            drawLine(gridMalha[i][j][0], gridMalha[i][j][1], gridMalha[i][j + 1][0], gridMalha[i][j + 1][1]);
+        }
+    }
+    for (let j = 0; j < gridMalha[0].length; j++) {
+        for (let i = 0; i < gridMalha.length - 1; i++) {
+            drawLine(gridMalha[i][j][0], gridMalha[i][j][1], gridMalha[i + 1][j][0], gridMalha[i + 1][j][1]);
+        }
+    }
+
+    for (let i = 0; i < gridMalha.length; i++) {
+        for (let j = 0; j < gridMalha[i].length; j++) {
+            drawCircle(gridMalha[i][j][0], gridMalha[i][j][1], lenPontosControle, 'red');
+        }
     }
 }
 
 
-
-let m = 0;
-let n = 8;
-let pontosControle = 1;
+let m = 10;
+let n = 2;
 
 let p1 = [100, 100, 10];
 let p2 = [100, 400, -10];
 let p3 = [500, 400, -10];
 let p4 = [500, 100, 10];
 
+
+/*
+let p1 = [0, 0, 0];
+let p2 = [0, 10, 0];
+let p3 = [10, 10, 0];
+let p4 = [10, 0, 0];
+*/
+
+const lenPontosControle = 4;
 pontosEntrada = [p1, p2, p3, p4];
-let gridMalha = createMalha(pontosEntrada, m, n);
+let gridMalha = matrizPontosControle(pontosEntrada, m, n);
 console.log(gridMalha);
-let faces = getFaces(gridMalha, m, n)
+drawMalha(gridMalha);
 
-
-drawMalha(gridMalha, m, n);
-paintFace(faces[0], 'blue');
