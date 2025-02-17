@@ -2,11 +2,16 @@
 
 Construir:
 
-
 retirar fator homogeneo -ok
 
 AJEITAR PARAEMETROS DA CAMERA
-criar os pontos de controle
+criar os pontos de controle -OK
+
+Alterar N e M em tempo de execução
+ARRUMAR ROTACAO X
+
+# 
+
 
 VALORES DA CLASSE 
 - ESCALA
@@ -18,7 +23,7 @@ E VALORES GERAIS
 - ILUMINACAO
 
 3. Listagem de malhas e manipalçao de diversas malhas
-Clean CVX ERRO!!!
+Clean CVX ERRO!!! - OKK
 
 Quando mudar axonometrica sim rotaçoes nao, mudar updates !!!
 

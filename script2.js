@@ -1,5 +1,5 @@
 class malha {
-  constructor(pontosdamalha, m, n, desc) {
+  constructor(pontosdamalha, drawPontosControle) {
     //TRANSFORMACOES
     this.p1 = pontosdamalha[0];
     this.p2 = pontosdamalha[1];
@@ -14,18 +14,20 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
+    this.mMalha = 4;
+    this.nMalha = 4;
+
     this.pontosSRU_original = [this.p1, this.p2, this.p3, this.p4];
     this.pontosSRU = this.pontosSRU_original;
-    this.mMalha = m;
-    this.nMalha = n;
+
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.visibilidadeMalha = true;
+    this.visibilidadePC = true;
+    this.drawPontosControle = drawPontosControle;
   };
 
   debugPrint() {
-    console.log('ALTEROU!');
-    console.log('p1: ', this.p1);
   };
 
   updateMalha() {
@@ -330,9 +332,14 @@ function drawMalhas(vetMalha) {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
+
     if (malha.visibilidadeMalha) {
       drawMalha(malha.gridControleSRT);
     }
+    if (malha.visibilidadePC) {
+      drawPontosControle(malha.gridControleSRT);
+    }
+
   }
 }
 
@@ -390,12 +397,15 @@ function drawMalha(gridControle) {
       }
   }
 
+
+}
+
+function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
-      for (let j = 0; j < gridControle[i].length; j++) {
-          drawCircle(gridControle[i][j][0], gridControle[i][j][1], 4, 'red');
-      }
+    for (let j = 0; j < gridControle[i].length; j++) {
+        drawCircle(gridControle[i][j][0], gridControle[i][j][1], 4, 'red');
+    }
   }
-  console.log(gridControle);
 }
 
 function drawCircle(x, y, radius, color) {
@@ -406,7 +416,7 @@ function drawCircle(x, y, radius, color) {
   ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
   ctx.fillStyle = color;
   ctx.fill();
-}
+  }
 
 function updateVetMalha() {
   for (let i = 0; i < vetMalha.length; i++) {
@@ -615,12 +625,16 @@ let ponto4 = [1,0,3, fatH];
 
 
 ///// teste 
+
+let m = 4
+let n = 4
+
 let ponto1 = [0,10,0];
 let ponto2 = [0,15,0];
 let ponto3 = [10,15,0];
 let ponto4 = [10,10,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, 10, 4, 1111);
+malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
 ponto1 = [0,0,0];
@@ -630,7 +644,7 @@ ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 
-malha2 = new malha(pontosMalha, 10, 8, 2222);
+malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
 
 drawMalhas(vetMalha);
@@ -679,6 +693,10 @@ function onFieldChange() {
 
   eixoBool = document.getElementById('eixo3d').checked;
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
+  selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
+
+  selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
+  selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
 
   updateVetMalha();
   drawMalhas(vetMalha);
@@ -700,7 +718,9 @@ document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
+document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
 
 document.getElementById('p1X').addEventListener('input', onFieldChange);
 document.getElementById('p1Y').addEventListener('input', onFieldChange);
@@ -715,9 +735,12 @@ document.getElementById('p4X').addEventListener('input', onFieldChange);
 document.getElementById('p4Y').addEventListener('input', onFieldChange);
 document.getElementById('p4Z').addEventListener('input', onFieldChange);
 
-// Seleciona o elemento <select> e o elemento para exibir a descrição
+document.getElementById('mPontos').addEventListener('input', onFieldChange);
+document.getElementById('nPontos').addEventListener('input', onFieldChange);
+
+// Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
-const malhaDescricao = document.getElementById("malhaDescricao");
+const malhadrawPontosControlericao = document.getElementById("malhadrawPontosControlericao");
 
 // Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");
@@ -728,6 +751,7 @@ const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
 const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
+const visibilidadePCInput = document.getElementById("visibilidadePC");
 
 const p1InputX = document.getElementById("p1X");
 const p1InputY = document.getElementById("p1Y");
@@ -742,6 +766,10 @@ const p4InputX = document.getElementById("p4X");
 const p4InputY = document.getElementById("p4Y");
 const p4InputZ = document.getElementById("p4Z");
 
+const mPontosInput = document.getElementById("mPontos");
+const nPontosInput = document.getElementById("nPontos");
+
+
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
@@ -753,6 +781,7 @@ function atualizarInputsMalha(malha) {
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
   visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
+  visibilidadePCInput.checked = malha.visibilidadePC;
   
   p1InputX.value = malha.p1[0];
   p1InputY.value = malha.p1[1];
@@ -766,6 +795,9 @@ function atualizarInputsMalha(malha) {
   p4InputX.value = malha.p4[0];
   p4InputY.value = malha.p4[1];
   p4InputZ.value = malha.p4[2];
+
+  mPontosInput.value = malha.mMalha;
+  nPontosInput.value = malha.nMalha;
 }
 
 // Preenche o seletor com as opções de malha
@@ -779,13 +811,11 @@ vetMalha.forEach((malha, index) => {
 // Define a primeira malha (vetMalha[0]) como selecionada por padrão
 selectMalha.selectedIndex = 0; // Seleciona a primeira opção
 var selectedMalha = vetMalha[0];
-malhaDescricao.textContent = vetMalha[0].desc; // Exibe a descrição da primeira malha
 atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
 
 selectMalha.addEventListener("change", () => {
   const selectedIndex = selectMalha.value; // Índice da malha selecionada
   selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
-  malhaDescricao.textContent = selectedMalha.desc; // Exibe a descrição
   atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
 });
 
