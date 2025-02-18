@@ -14,15 +14,15 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
-    this.mMalha = 4;
-    this.nMalha = 4;
+    this.mMalha = 5;
+    this.nMalha = 5;
 
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
-    this.visibilidadeMalha = true;
+    this.visibilidadeMalha = false;
     this.visibilidadePC = true;
   };
 
@@ -33,6 +33,7 @@ class malha {
   updatePC() {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
+    this.updateMalha();
   };
 
   updateMalha() {
@@ -259,6 +260,8 @@ class malha {
   eixoBool = true;
   eixoPCverde = true;
 
+  var numSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
+
 } ////////////////////////////////////////////////
   
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
@@ -331,15 +334,15 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
-  function closedBspline(pontosDeControle) {
-    // Repete os primeiros pontos no final para fechar a curva
-    let extendedpontosDeControle = [
-        ...pontosDeControle,
-        pontosDeControle[0], // Repete o primeiro ponto no final
-        pontosDeControle[1], // Repete o segundo ponto no final
-        pontosDeControle[2]  // Repete o terceiro ponto no final (dependendo do grau da B-spline)
-    ];
-    return extendedpontosDeControle;
+function closedBspline(pontosDeControle) {
+  // Repete os primeiros pontos no final para fechar a curva
+  let extendedpontosDeControle = [
+      ...pontosDeControle,
+      pontosDeControle[0], // Repete o primeiro ponto no final
+      pontosDeControle[1], // Repete o segundo ponto no final
+      pontosDeControle[2]  // Repete o terceiro ponto no final (dependendo do grau da B-spline)
+  ];
+  return extendedpontosDeControle;
 }
 
 function clampingBspline(pontosDeControle) {
@@ -350,6 +353,7 @@ function clampingBspline(pontosDeControle) {
     ];
     return extendedpontosDeControle;
 }
+
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
@@ -362,7 +366,7 @@ function calculateBspline(pontosDeControle) {
   }*/
 
 
-  let nSegmentos = 100;
+  let nSegmentos = 1;
   let pontosDaCurva = [];
 
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
@@ -415,15 +419,17 @@ function calculateBspline(pontosDeControle) {
   return pontosDaCurva;
 }
 
+
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
   let auxPontosDeControle = [];
-  let length = gridSRUPontosControle.length;
+  let lengthI = gridSRUPontosControle.length;
+  let lengthJ = gridSRUPontosControle[0].length;
   //PARA N
   // PEGAR OS INDICES PARA LINHAS
-  for (let i = 1; i < length-1; i++) {
+  for (let i = 1; i < lengthI-1; i++) {
       auxPontosDeControle = [];
-      for (let j = 0; j < length; j++) {
+      for (let j = 0; j < lengthJ; j++) {
           auxPontosDeControle.push(gridSRUPontosControle[i][j]);
       }
       console.log('Pontos de controle',auxPontosDeControle);
@@ -437,6 +443,7 @@ function createGridBspline(gridSRUPontosControle){
   
   return gridBspline;
 }
+
 
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -881,6 +888,9 @@ function onFieldChange() {
                     parseFloat(document.getElementById('yPC').value) || 0,
                     parseFloat(document.getElementById('zPC').value) || 0];
 
+
+  numSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
+  
   updateVetMalha();
   updateProgramaTotal();
 }
@@ -954,6 +964,8 @@ document.getElementById('indexJPC').addEventListener('input', onFieldChange);
 document.getElementById('xPC').addEventListener('input', onFieldChange);
 document.getElementById('yPC').addEventListener('input', onFieldChange);
 document.getElementById('zPC').addEventListener('input', onFieldChange);
+
+document.getElementById('numSegmentos').addEventListener('input', onFieldChange); 
 
 // Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
