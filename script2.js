@@ -32,14 +32,13 @@ class malha {
 
   updatePC() {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
-    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.updateMalha();
   };
 
   updateMalha() {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
-    this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
+    //this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
+    //this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
     this.debugPrint();
   };
   
@@ -366,7 +365,7 @@ function calculateBspline(pontosDeControle) {
   }*/
 
 
-  let nSegmentos = 1;
+  let nSegmentos = numSegmentos;
   let pontosDaCurva = [];
 
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
@@ -545,10 +544,11 @@ function drawGridBspline(gridBspline) {
     }
   }
 
+
   for (let j = 0; j < gridBspline[0].length; j++) {
     for (let i = 0; i < gridBspline.length - 1; i++) {
       // Conecta verticalmente
-      drawLine(gridBspline[i][j][0], gridBspline[i][j][1], gridBspline[i + 1][j][0], gridBspline[i + 1][j][1], 'red');
+      //drawLine(gridBspline[i][j][0], gridBspline[i][j][1], gridBspline[i + 1][j][0], gridBspline[i + 1][j][1], 'red');
     }
   }
 }
@@ -802,15 +802,6 @@ function eixopontosSRUtoSRT(pontos) {
 
 }/////////////////////////////////////////////////////////////////////
 
-/*
-let fatH= 1;
-let ponto1 = [0,0,4, fatH];
-let ponto2 = [-1,0,3, fatH];
-let ponto3 = [0,0,1, fatH];
-let ponto4 = [1,0,3, fatH];
-//*/
-
-///// teste 
 
 let m = 4
 let n = 4
@@ -825,11 +816,13 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
+/*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
 ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
+//*/
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
