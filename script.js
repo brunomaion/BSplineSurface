@@ -16,8 +16,6 @@ class malha {
 
     this.mMalha = 4;
     this.nMalha = 4;
-    
-    this.indiceSelePC = [0, 0];
 
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
@@ -58,27 +56,24 @@ class malha {
   };
 
   rotacao(pontos) {
-    let pontosOriginais = [this.p1, this.p2, this.p3, this.p4];
+    let p1 = this.p1;
+    let p2 = this.p2;
+    let p3 = this.p3;
+    let p4 = this.p4;
+    
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
   
-    
-    let centroide = [0, 0, 0];
-    for (let i = 0; i < pontosOriginais.length; i++) {
-      centroide[0] += pontosOriginais[i][0];
-      centroide[1] += pontosOriginais[i][1];
-      centroide[2] += pontosOriginais[i][2];
-    }
-    centroide[0] /= pontosOriginais.length;
-    centroide[1] /= pontosOriginais.length;
-    centroide[2] /= pontosOriginais.length;
+    let centroideX = (p1[0] + p2[0] + p3[0] + p4[0]) / 4;
+    let centroideY = (p1[1] + p2[1] + p3[1] + p4[1]) / 4;
+    let centroideZ = (p1[2] + p2[2] + p3[2] + p4[2]) / 4;
 
     function translN(pontoTN) {
       let matrizTranslado = [
-        [1, 0, 0, -centroide[0]],
-        [0, 1, 0, -centroide[1]],
-        [0, 0, 1, -centroide[2]],
+        [1, 0, 0, -centroideX],
+        [0, 1, 0, -centroideY],
+        [0, 0, 1, -centroideZ],
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTN);
@@ -86,9 +81,9 @@ class malha {
   
     function translP(pontoTP) {
       let matrizTranslado = [
-        [1, 0, 0, centroide[0]],
-        [0, 1, 0, centroide[1]],
-        [0, 0, 1, centroide[2]],
+        [1, 0, 0, centroideX],
+        [0, 1, 0, centroideY],
+        [0, 0, 1, centroideZ],
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTP);
@@ -218,23 +213,50 @@ class malha {
     };
     return novaMatriz;
   };
-
-  editPC(pos) {
-    let pontoMaisPerto = acharPCmaisPerto(pos, this.gridControleSRT);
-    console.log(pontoMaisPerto);
-    //ENCONTRAR O INDICE IJ 
-    for (let i = 0; i < this.gridControleSRT.length; i++) {
-      for (let j = 0; j < this.gridControleSRT[i].length; j++) {
-        if (this.gridControleSRT[i][j] === pontoMaisPerto) {
-
-          this.indiceSelePC = [i, j];
-          console.log('Ponto mais perto encontrado no índice ', this.indiceSelePC);
-        }
-      }
-    }
-  }
 }
 
+{//////// VARIRAVEIS GLOBAIS ////////////////
+  var visao = 'axonometrica';
+  var vetMalha = []
+  
+  /// camera 
+  var xMin = -20;
+  var xMax = 20;
+  var yMin = -15;
+  var yMax = 15;
+  var uMin = 0;
+  var uMax = 1099;
+  var vMin = 0;
+  var vMax = 699;
+  var dp = 40;
+  var viewUp = [0, 1, 0];
+  
+  var xVrp = document.getElementById('xVrp').value || 0;
+  var yVrp = document.getElementById('yVrp').value || 0;
+  var zVrp = document.getElementById('zVrp').value || 0;
+  
+  var vetVrp = [xVrp,yVrp,zVrp];
+  
+  var xP = document.getElementById('xP').value || 0;
+  var yP = document.getElementById('yP').value || 0;
+  var zP = document.getElementById('zP').value || 0;
+  
+  var vetP = [xP,yP,zP];
+  var fatH = 1;
+  
+  //Tamanho dos pontos de controle
+  var lenPontosControle = document.getElementById('tamPC').value || 4;
+  
+  //Index do ponto de controle selecionado
+  var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
+                      parseInt(document.getElementById('indexJPC').value) || 0]; 
+    
+  //eixo
+  eixoBool = true;
+  eixoPCverde = true;
+
+} ////////////////////////////////////////////////
+  
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
 
 function addFatH(vetor) {
@@ -247,26 +269,7 @@ function removeFatH(vetor) {
   return novoVetor;
 }
 
-function acharPCmaisPerto(clickPosition, matriz) {
-  let menorDistancia = Infinity;
-  let pontoMaisPerto = [];
-  for (let i = 0; i < matriz.length; i++) {
-    for (let j = 0; j < matriz[i].length; j++) {
-      let ponto = matriz[i][j];
-      
-      let distancia = Math.sqrt((clickPosition[0] - ponto[0]) ** 2 + (clickPosition[1] - ponto[1]) ** 2);
-      if (distancia < menorDistancia) {
-        menorDistancia = distancia;
-        pontoMaisPerto = ponto;
-      }
-    }
-  }
-  return pontoMaisPerto;
-}
-
 }/////////////////////////////////////////////////////////////////////
-
-
 
 {//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
 function vetorUnitario(vetor) {
@@ -322,6 +325,7 @@ function fatorHomogeneo(vetor) {
 
 }/////////////////////////////////////////////////////////////////////
 
+{/// FUNCOES /////////////////////////////////////////
 
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -449,11 +453,51 @@ function drawCircle(x, y, radius, color) {
   ctx.fill();
   }
 
+
+function maximoPCdaMalha([i, j]){
+  if (i > selectedMalha.mMalha || j > selectedMalha.nMalha) {
+    return [0, 0];
+  }
+  return [i, j];
+}
+
+function drawPCsele() {
+  if (eixoPCverde) {
+    indicePCsele = maximoPCdaMalha(indicePCsele);
+    let i = indicePCsele[0];
+    let j = indicePCsele[1];
+    console.log(indicePCsele);
+    
+    gridObjeto = selectedMalha.gridControleSRT;
+    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
+  }
+}
+
 function updateVetMalha() {
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     malha.updateMalha();
   }
+}
+
+function atualizarPCSelecionado(click){
+  let matriz = selectedMalha.gridControleSRT;
+  let menorDistancia = Infinity;
+  let pontoMaisPerto = [];
+  // CACAR PONTO MAIS PERTO NO SRT
+  for (let i = 0; i < matriz.length; i++) {
+    for (let j = 0; j < matriz[i].length; j++) {
+      let ponto = matriz[i][j];
+      let distancia = Math.sqrt((click[0] - ponto[0]) ** 2 + (click[1] - ponto[1]) ** 2);
+      if (distancia < menorDistancia) {
+        menorDistancia = distancia;
+        pontoMaisPerto = ponto;
+        indicePCsele = [i, j];
+      }
+    }
+  }
+  let pontoMaisPertoSRU = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
+  return pontoMaisPertoSRU;
 }
 
 function updateVetMalhaPC() {
@@ -463,41 +507,13 @@ function updateVetMalhaPC() {
   }
 }
 
-{//////// VARIRAVEIS GLOBAIS ////////////////
-var visao = 'axonometrica';
-var vetMalha = []
+function updateProgramaTotal() {  
+  drawMalhas(vetMalha); //renderizar 
+  drawPCsele();
 
-/// camera 
-var xMin = -20;
-var xMax = 20;
-var yMin = -15;
-var yMax = 15;
-var uMin = 0;
-var uMax = 1099;
-var vMin = 0;
-var vMax = 699;
-var dp = 40;
-var viewUp = [0, 1, 0];
+}
 
-var xVrp = document.getElementById('xVrp').value || 0;
-var yVrp = document.getElementById('yVrp').value || 0;
-var zVrp = document.getElementById('zVrp').value || 0;
-
-var vetVrp = [xVrp,yVrp,zVrp];
-
-var xP = document.getElementById('xP').value || 0;
-var yP = document.getElementById('yP').value || 0;
-var zP = document.getElementById('zP').value || 0;
-
-var vetP = [xP,yP,zP];
-var fatH = 1;
-
-//Tamanho dos pontos de controle
-var lenPontosControle = document.getElementById('tamPC').value || 4;
-
-//eixo
-eixoBool = true;
-} ////////////////////////////////////////////////
+}/////////////////////////////////////////////////////////////////////
 
 {//////// PROJECAO /////////////////////////////////////////////////
 // PONTO = [x, y, z, 1] 
@@ -662,11 +678,12 @@ let ponto3 = [0,0,1, fatH];
 let ponto4 = [1,0,3, fatH];
 //*/
 
-
 ///// teste 
 
 let m = 4
 let n = 4
+
+var vetMalha = [];
 
 let ponto1 = [0,10,0];
 let ponto2 = [0,15,0];
@@ -682,11 +699,19 @@ ponto3 = [10, 0, 10];
 ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
-
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
 
-drawMalhas(vetMalha);
+
+//// OUTRAS VARIAVEIS GLOBAIS
+var selectedMalha = vetMalha[0];
+var pcSelecionado = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
+
+
+/// ATUALIZAÇAO /////////////////
+
+
+updateProgramaTotal();
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
 
@@ -719,17 +744,14 @@ function onFieldChange() {
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
   eixoBool = document.getElementById('eixo3d').checked;
+  eixoPCverde = document.getElementById('pcVerde').checked;
   lenPontosControle = document.getElementById('tamPC').value || 4;
 
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
-  selectedMalha.indiceSelePC = [parseInt(document.getElementById('indexIPC').value), 
-    parseInt(document.getElementById('indexJPC').value)];
-  console.log(selectedMalha.indiceSelePC);
-  
   updateVetMalha();
-  drawMalhas(vetMalha);
+  updateProgramaTotal();
 }
 
 function onFieldChangePC() {
@@ -751,7 +773,7 @@ function onFieldChangePC() {
   selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
 
   updateVetMalhaPC();
-  drawMalhas(vetMalha);
+  updateProgramaTotal();
 }
 
 // Adicionando os listeners para os campos
@@ -774,6 +796,7 @@ document.getElementById('translZ').addEventListener('input', onFieldChange);
 
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('tamPC').addEventListener('input', onFieldChange);
+document.getElementById('pcVerde').addEventListener('input', onFieldChange);
 
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
@@ -835,10 +858,6 @@ const nPontosInput = document.getElementById("nPontos");
 const indexIPCinput = document.getElementById("indexIPC");
 const indexJPCinput = document.getElementById("indexJPC");
 
-const xPCinput = document.getElementById("xPC"); 
-const yPCinput = document.getElementById("yPC");
-const zPCinput = document.getElementById("zPC");
-
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
@@ -864,12 +883,11 @@ function atualizarInputsMalha(malha) {
   p4InputZ.value = malha.p4[2];
   mPontosInput.value = malha.mMalha;
   nPontosInput.value = malha.nMalha;
-  indexIPCinput.value = malha.indiceSelePC[0];
-  indexJPCinput.value = malha.indiceSelePC[1];
-  xPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][0];
-  yPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][1];
-  zPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][2];
+
+  indexIPCinput.value = indicePCsele[0];
+  indexJPCinput.value = indicePCsele[1];
 }
+
 
 // Preenche o seletor com as opções de malha
 vetMalha.forEach((malha, index) => {
@@ -881,9 +899,7 @@ vetMalha.forEach((malha, index) => {
 
 // Define a primeira malha (vetMalha[0]) como selecionada por padrão
 selectMalha.selectedIndex = 0; // Seleciona a primeira opção
-var selectedMalha = vetMalha[0];
 atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
-
 selectMalha.addEventListener("change", () => {
   const selectedIndex = selectMalha.value; // Índice da malha selecionada
   selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
@@ -898,7 +914,8 @@ document.getElementById('viewport').addEventListener('click', function(event) {
   var x = event.clientX - rect.left;
   var y = event.clientY - rect.top;
   var clickPosition = [x, y];
-  selectedMalha.editPC(clickPosition);
+  pcSelecionado = atualizarPCSelecionado(clickPosition);
+  updateProgramaTotal();
   atualizarInputsMalha(selectedMalha);
 });
 
