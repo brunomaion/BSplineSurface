@@ -461,13 +461,11 @@ function maximoPCdaMalha([i, j]){
   return [i, j];
 }
 
-function drawPCsele() {
+function drawPCselecionado() {
   if (eixoPCverde) {
     indicePCsele = maximoPCdaMalha(indicePCsele);
     let i = indicePCsele[0];
     let j = indicePCsele[1];
-    console.log(indicePCsele);
-    
     gridObjeto = selectedMalha.gridControleSRT;
     drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
   }
@@ -509,8 +507,7 @@ function updateVetMalhaPC() {
 
 function updateProgramaTotal() {  
   drawMalhas(vetMalha); //renderizar 
-  drawPCsele();
-
+  drawPCselecionado();
 }
 
 }/////////////////////////////////////////////////////////////////////
@@ -750,6 +747,12 @@ function onFieldChange() {
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
+
+  selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]] = 
+                    [parseFloat(document.getElementById('xPC').value) || 0,
+                    parseFloat(document.getElementById('yPC').value) || 0,
+                    parseFloat(document.getElementById('zPC').value) || 0];
+
   updateVetMalha();
   updateProgramaTotal();
 }
@@ -858,6 +861,10 @@ const nPontosInput = document.getElementById("nPontos");
 const indexIPCinput = document.getElementById("indexIPC");
 const indexJPCinput = document.getElementById("indexJPC");
 
+const xPCInput = document.getElementById("xPC");
+const yPCInput = document.getElementById("yPC");
+const zPCInput = document.getElementById("zPC");
+
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
@@ -886,6 +893,10 @@ function atualizarInputsMalha(malha) {
 
   indexIPCinput.value = indicePCsele[0];
   indexJPCinput.value = indicePCsele[1];
+  
+  xPCInput.value = pcSelecionado[0];
+  yPCInput.value = pcSelecionado[1];
+  zPCInput.value = pcSelecionado[2];
 }
 
 

@@ -50,11 +50,14 @@
 
 
     <div class="pontosControleEditar">
-      <label for="pontosControleEditar">Pontos de Controle:</label><br>
-      <label for="pontoIJ">Ponto (i, j):</label>
-      <input type="number" id="indexIPC" name="indexIPC" value="0" min="0" max="100" maxlength="3" size="4">
-      <input type="number" id="indexJPC" name="indexJPC" value="0" min="0" max="100" maxlength="3" size="4">
+      <label for="pontosControleEditar">P. Controle selecionado:</label><br>
+      <label for="indexIPC">I:</label>
+      <input type="number" id="indexIPC" name="indexIPC" value="0" min="0" max="100" size="4" readonly disabled>
+      <label for="indexJPC">J:</label>
+      <input type="number" id="indexJPC" name="indexJPC" value="0" min="0" max="100" size="4" readonly disabled>
+      
       <br>
+
       <label for="xPC">X:</label>
       <input type="number" id="xPC" name="xPC" value="0" step="0.1" maxlength="3" size="4">
       <label for="yPC">Y:</label>
