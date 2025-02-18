@@ -16,6 +16,8 @@ class malha {
 
     this.mMalha = 4;
     this.nMalha = 4;
+    
+    this.indiceSelePC = [0, 0];
 
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
@@ -27,8 +29,13 @@ class malha {
   debugPrint() {
   };
 
-  updateMalha() {
+
+  updatePC() {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
+    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
+  };
+
+  updateMalha() {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.debugPrint();
   };
@@ -193,7 +200,7 @@ class malha {
     }
     return matrizPontosControleControle;
   }
-
+  
   pipelineSruSrt(pSRU) {
     pSRU = addFatH(pSRU);
     let pontosEscalados = this.escala(pSRU);
@@ -211,6 +218,21 @@ class malha {
     };
     return novaMatriz;
   };
+
+  editPC(pos) {
+    let pontoMaisPerto = acharPCmaisPerto(pos, this.gridControleSRT);
+    console.log(pontoMaisPerto);
+    //ENCONTRAR O INDICE IJ 
+    for (let i = 0; i < this.gridControleSRT.length; i++) {
+      for (let j = 0; j < this.gridControleSRT[i].length; j++) {
+        if (this.gridControleSRT[i][j] === pontoMaisPerto) {
+
+          this.indiceSelePC = [i, j];
+          console.log('Ponto mais perto encontrado no índice ', this.indiceSelePC);
+        }
+      }
+    }
+  }
 }
 
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
@@ -225,7 +247,24 @@ function removeFatH(vetor) {
   return novoVetor;
 }
 
+function acharPCmaisPerto(clickPosition, matriz) {
+  let menorDistancia = Infinity;
+  let pontoMaisPerto = [];
+  for (let i = 0; i < matriz.length; i++) {
+    for (let j = 0; j < matriz[i].length; j++) {
+      let ponto = matriz[i][j];
+      
+      let distancia = Math.sqrt((clickPosition[0] - ponto[0]) ** 2 + (clickPosition[1] - ponto[1]) ** 2);
+      if (distancia < menorDistancia) {
+        menorDistancia = distancia;
+        pontoMaisPerto = ponto;
+      }
+    }
+  }
+  return pontoMaisPerto;
 }
+
+}/////////////////////////////////////////////////////////////////////
 
 
 
@@ -417,6 +456,13 @@ function updateVetMalha() {
   }
 }
 
+function updateVetMalhaPC() {
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    malha.updatePC();
+  }
+}
+
 {//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
 var vetMalha = []
@@ -448,6 +494,7 @@ var fatH = 1;
 
 //Tamanho dos pontos de controle
 var lenPontosControle = document.getElementById('tamPC').value || 4;
+
 //eixo
 eixoBool = true;
 } ////////////////////////////////////////////////
@@ -629,7 +676,6 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
-///*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -639,7 +685,6 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
-//*/
 
 drawMalhas(vetMalha);
 
@@ -673,6 +718,22 @@ function onFieldChange() {
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
 
+  eixoBool = document.getElementById('eixo3d').checked;
+  lenPontosControle = document.getElementById('tamPC').value || 4;
+
+  selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
+  selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
+
+  selectedMalha.indiceSelePC = [parseInt(document.getElementById('indexIPC').value), 
+    parseInt(document.getElementById('indexJPC').value)];
+  console.log(selectedMalha.indiceSelePC);
+  
+  updateVetMalha();
+  drawMalhas(vetMalha);
+}
+
+function onFieldChangePC() {
+  // AQUI SO A MALHA INICIAL
   selectedMalha.p1[0] = parseFloat(document.getElementById('p1X').value) || 0;
   selectedMalha.p1[1] = parseFloat(document.getElementById('p1Y').value) || 0;
   selectedMalha.p1[2] = parseFloat(document.getElementById('p1Z').value) || 0;
@@ -686,16 +747,10 @@ function onFieldChange() {
   selectedMalha.p4[1] = parseFloat(document.getElementById('p4Y').value) || 0;
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
 
-  eixoBool = document.getElementById('eixo3d').checked;
-  lenPontosControle = document.getElementById('tamPC').value || 4;
-
-  selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
-  selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
-
   selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
   selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
 
-  updateVetMalha();
+  updateVetMalhaPC();
   drawMalhas(vetMalha);
 }
 
@@ -723,25 +778,31 @@ document.getElementById('tamPC').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
 
-document.getElementById('p1X').addEventListener('input', onFieldChange);
-document.getElementById('p1Y').addEventListener('input', onFieldChange);
-document.getElementById('p1Z').addEventListener('input', onFieldChange);
-document.getElementById('p2X').addEventListener('input', onFieldChange);
-document.getElementById('p2Y').addEventListener('input', onFieldChange);
-document.getElementById('p2Z').addEventListener('input', onFieldChange);
-document.getElementById('p3X').addEventListener('input', onFieldChange);
-document.getElementById('p3Y').addEventListener('input', onFieldChange);
-document.getElementById('p3Z').addEventListener('input', onFieldChange);
-document.getElementById('p4X').addEventListener('input', onFieldChange);
-document.getElementById('p4Y').addEventListener('input', onFieldChange);
-document.getElementById('p4Z').addEventListener('input', onFieldChange);
+document.getElementById('p1X').addEventListener('input', onFieldChangePC);
+document.getElementById('p1Y').addEventListener('input', onFieldChangePC);
+document.getElementById('p1Z').addEventListener('input', onFieldChangePC);
+document.getElementById('p2X').addEventListener('input', onFieldChangePC);
+document.getElementById('p2Y').addEventListener('input', onFieldChangePC);
+document.getElementById('p2Z').addEventListener('input', onFieldChangePC);
+document.getElementById('p3X').addEventListener('input', onFieldChangePC);
+document.getElementById('p3Y').addEventListener('input', onFieldChangePC);
+document.getElementById('p3Z').addEventListener('input', onFieldChangePC);
+document.getElementById('p4X').addEventListener('input', onFieldChangePC);
+document.getElementById('p4Y').addEventListener('input', onFieldChangePC);
+document.getElementById('p4Z').addEventListener('input', onFieldChangePC);
 
-document.getElementById('mPontos').addEventListener('input', onFieldChange);
-document.getElementById('nPontos').addEventListener('input', onFieldChange);
+document.getElementById('mPontos').addEventListener('input', onFieldChangePC);
+document.getElementById('nPontos').addEventListener('input', onFieldChangePC);
+
+document.getElementById('indexIPC').addEventListener('input', onFieldChange);
+document.getElementById('indexJPC').addEventListener('input', onFieldChange);
+
+document.getElementById('xPC').addEventListener('input', onFieldChange);
+document.getElementById('yPC').addEventListener('input', onFieldChange);
+document.getElementById('zPC').addEventListener('input', onFieldChange);
 
 // Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
-
 // Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");
 
@@ -771,22 +832,24 @@ const p4InputZ = document.getElementById("p4Z");
 const mPontosInput = document.getElementById("mPontos");
 const nPontosInput = document.getElementById("nPontos");
 
+const indexIPCinput = document.getElementById("indexIPC");
+const indexJPCinput = document.getElementById("indexJPC");
 
+const xPCinput = document.getElementById("xPC"); 
+const yPCinput = document.getElementById("yPC");
+const zPCinput = document.getElementById("zPC");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
-
   rotXInput.value = malha.rotX;
   rotYInput.value = malha.rotY;
   rotZInput.value = malha.rotZ;
-
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
   visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
   visibilidadePCInput.checked = malha.visibilidadePC;
-  
   p1InputX.value = malha.p1[0];
   p1InputY.value = malha.p1[1];
   p1InputZ.value = malha.p1[2];
@@ -799,9 +862,13 @@ function atualizarInputsMalha(malha) {
   p4InputX.value = malha.p4[0];
   p4InputY.value = malha.p4[1];
   p4InputZ.value = malha.p4[2];
-
   mPontosInput.value = malha.mMalha;
   nPontosInput.value = malha.nMalha;
+  indexIPCinput.value = malha.indiceSelePC[0];
+  indexJPCinput.value = malha.indiceSelePC[1];
+  xPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][0];
+  yPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][1];
+  zPCinput.value = malha.gridControleSRU[malha.indiceSelePC[0]][malha.indiceSelePC[1]][2];
 }
 
 // Preenche o seletor com as opções de malha
@@ -822,5 +889,21 @@ selectMalha.addEventListener("change", () => {
   selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
   atualizarInputsMalha(selectedMalha); // Atualiza os inputs de rotação
 });
+
+var clickPosition = [0, 0];
+
+document.getElementById('viewport').addEventListener('click', function(event) {
+  var canvas = document.getElementById('viewport');
+  var rect = canvas.getBoundingClientRect();
+  var x = event.clientX - rect.left;
+  var y = event.clientY - rect.top;
+  var clickPosition = [x, y];
+  selectedMalha.editPC(clickPosition);
+  atualizarInputsMalha(selectedMalha);
+});
+
+
+
+
 
 }/////////////////////////////////////////////////////////////////////////////////////////

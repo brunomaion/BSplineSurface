@@ -7,11 +7,11 @@ retirar fator homogeneo -ok
 AJEITAR PARAEMETROS DA CAMERA
 criar os pontos de controle -OK
 
-Alterar N e M em tempo de execução
-ARRUMAR ROTACAO X
+Alterar N e M em tempo de execução ok
+ARRUMAR ROTACAO X - ok
 
-# 
-FATOR H
+
+VALORES ALTOS DEFORMA A MALHA (PONTOS EXTREMOS)
 
 
 

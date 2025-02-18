@@ -97,6 +97,10 @@ button:hover {
   width: 45px;
 }
 
+#xPC, #yPC, #zPC ,#indexIPC, #indexJPC {	
+  width: 45px;
+}
+
 
 .sidebarLeft, .sidebarRight {
   position: absolute;
