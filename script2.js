@@ -14,21 +14,20 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
-    this.mMalha = 5;
-    this.nMalha = 5;
+    this.mMalha = 4;
+    this.nMalha = 4;
 
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
-    this.visibilidadeMalha = false;
+    this.visibilidadeMalha = true;
     this.visibilidadePC = true;
   };
 
   debugPrint() {
   };
-
 
   updatePC() {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
@@ -37,8 +36,8 @@ class malha {
 
   updateMalha() {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
-    //this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    //this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
+    this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
+    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
     this.debugPrint();
   };
   
@@ -254,12 +253,12 @@ class malha {
   //Index do ponto de controle selecionado
   var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
                       parseInt(document.getElementById('indexJPC').value) || 0]; 
+
+  var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
     
   //eixo
   eixoBool = true;
   eixoPCverde = true;
-
-  var numSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
 
 } ////////////////////////////////////////////////
   
@@ -333,26 +332,6 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
-function closedBspline(pontosDeControle) {
-  // Repete os primeiros pontos no final para fechar a curva
-  let extendedpontosDeControle = [
-      ...pontosDeControle,
-      pontosDeControle[0], // Repete o primeiro ponto no final
-      pontosDeControle[1], // Repete o segundo ponto no final
-      pontosDeControle[2]  // Repete o terceiro ponto no final (dependendo do grau da B-spline)
-  ];
-  return extendedpontosDeControle;
-}
-
-function clampingBspline(pontosDeControle) {
-    let extendedpontosDeControle = [
-        pontosDeControle[0], pontosDeControle[0], // Repete o primeiro ponto
-        ...pontosDeControle,
-        pontosDeControle[pontosDeControle.length - 1], pontosDeControle[pontosDeControle.length - 1] // Repete o último ponto
-    ];
-    return extendedpontosDeControle;
-}
-
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
@@ -364,8 +343,6 @@ function calculateBspline(pontosDeControle) {
       pontosDeControle = closedBspline(pontosDeControle);
   }*/
 
-
-  let nSegmentos = numSegmentos;
   let pontosDaCurva = [];
 
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
@@ -417,8 +394,9 @@ function calculateBspline(pontosDeControle) {
 
   return pontosDaCurva;
 }
-
-
+function transposeMatrix(matrix) {
+  return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
+}
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
   let auxPontosDeControle = [];
@@ -426,22 +404,38 @@ function createGridBspline(gridSRUPontosControle){
   let lengthJ = gridSRUPontosControle[0].length;
   //PARA N
   // PEGAR OS INDICES PARA LINHAS
-  for (let i = 1; i < lengthI-1; i++) {
+  for (let i = 0; i < lengthI; i++) {
       auxPontosDeControle = [];
       for (let j = 0; j < lengthJ; j++) {
           auxPontosDeControle.push(gridSRUPontosControle[i][j]);
-      }
-      console.log('Pontos de controle',auxPontosDeControle);
-
-      let pontosCurva = calculateBspline(auxPontosDeControle);
-      console.log('Pontos da curva',pontosCurva);
-      
+      } 
       gridBspline.push(calculateBspline(auxPontosDeControle));
   }
-  console.log("grid ",gridBspline);
+
+
+  let gridBsplineTransposed = transposeMatrix(gridBspline);
+
+  console.log('Grid Bspline',gridBspline);
+  console.log('Grid Bspline Transposed',gridBsplineTransposed);
+
+  lengthI = gridBsplineTransposed.length;
+  lengthJ = gridBsplineTransposed[0].length;
+
+  let gridBsplineFinal = [];
+  for (let i = 0; i < lengthI; i++) {
+      auxPontosDeControle = [];
+      for (let j = 0; j < lengthJ; j++) {
+          auxPontosDeControle.push(gridBsplineTransposed[i][j]);
+      } 
+      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
+  }
+
+  console.log('Grid Bspline Final',gridBsplineFinal);
   
-  return gridBspline;
+  
+  return gridBsplineFinal;
 }
+
 
 
 function drawLine(x1, y1, x2, y2, color = 'black') {
@@ -477,7 +471,24 @@ function printEixo3d(){
   } 
 }
 
+function drawMalhas(vetMalha) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  printEixo3d();
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
 
+    if (malha.visibilidadeMalha) {
+      drawMalha(malha.gridControleSRT);
+    }
+    if (malha.visibilidadePC) {
+      drawPontosControle(malha.gridControleSRT);
+    }
+    drawGridBspline(malha.gridBsplineSRT);
+
+  }
+}
 
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
@@ -536,19 +547,15 @@ function drawMalha(gridControle) {
 
 }
 
-function drawGridBspline(gridBspline) {
-  for (let i = 0; i < gridBspline.length; i++) {
-    for (let j = 0; j < gridBspline[i].length - 1; j++) {
-      // Conecta horizontalmente
-      drawLine(gridBspline[i][j][0], gridBspline[i][j][1], gridBspline[i][j + 1][0], gridBspline[i][j + 1][1], 'red');
+function drawGridBspline(grid) {
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length - 1; j++) {
+        drawLine(grid[i][j][0], grid[i][j][1], grid[i][j + 1][0], grid[i][j + 1][1], 'red');
     }
   }
-
-
-  for (let j = 0; j < gridBspline[0].length; j++) {
-    for (let i = 0; i < gridBspline.length - 1; i++) {
-      // Conecta verticalmente
-      //drawLine(gridBspline[i][j][0], gridBspline[i][j][1], gridBspline[i + 1][j][0], gridBspline[i + 1][j][1], 'red');
+  for (let j = 0; j < grid[0].length; j++) {
+    for (let i = 0; i < grid.length - 1; i++) {
+        drawLine(grid[i][j][0], grid[i][j][1], grid[i + 1][j][0], grid[i + 1][j][1], 'red');
     }
   }
 }
@@ -571,23 +578,6 @@ function drawCircle(x, y, radius, color) {
   ctx.fill();
 }
 
-function drawMalhas(vetMalha) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  printEixo3d();
-  for (let i = 0; i < vetMalha.length; i++) {
-    let malha = vetMalha[i];
-
-    if (malha.visibilidadeMalha) {
-      drawMalha(malha.gridControleSRT);
-    }
-    if (malha.visibilidadePC) {
-      drawPontosControle(malha.gridControleSRT);
-    }
-    drawGridBspline(malha.gridBsplineSRT);
-  }
-}
 
 function maximoPCdaMalha([i, j]){
   if (i > selectedMalha.mMalha || j > selectedMalha.nMalha) {
@@ -802,6 +792,15 @@ function eixopontosSRUtoSRT(pontos) {
 
 }/////////////////////////////////////////////////////////////////////
 
+/*
+let fatH= 1;
+let ponto1 = [0,0,4, fatH];
+let ponto2 = [-1,0,3, fatH];
+let ponto3 = [0,0,1, fatH];
+let ponto4 = [1,0,3, fatH];
+//*/
+
+///// teste 
 
 let m = 4
 let n = 4
@@ -816,13 +815,11 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
-/*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
 ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-//*/
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
@@ -872,6 +869,8 @@ function onFieldChange() {
   eixoPCverde = document.getElementById('pcVerde').checked;
   lenPontosControle = document.getElementById('tamPC').value || 4;
 
+  nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;  
+
   selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
@@ -881,9 +880,6 @@ function onFieldChange() {
                     parseFloat(document.getElementById('yPC').value) || 0,
                     parseFloat(document.getElementById('zPC').value) || 0];
 
-
-  numSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
-  
   updateVetMalha();
   updateProgramaTotal();
 }
@@ -958,7 +954,7 @@ document.getElementById('xPC').addEventListener('input', onFieldChange);
 document.getElementById('yPC').addEventListener('input', onFieldChange);
 document.getElementById('zPC').addEventListener('input', onFieldChange);
 
-document.getElementById('numSegmentos').addEventListener('input', onFieldChange); 
+document.getElementById('numSegmentos').addEventListener('input', onFieldChange);
 
 // Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
