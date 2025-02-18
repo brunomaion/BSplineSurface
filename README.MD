@@ -1,18 +1,17 @@
 ## Duvidas
 
-Construir:
+## FEITO
 
-retirar fator homogeneo -ok
-
-AJEITAR PARAEMETROS DA CAMERA
+retirar fator homogeneo - ok
 criar os pontos de controle -OK
-
 Alterar N e M em tempo de execução ok
 ARRUMAR ROTACAO X - ok
 
+## TO DO
+VALORES 'ALTOS' DEFORMA A MALHA (PONTOS EXTREMOS) ?
+Problema de precisao na transformação
 
-VALORES ALTOS DEFORMA A MALHA (PONTOS EXTREMOS)
-
+## O PROBELMA ESTA NA ROTAÇÂO OU TRANSALCAO
 
 
 VALORES DA CLASSE 

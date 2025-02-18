@@ -56,27 +56,24 @@ class malha {
   };
 
   rotacao(pontos) {
-    let pontosOriginais = [this.p1, this.p2, this.p3, this.p4];
+    let p1 = this.p1;
+    let p2 = this.p2;
+    let p3 = this.p3;
+    let p4 = this.p4;
+    
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
   
-    
-    let centroide = [0, 0, 0];
-    for (let i = 0; i < pontosOriginais.length; i++) {
-      centroide[0] += pontosOriginais[i][0];
-      centroide[1] += pontosOriginais[i][1];
-      centroide[2] += pontosOriginais[i][2];
-    }
-    centroide[0] /= pontosOriginais.length;
-    centroide[1] /= pontosOriginais.length;
-    centroide[2] /= pontosOriginais.length;
+    let centroideX = (p1[0] + p2[0] + p3[0] + p4[0]) / 4;
+    let centroideY = (p1[1] + p2[1] + p3[1] + p4[1]) / 4;
+    let centroideZ = (p1[2] + p2[2] + p3[2] + p4[2]) / 4;
 
     function translN(pontoTN) {
       let matrizTranslado = [
-        [1, 0, 0, -centroide[0]],
-        [0, 1, 0, -centroide[1]],
-        [0, 0, 1, -centroide[2]],
+        [1, 0, 0, -centroideX],
+        [0, 1, 0, -centroideY],
+        [0, 0, 1, -centroideZ],
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTN);
@@ -84,9 +81,9 @@ class malha {
   
     function translP(pontoTP) {
       let matrizTranslado = [
-        [1, 0, 0, centroide[0]],
-        [0, 1, 0, centroide[1]],
-        [0, 0, 1, centroide[2]],
+        [1, 0, 0, centroideX],
+        [0, 1, 0, centroideY],
+        [0, 0, 1, centroideZ],
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTP);
@@ -514,8 +511,6 @@ function updateProgramaTotal() {
   drawMalhas(vetMalha); //renderizar 
   drawPCsele();
 
-  console.log(clickPosition);
-  
 }
 
 }/////////////////////////////////////////////////////////////////////
@@ -711,7 +706,6 @@ vetMalha.push(malha2);
 //// OUTRAS VARIAVEIS GLOBAIS
 var selectedMalha = vetMalha[0];
 var pcSelecionado = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
-console.log(pcSelecionado);
 
 
 /// ATUALIZAÇAO /////////////////
@@ -861,6 +855,9 @@ const p4InputZ = document.getElementById("p4Z");
 const mPontosInput = document.getElementById("mPontos");
 const nPontosInput = document.getElementById("nPontos");
 
+const indexIPCinput = document.getElementById("indexIPC");
+const indexJPCinput = document.getElementById("indexJPC");
+
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
   sclInput.value = malha.scl;
@@ -886,6 +883,9 @@ function atualizarInputsMalha(malha) {
   p4InputZ.value = malha.p4[2];
   mPontosInput.value = malha.mMalha;
   nPontosInput.value = malha.nMalha;
+
+  indexIPCinput.value = indicePCsele[0];
+  indexJPCinput.value = indicePCsele[1];
 }
 
 
@@ -900,7 +900,6 @@ vetMalha.forEach((malha, index) => {
 // Define a primeira malha (vetMalha[0]) como selecionada por padrão
 selectMalha.selectedIndex = 0; // Seleciona a primeira opção
 atualizarInputsMalha(vetMalha[0]); // Atualiza os inputs de rotação com os valores da primeira malha
-
 selectMalha.addEventListener("change", () => {
   const selectedIndex = selectMalha.value; // Índice da malha selecionada
   selectedMalha = vetMalha[selectedIndex]; // Atualiza a variável global
@@ -916,10 +915,8 @@ document.getElementById('viewport').addEventListener('click', function(event) {
   var y = event.clientY - rect.top;
   var clickPosition = [x, y];
   pcSelecionado = atualizarPCSelecionado(clickPosition);
-  console.log('indice',indicePCsele);
-  console.log('ponto',pcSelecionado);
-
   updateProgramaTotal();
+  atualizarInputsMalha(selectedMalha);
 });
 
 
