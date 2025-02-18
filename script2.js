@@ -332,6 +332,7 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
+
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
