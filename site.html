@@ -64,9 +64,9 @@
       </div>
 
       <div class="pontosControleClass">
-        <label for="mPontos">M (4 &le; m &le; 100):</label>
+        <label for="mPontos">M (4 &le; m &le; 100): </label>
         <input type="number" id="mPontos" name="mPontos" min="4" max="100" value="4"><br>
-        <label for="nPontos">N (4 &le; n &le; 100):</label>
+        <label for="nPontos">N (4 &le; n &le; 100): </label>
         <input type="number" id="nPontos" name="nPontos" min="4" max="100" value="4">
       </div>
 
@@ -74,7 +74,7 @@
     </div>
 
     <div class="numeroSegmentos">
-      <label for="numSegmentos">Número de Segmentos:</label>
+      <label for="numSegmentos">Número de Segmentos: </label>
       <input type="number" id="numSegmentos" name="numSegmentos" min="1" max="100" value="2">
     </div>
 
@@ -91,30 +91,64 @@
       
       <br>
 
-      <label for="xPC">X:</label>
+      <label for="xPC">X: </label>
       <input type="number" id="xPC" name="xPC" value="0" step="0.1" maxlength="3" size="4">
-      <label for="yPC">Y:</label>
+      <label for="yPC">Y: </label>
       <input type="number" id="yPC" name="yPC" value="0" step="0.1" maxlength="3" size="4">
-      <label for="zPC">Z:</label>
+      <label for="zPC">Z: </label>
       <input type="number" id="zPC" name="zPC" value="0" step="0.1" maxlength="3" size="4">
     </div>  
+
+    <div class="iluminacaoClass">
+      <label style="text-align: center; display: block;">ILUMINAÇÃO</label>
+
+      <div class="iluminacaoAmbienteClass">
+        <label>Ilu. Ambiente: </label>
+        <input type="number" id="iluminacaoAmbiente" name="iluminacaoAmbiente" value="120" step="1" maxlength="3" size="4">
+        <br>
+        <label>Lâmpada </label>
+        <input type="number" id="iLampada" name="iLampada" value="150" step="1" maxlength="3" size="4">
+        <br>
+        <label>X: </label>
+        <input type="number" id="xLampada" name="xLampada" value="150" step="1" maxlength="3" size="4">
+        <label>Y: </label>
+        <input type="number" id="yLampada" name="yLampada" value="70" step="1" maxlength="3" size="4">
+        <label>Z: </label>
+        <input type="number" id="zLampada" name="zLampada" value="20" step="1" maxlength="3" size="4">
+      
+      </div>
+
+      <div class="iluminacaoObjeto">
+        <label>Ilu. Objeto:</label><br>
+        <label>Ka:</label>
+        <input type="number" id="ka" name="ka" value="0.5" step="0.1" maxlength="3" size="4">
+        <label>Kd:</label>
+        <input type="number" id="kd" name="kd" value="0.5" step="0.1" maxlength="3" size="4">
+        <label>Ks:</label>
+        <input type="number" id="ks" name="ks" value="0.5" step="0.1" maxlength="3" size="4">
+        <br>
+        <label>n:</label>
+        <input type="number" id="2" name="nIlumnicao" value="10" step="0.1" maxlength="3" size="4">
+      </div>
+
+    </div>
 
   </div>
 
 
 
+
+
   <div class="sidebarRight">
 
-    <div class="selectVisao"> 
-      <label>VISÃO:</label><br>
+    <div class="selectVisao" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">VISÃO:</label>
       <select id="visao" name="visao" style="width: 190px;">
       <option value="axonometrica">Axonométrica</option>
       <option value="perspectiva">Perspectiva</option>
       </select>
     </div>
 
-    <button id="aplicarBtn">Aplicar</button>
-    
     <div class="eixo">
       <label for="eixo3d">Eixo 3D:</label>
       <input type="checkbox" id="eixo3d" name="eixo3d" checked>
@@ -128,7 +162,7 @@
 
     <div class="configCamera"> 
 
-      <label>Câmera:</label><br>
+      <label style="text-align: center; display: block;">CÂMERA</label>
 
       <div id="vrpDiv">
         <label>VRP:</label>
@@ -159,7 +193,7 @@
 
     <div class="configTransformacoes">
       
-      <label>Transformações:</label><br>
+      <label style="text-align: center; display: block;">TRANSFORMAÇÕES</label>
 
       <div id="escala">
         <label>Escala:</label>

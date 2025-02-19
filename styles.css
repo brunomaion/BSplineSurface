@@ -168,3 +168,11 @@ h3 {
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Sombra para destaque */
   z-index: 1000; /* Para garantir que fique acima de outros elementos */
 }
+
+.iluminacaoClass > div {
+  margin-top: 10px; /* Espaço acima da primeira sub-div */
+}
+
+.iluminacaoClass > div > input {
+  width: 35px;
+}
