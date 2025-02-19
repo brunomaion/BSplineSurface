@@ -1,5 +1,5 @@
 class malha {
-  constructor(pontosdamalha, drawPontosControle) {
+  constructor(pontosdamalha) {
     //TRANSFORMACOES
     this.p1 = pontosdamalha[0];
     this.p2 = pontosdamalha[1];
@@ -20,24 +20,28 @@ class malha {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
-    this.visibilidadeMalha = true;
+    this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
+    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
+    this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
 
-  debugPrint() {
+  debugPrint() {    
   };
 
-
-  updatePC() {
-    this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
-    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
+  updateReset() {
+    this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
+    this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha)
+    this.update();
   };
 
-  updateMalha() {
+  update() {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
+    this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
+    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
     this.debugPrint();
   };
-  
+
   escala(pontos) {
     let matrizS = [
       [this.scl, 0, 0, 0],
@@ -52,22 +56,21 @@ class malha {
       pontosEscalados.push(pontoEscalado);
     }
     return pontosEscalados;
-
   };
 
   rotacao(pontos) {
-    let p1 = this.p1;
-    let p2 = this.p2;
-    let p3 = this.p3;
-    let p4 = this.p4;
+    let ponto1 = this.p1;
+    let ponto2 = this.p2;
+    let ponto3 = this.p3;
+    let ponto4 = this.p4;
     
     let var_rotacaoX = this.rotX * (Math.PI / 180);
     let var_rotacaoY = this.rotY * (Math.PI / 180);
     let var_rotacaoZ = this.rotZ * (Math.PI / 180);
   
-    let centroideX = (p1[0] + p2[0] + p3[0] + p4[0]) / 4;
-    let centroideY = (p1[1] + p2[1] + p3[1] + p4[1]) / 4;
-    let centroideZ = (p1[2] + p2[2] + p3[2] + p4[2]) / 4;
+    let centroideX = (ponto1[0] + ponto2[0] + ponto3[0] + ponto4[0]) / 4;
+    let centroideY = (ponto1[1] + ponto2[1] + ponto3[1] + ponto4[1]) / 4;
+    let centroideZ = (ponto1[2] + ponto2[2] + ponto3[2] + ponto4[2]) / 4;
 
     function translN(pontoTN) {
       let matrizTranslado = [
@@ -198,10 +201,10 @@ class malha {
   
   pipelineSruSrt(pSRU) {
     pSRU = addFatH(pSRU);
-    let pontosEscalados = this.escala(pSRU);
-    let pontosRotacionados = this.rotacao(pontosEscalados);
+    let pontosRotacionados = this.rotacao(pSRU);
     let pontosTransladados = this.translacao(pontosRotacionados);
-    let pontosSRT = pontosSRUtoSRT(pontosTransladados);
+    let pontosEscalados = this.escala(pontosTransladados);
+    let pontosSRT = pontosSRUtoSRT(pontosEscalados);
     pontosSRT = removeFatH(pontosSRT);
     return pontosSRT;
   };
@@ -250,6 +253,8 @@ class malha {
   //Index do ponto de controle selecionado
   var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
                       parseInt(document.getElementById('indexJPC').value) || 0]; 
+
+  var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
     
   //eixo
   eixoBool = true;
@@ -327,6 +332,118 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
+
+function calculateBspline(pontosDeControle) {
+  //pontosDeControle = clampingBspline(pontosDeControle);
+  /*
+  if (document.getElementById('clamped').checked) {
+      pontosDeControle = clampingBspline(pontosDeControle);
+  }
+
+  if (document.getElementById('closed').checked) {
+      pontosDeControle = closedBspline(pontosDeControle);
+  }*/
+
+  let pontosDaCurva = [];
+
+  for (let i = 1; i < pontosDeControle.length - 2; i++) {
+      let [xA, xB, xC, xD] = [
+          pontosDeControle[i - 1][0], 
+          pontosDeControle[i][0], 
+          pontosDeControle[i + 1][0], 
+          pontosDeControle[i + 2][0]
+      ];
+      let [yA, yB, yC, yD] = [
+          pontosDeControle[i - 1][1], 
+          pontosDeControle[i][1], 
+          pontosDeControle[i + 1][1], 
+          pontosDeControle[i + 2][1]
+      ];
+      let [zA, zB, zC, zD] = [
+          pontosDeControle[i - 1][2], 
+          pontosDeControle[i][2], 
+          pontosDeControle[i + 1][2], 
+          pontosDeControle[i + 2][2]
+      ];
+      
+      let a3 = (-xA + 3 * (xB - xC) + xD) / 6; 
+      let b3 = (-yA + 3 * (yB - yC) + yD) / 6;
+      let c3 = (-zA + 3 * (zB - zC) + zD) / 6;
+
+      let a2 = (xA - 2 * xB + xC) / 2;
+      let b2 = (yA - 2 * yB + yC) / 2;
+      let c2 = (zA - 2 * zB + zC) / 2;
+      
+      let a1 = (xC - xA) / 2;
+      let b1 = (yC - yA) / 2;
+      let c1 = (zC - zA) / 2;
+
+      let a0 = (zA + 4 * xB + xC) / 6;
+      let b0 = (yA + 4 * yB + yC) / 6;
+      let c0 = (zA + 4 * zB + zC) / 6;
+      
+      
+
+      for (let j = 0; j <= nSegmentos; j++) {
+          let t = j / nSegmentos;
+          let x = ((a3 * t + a2) * t + a1) * t + a0;
+          let y = ((b3 * t + b2) * t + b1) * t + b0;
+          let z = ((c3 * t + c2) * t + c1) * t + c0;
+          pontosDaCurva.push([x, y, z]);
+      }
+  }
+
+  return pontosDaCurva;
+}
+function transposeMatrix(matrix) {
+  return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
+}
+function createGridBspline(gridSRUPontosControle){
+  let gridBspline = [];
+  let auxPontosDeControle = [];
+  let lengthI = gridSRUPontosControle.length;
+  let lengthJ = gridSRUPontosControle[0].length;
+  //PARA N
+  // PEGAR OS INDICES PARA LINHAS
+  for (let i = 0; i < lengthI; i++) {
+      auxPontosDeControle = [];
+      for (let j = 0; j < lengthJ; j++) {
+          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
+      } 
+      gridBspline.push(calculateBspline(auxPontosDeControle));
+  }
+  let gridBsplineTransposed = transposeMatrix(gridBspline);
+  lengthI = gridBsplineTransposed.length;
+  lengthJ = gridBsplineTransposed[0].length;
+
+  let gridBsplineFinal = [];
+  for (let i = 0; i < lengthI; i++) {
+      auxPontosDeControle = [];
+      for (let j = 0; j < lengthJ; j++) {
+          auxPontosDeControle.push(gridBsplineTransposed[i][j]);
+      } 
+      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
+  }
+  return gridBsplineFinal;
+}
+
+{//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
+function renderiza() {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  printEixo3d();
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    if (malha.visibilidadeGridControle) {
+      drawMalha(malha.gridControleSRT);
+    }
+    if (malha.visibilidadePC) {
+      drawPontosControle(malha.gridControleSRT);
+    }
+    drawGridBspline(malha.gridBsplineSRT);
+  }
+}
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -336,7 +453,6 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
 }
-
 function printEixo3d(){
   let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
@@ -359,24 +475,57 @@ function printEixo3d(){
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
 }
+function drawMalha(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+      for (let j = 0; j < gridControle[i].length - 1; j++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
+      }
+  }
+  for (let j = 0; j < gridControle[0].length; j++) {
+      for (let i = 0; i < gridControle.length - 1; i++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
+      }
+  }
 
-function drawMalhas(vetMalha) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  printEixo3d();
-  for (let i = 0; i < vetMalha.length; i++) {
-    let malha = vetMalha[i];
 
-    if (malha.visibilidadeMalha) {
-      drawMalha(malha.gridControleSRT);
+}
+function drawGridBspline(grid) {
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length - 1; j++) {
+        drawLine(grid[i][j][0], grid[i][j][1], grid[i][j + 1][0], grid[i][j + 1][1], 'red');
     }
-    if (malha.visibilidadePC) {
-      drawPontosControle(malha.gridControleSRT);
+  }
+  for (let j = 0; j < grid[0].length; j++) {
+    for (let i = 0; i < grid.length - 1; i++) {
+        drawLine(grid[i][j][0], grid[i][j][1], grid[i + 1][j][0], grid[i + 1][j][1], 'red');
     }
-
   }
 }
+function drawPontosControle(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+    for (let j = 0; j < gridControle[i].length; j++) {
+        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
+    }
+  }
+}
+function drawCircle(x, y, radius, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function drawPCselecionado() {
+  if (eixoPCverde) {
+    let i = indicePCsele[0];
+    let j = indicePCsele[1];
+    gridObjeto = selectedMalha.gridControleSRT;
+    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
+  }
+}
+}/////////////////////////////////////////////////////////////////////
 
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
@@ -420,66 +569,6 @@ function matrizPontosControle(pontos, m, n) {
   return matrizPontosControleControle;
 }
 
-function drawMalha(gridControle) {
-  for (let i = 0; i < gridControle.length; i++) {
-      for (let j = 0; j < gridControle[i].length - 1; j++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
-      }
-  }
-  for (let j = 0; j < gridControle[0].length; j++) {
-      for (let i = 0; i < gridControle.length - 1; i++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
-      }
-  }
-
-
-}
-
-function drawPontosControle(gridControle) {
-  for (let i = 0; i < gridControle.length; i++) {
-    for (let j = 0; j < gridControle[i].length; j++) {
-        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
-    }
-  }
-}
-
-function drawCircle(x, y, radius, color) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-  ctx.fillStyle = color;
-  ctx.fill();
-  }
-
-
-function maximoPCdaMalha([i, j]){
-  if (i > selectedMalha.mMalha || j > selectedMalha.nMalha) {
-    return [0, 0];
-  }
-  return [i, j];
-}
-
-function drawPCsele() {
-  if (eixoPCverde) {
-    indicePCsele = maximoPCdaMalha(indicePCsele);
-    let i = indicePCsele[0];
-    let j = indicePCsele[1];
-    console.log(indicePCsele);
-    
-    gridObjeto = selectedMalha.gridControleSRT;
-    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
-  }
-}
-
-function updateVetMalha() {
-  for (let i = 0; i < vetMalha.length; i++) {
-    let malha = vetMalha[i];
-    malha.updateMalha();
-  }
-}
-
 function atualizarPCSelecionado(click){
   let matriz = selectedMalha.gridControleSRT;
   let menorDistancia = Infinity;
@@ -500,17 +589,22 @@ function atualizarPCSelecionado(click){
   return pontoMaisPertoSRU;
 }
 
-function updateVetMalhaPC() {
+function updateProgramaTotal() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
-    malha.updatePC();
+    malha.updateReset();
   }
+  renderiza();
+  drawPCselecionado();
 }
 
-function updateProgramaTotal() {  
-  drawMalhas(vetMalha); //renderizar 
-  drawPCsele();
-
+function updatePrograma() {  
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    malha.update();
+  }
+  renderiza();
+  drawPCselecionado();
 }
 
 }/////////////////////////////////////////////////////////////////////
@@ -667,7 +761,6 @@ function eixopontosSRUtoSRT(pontos) {
   }
 }
 
-
 }/////////////////////////////////////////////////////////////////////
 
 /*
@@ -693,6 +786,7 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
+///*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -701,7 +795,7 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
-
+//*/
 
 //// OUTRAS VARIAVEIS GLOBAIS
 var selectedMalha = vetMalha[0];
@@ -717,8 +811,7 @@ updateProgramaTotal();
 
 document.getElementById('aplicarBtn').addEventListener('click', function () {
   visao = document.getElementById('visao').value;
-  updateVetMalha();
-  drawMalhas(vetMalha);
+  updatePrograma();
 });
 
 function onFieldChange() {
@@ -726,36 +819,28 @@ function onFieldChange() {
   yVrp = parseInt(document.getElementById('yVrp').value) || 0;
   zVrp = parseInt(document.getElementById('zVrp').value) || 0;
   vetVrp = [xVrp, yVrp, zVrp];
-
   xP = parseInt(document.getElementById('xP').value) || 0;
   yP = parseInt(document.getElementById('yP').value) || 0;
   zP = parseInt(document.getElementById('zP').value) || 0;
   vetP = [xP, yP, zP];
-
   dp = parseInt(document.getElementById('dpValue').value) || 0;
-
   selectedMalha.rotX = parseInt(document.getElementById('xRot').value) || 0;
   selectedMalha.rotY = parseInt(document.getElementById('yRot').value) || 0;
   selectedMalha.rotZ = parseInt(document.getElementById('zRot').value) || 0;
-
   selectedMalha.scl = parseFloat(document.getElementById('scl').value) || 0;
   selectedMalha.translX = parseFloat(document.getElementById('translX').value) || 0;
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
-
   eixoBool = document.getElementById('eixo3d').checked;
   eixoPCverde = document.getElementById('pcVerde').checked;
   lenPontosControle = document.getElementById('tamPC').value || 4;
-
-  selectedMalha.visibilidadeMalha = document.getElementById('visibilidadeMalha').checked;
+  nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;  
+  selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
-
-  updateVetMalha();
-  updateProgramaTotal();
+  updatePrograma();
 }
 
-function onFieldChangePC() {
-  // AQUI SO A MALHA INICIAL
+function onFieldChangeReset(){
   selectedMalha.p1[0] = parseFloat(document.getElementById('p1X').value) || 0;
   selectedMalha.p1[1] = parseFloat(document.getElementById('p1Y').value) || 0;
   selectedMalha.p1[2] = parseFloat(document.getElementById('p1Z').value) || 0;
@@ -768,13 +853,20 @@ function onFieldChangePC() {
   selectedMalha.p4[0] = parseFloat(document.getElementById('p4X').value) || 0;
   selectedMalha.p4[1] = parseFloat(document.getElementById('p4Y').value) || 0;
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
-
   selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
   selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
-
-  updateVetMalhaPC();
   updateProgramaTotal();
 }
+
+function onFieldChangePCselecionado() {
+  selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]] = 
+                    [parseFloat(document.getElementById('xPC').value) || 0,
+                    parseFloat(document.getElementById('yPC').value) || 0,
+                    parseFloat(document.getElementById('zPC').value) || 0];
+  updatePrograma();
+}
+
+
 
 // Adicionando os listeners para os campos
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
@@ -784,61 +876,52 @@ document.getElementById('xP').addEventListener('input', onFieldChange);
 document.getElementById('yP').addEventListener('input', onFieldChange);
 document.getElementById('zP').addEventListener('input', onFieldChange);
 document.getElementById('dpValue').addEventListener('input', onFieldChange);
-
 document.getElementById('xRot').addEventListener('input', onFieldChange);
 document.getElementById('yRot').addEventListener('input', onFieldChange);
 document.getElementById('zRot').addEventListener('input', onFieldChange);
-
 document.getElementById('scl').addEventListener('input', onFieldChange);
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
-
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('tamPC').addEventListener('input', onFieldChange);
 document.getElementById('pcVerde').addEventListener('input', onFieldChange);
-
-document.getElementById('visibilidadeMalha').addEventListener('input', onFieldChange);
+document.getElementById('visibilidadeGridControle').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
-
-document.getElementById('p1X').addEventListener('input', onFieldChangePC);
-document.getElementById('p1Y').addEventListener('input', onFieldChangePC);
-document.getElementById('p1Z').addEventListener('input', onFieldChangePC);
-document.getElementById('p2X').addEventListener('input', onFieldChangePC);
-document.getElementById('p2Y').addEventListener('input', onFieldChangePC);
-document.getElementById('p2Z').addEventListener('input', onFieldChangePC);
-document.getElementById('p3X').addEventListener('input', onFieldChangePC);
-document.getElementById('p3Y').addEventListener('input', onFieldChangePC);
-document.getElementById('p3Z').addEventListener('input', onFieldChangePC);
-document.getElementById('p4X').addEventListener('input', onFieldChangePC);
-document.getElementById('p4Y').addEventListener('input', onFieldChangePC);
-document.getElementById('p4Z').addEventListener('input', onFieldChangePC);
-
-document.getElementById('mPontos').addEventListener('input', onFieldChangePC);
-document.getElementById('nPontos').addEventListener('input', onFieldChangePC);
 
 document.getElementById('indexIPC').addEventListener('input', onFieldChange);
 document.getElementById('indexJPC').addEventListener('input', onFieldChange);
+document.getElementById('xPC').addEventListener('input', onFieldChangePCselecionado);
+document.getElementById('yPC').addEventListener('input', onFieldChangePCselecionado);
+document.getElementById('zPC').addEventListener('input', onFieldChangePCselecionado);
+document.getElementById('numSegmentos').addEventListener('input', onFieldChange);
 
-document.getElementById('xPC').addEventListener('input', onFieldChange);
-document.getElementById('yPC').addEventListener('input', onFieldChange);
-document.getElementById('zPC').addEventListener('input', onFieldChange);
+//RESETA MALHA
+document.getElementById('p1X').addEventListener('input', onFieldChangeReset);
+document.getElementById('p1Y').addEventListener('input', onFieldChangeReset);
+document.getElementById('p1Z').addEventListener('input', onFieldChangeReset);
+document.getElementById('p2X').addEventListener('input', onFieldChangeReset);
+document.getElementById('p2Y').addEventListener('input', onFieldChangeReset);
+document.getElementById('p2Z').addEventListener('input', onFieldChangeReset);
+document.getElementById('p3X').addEventListener('input', onFieldChangeReset);
+document.getElementById('p3Y').addEventListener('input', onFieldChangeReset);
+document.getElementById('p3Z').addEventListener('input', onFieldChangeReset);
+document.getElementById('p4X').addEventListener('input', onFieldChangeReset);
+document.getElementById('p4Y').addEventListener('input', onFieldChangeReset);
+document.getElementById('p4Z').addEventListener('input', onFieldChangeReset);
+document.getElementById('mPontos').addEventListener('input', onFieldChangeReset);
+document.getElementById('nPontos').addEventListener('input', onFieldChangeReset);
 
-// Seleciona o elemento <select> e o elemento para exibir a drawPontosControlerição
 const selectMalha = document.getElementById("malhaSelecionada");
-// Seleciona os inputs de rotação
 const sclInput = document.getElementById("scl");
-
 const rotXInput = document.getElementById("xRot");
 const rotYInput = document.getElementById("yRot");
 const rotZInput = document.getElementById("zRot");
-
 const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
-const visibilidadeMalhaInput = document.getElementById("visibilidadeMalha");
+const visibilidadeGridControleInput = document.getElementById("visibilidadeGridControle");
 const visibilidadePCInput = document.getElementById("visibilidadePC");
-
 const p1InputX = document.getElementById("p1X");
 const p1InputY = document.getElementById("p1Y");
 const p1InputZ = document.getElementById("p1Z");
@@ -851,12 +934,13 @@ const p3InputZ = document.getElementById("p3Z");
 const p4InputX = document.getElementById("p4X");
 const p4InputY = document.getElementById("p4Y");
 const p4InputZ = document.getElementById("p4Z");
-
 const mPontosInput = document.getElementById("mPontos");
 const nPontosInput = document.getElementById("nPontos");
-
 const indexIPCinput = document.getElementById("indexIPC");
 const indexJPCinput = document.getElementById("indexJPC");
+const xPCInput = document.getElementById("xPC");
+const yPCInput = document.getElementById("yPC");
+const zPCInput = document.getElementById("zPC");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
@@ -867,7 +951,7 @@ function atualizarInputsMalha(malha) {
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
-  visibilidadeMalhaInput.checked = malha.visibilidadeMalha;
+  visibilidadeGridControleInput.checked = malha.visibilidadeGridControle;
   visibilidadePCInput.checked = malha.visibilidadePC;
   p1InputX.value = malha.p1[0];
   p1InputY.value = malha.p1[1];
@@ -883,9 +967,11 @@ function atualizarInputsMalha(malha) {
   p4InputZ.value = malha.p4[2];
   mPontosInput.value = malha.mMalha;
   nPontosInput.value = malha.nMalha;
-
   indexIPCinput.value = indicePCsele[0];
   indexJPCinput.value = indicePCsele[1];
+  xPCInput.value = pcSelecionado[0];
+  yPCInput.value = pcSelecionado[1];
+  zPCInput.value = pcSelecionado[2];
 }
 
 
@@ -915,7 +1001,7 @@ document.getElementById('viewport').addEventListener('click', function(event) {
   var y = event.clientY - rect.top;
   var clickPosition = [x, y];
   pcSelecionado = atualizarPCSelecionado(clickPosition);
-  updateProgramaTotal();
+  updatePrograma();
   atualizarInputsMalha(selectedMalha);
 });
 

@@ -11,6 +11,8 @@ ARRUMAR ROTACAO X - ok
 VALORES 'ALTOS' DEFORMA A MALHA (PONTOS EXTREMOS) ?
 Problema de precisao na transformação
 
+Os updates estao ok mas os pontos editaveis deve ser separados
+
 ## O PROBELMA ESTA NA ROTAÇÂO OU TRANSALCAO
 
 
@@ -71,3 +73,6 @@ Os pontos de controle são por interseções?
   - função - > matriz pontos de controle
     Entrada (pontosEntradaInicias =[p1, p2, p3, p4], m , n)
     Saída matriz em que M (ou i) = horizontais, N (ou j) = verticais 
+
+
+

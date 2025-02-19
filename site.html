@@ -9,6 +9,24 @@
 <body>
 
   <div class="sidebarLeft">
+
+    <div class="objeto">
+
+      <label for="malhaSelecionada">Objeto Malha:</label><br>
+      <select id="malhaSelecionada" name="malhaSelecionada">
+        <!-- As opções serão adicionadas dinamicamente via JavaScript -->
+      </select>
+      <br>
+      <label for="boolGrid">Visibilidade do grid:</label>
+      <input type="checkbox" id="visibilidadeGridControle" name="visibilidadeGridControle">
+      <br>
+      <label for="boolPC">Visibilidade Pontos de Controle:</label>
+      <input type="checkbox" id="visibilidadePC" name="visibilidadePC" checked>
+      <br>
+      <label for="pcVerde">P.C. Selecionado (Verde):</label>
+      <input type="checkbox" id="pcVerde" name="pcVerde" checked>
+    </div>
+
     <div class="tipoBspline"> 
       <label>B-Splines:</label><br>
       <select id="tipoBspline" name="tipoBspline">
@@ -18,39 +36,54 @@
       </select>
     </div>
 
-    <div class="numeroSegmentos">
-      <label for="numSegmentos">Número de Segmentos:</label>
-      <input type="number" id="numSegmentos" name="numSegmentos" min="1" max="100" value="1">
-    </div>
+    <div class="classReset"> 
+      <label>Prop. Reset:</label><br>
 
-    <div class="objetoMalha">
+      <div id="pontosMalha">
+        <label>P. extremos da Malha: (X, Y, Z)</label><br>
+      
+        <label>P1:</label>
+        <input type="number" id="p1X" name="p1X" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p1Y" name="p1Y" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p1Z" name="p1Z" value="0" step="0.1" maxlength="3" size="4"><br>
+      
+        <label>P2:</label>
+        <input type="number" id="p2X" name="p2X" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p2Y" name="p2Y" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p2Z" name="p2Z" value="0" step="0.1" maxlength="3" size="4"><br>
+      
+        <label>P3:</label>
+        <input type="number" id="p3X" name="p3X" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p3Y" name="p3Y" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p3Z" name="p3Z" value="0" step="0.1" maxlength="3" size="4"><br>
+      
+        <label>P4:</label>
+        <input type="number" id="p4X" name="p4X" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p4Y" name="p4Y" value="0" step="0.1" maxlength="3" size="4">
+        <input type="number" id="p4Z" name="p4Z" value="0" step="0.1" maxlength="3" size="4">
+      </div>
 
-      <label for="malhaSelecionada">Objeto Malha:</label><br>
-      <select id="malhaSelecionada" name="malhaSelecionada">
-        <!-- As opções serão adicionadas dinamicamente via JavaScript -->
-      </select>
-
-      <div class="pontosControle">
-        <label>Pontos de Controle:</label><br>
+      <div class="pontosControleClass">
         <label for="mPontos">M (4 &le; m &le; 100):</label>
         <input type="number" id="mPontos" name="mPontos" min="4" max="100" value="4"><br>
         <label for="nPontos">N (4 &le; n &le; 100):</label>
         <input type="number" id="nPontos" name="nPontos" min="4" max="100" value="4">
       </div>
 
-      <label for="boolMalha">Visibilidade da malha:</label>
-      <input type="checkbox" id="visibilidadeMalha" name="visibilidadeMalha">
-      <br>
-      <label for="boolPC">Visibilidade Pontos de Controle:</label>
-      <input type="checkbox" id="visibilidadePC" name="visibilidadePC" checked>
-      <br>
-      <label for="pcVerde">P.C. Selecionado (Verde):</label>
-      <input type="checkbox" id="pcVerde" name="pcVerde" checked>
+
     </div>
+
+    <div class="numeroSegmentos">
+      <label for="numSegmentos">Número de Segmentos:</label>
+      <input type="number" id="numSegmentos" name="numSegmentos" min="1" max="100" value="2">
+    </div>
+
+
 
 
     <div class="pontosControleEditar">
       <label for="pontosControleEditar">P. Controle selecionado:</label><br>
+      <label> ! Clique próximo do ponto ! </label><br>
       <label for="indexIPC">I:</label>
       <input type="number" id="indexIPC" name="indexIPC" value="0" min="0" max="100" size="4" readonly disabled>
       <label for="indexJPC">J:</label>
@@ -89,7 +122,7 @@
 
     <div class="tamanhoPC">
       <label for="tamanhoPC">Tamanho P. Controle:</label>
-      <input type="number" id="tamPC" name="tamPC" value="4" min="0" max="10" maxlength="3" size="4">
+      <input type="number" id="tamPC" name="tamPC" value="2" min="0" max="10" maxlength="3" size="4">
     </div>
 
 
@@ -154,32 +187,6 @@
       </div>
 
     </div>
-
-    <div id="pontosMalha">
-      <label>Pontos extremos da Malha:</label><br>
-      <label>(X, Y, Z)</label><br>
-    
-      <label>P1:</label>
-      <input type="number" id="p1X" name="p1X" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p1Y" name="p1Y" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p1Z" name="p1Z" value="0" step="0.1" maxlength="3" size="4"><br>
-    
-      <label>P2:</label>
-      <input type="number" id="p2X" name="p2X" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p2Y" name="p2Y" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p2Z" name="p2Z" value="0" step="0.1" maxlength="3" size="4"><br>
-    
-      <label>P3:</label>
-      <input type="number" id="p3X" name="p3X" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p3Y" name="p3Y" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p3Z" name="p3Z" value="0" step="0.1" maxlength="3" size="4"><br>
-    
-      <label>P4:</label>
-      <input type="number" id="p4X" name="p4X" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p4Y" name="p4Y" value="0" step="0.1" maxlength="3" size="4">
-      <input type="number" id="p4Z" name="p4Z" value="0" step="0.1" maxlength="3" size="4">
-    </div>
-    
 
     <div id="malhasLista"></div>
     <div id="propriedades"></div>
