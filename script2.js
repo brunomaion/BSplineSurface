@@ -383,7 +383,7 @@ function calculateBspline(pontosDeControle) {
       
       
 
-      for (let j = 0; j < nSegmentos; j++) {
+      for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -787,7 +787,7 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
-/*
+
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -796,7 +796,7 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
-//*/
+
 
 //// OUTRAS VARIAVEIS GLOBAIS
 var selectedMalha = vetMalha[0];
