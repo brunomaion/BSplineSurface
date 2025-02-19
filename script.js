@@ -332,6 +332,14 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
+function clampingBspline(pontosDeControle) {
+  let extendedpontosDeControle = [
+      pontosDeControle[0], pontosDeControle[0], // Repete o primeiro ponto
+      ...pontosDeControle,
+      pontosDeControle[pontosDeControle.length - 1], pontosDeControle[pontosDeControle.length - 1] // Repete o último ponto
+  ];
+  return extendedpontosDeControle;
+}
 
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
@@ -378,13 +386,13 @@ function calculateBspline(pontosDeControle) {
       let b1 = (yC - yA) / 2;
       let c1 = (zC - zA) / 2;
 
-      let a0 = (zA + 4 * xB + xC) / 6;
+      let a0 = (xA + 4 * xB + xC) / 6;
       let b0 = (yA + 4 * yB + yC) / 6;
       let c0 = (zA + 4 * zB + zC) / 6;
       
       
 
-      for (let j = 0; j <= nSegmentos; j++) {
+      for (let j = 0; j < nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -392,9 +400,9 @@ function calculateBspline(pontosDeControle) {
           pontosDaCurva.push([x, y, z]);
       }
   }
-
   return pontosDaCurva;
 }
+
 function transposeMatrix(matrix) {
   return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
 }
@@ -412,18 +420,20 @@ function createGridBspline(gridSRUPontosControle){
       } 
       gridBspline.push(calculateBspline(auxPontosDeControle));
   }
-  let gridBsplineTransposed = transposeMatrix(gridBspline);
-  lengthI = gridBsplineTransposed.length;
-  lengthJ = gridBsplineTransposed[0].length;
+  lengthI = gridBspline.length;
+  lengthJ = gridBspline[0].length;
 
   let gridBsplineFinal = [];
-  for (let i = 0; i < lengthI; i++) {
+  for (let j = 0; j < lengthJ; j++) {
       auxPontosDeControle = [];
-      for (let j = 0; j < lengthJ; j++) {
-          auxPontosDeControle.push(gridBsplineTransposed[i][j]);
+      for (let i = 0; i < lengthI; i++) {
+          auxPontosDeControle.push(gridBspline[i][j]);
       } 
       gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
   }
+
+  console.log(gridBsplineFinal);
+  
   return gridBsplineFinal;
 }
 
@@ -786,7 +796,7 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
-///*
+/*
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
