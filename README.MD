@@ -15,6 +15,7 @@ Os updates estao ok mas os pontos editaveis deve ser separados
 
 ## O PROBELMA ESTA NA ROTAÇÂO OU TRANSALCAO
 
+EXTERNELIZAR FUNCOES DE CONVERSAO
 
 VALORES DA CLASSE 
 - ESCALA
