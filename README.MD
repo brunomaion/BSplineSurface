@@ -76,4 +76,12 @@ Os pontos de controle são por interseções?
     Saída matriz em que M (ou i) = horizontais, N (ou j) = verticais 
 
 
+- Propriedade TIMER
+  - Verificar escolhas de faces renderizadas
+  - Executar a renderizção por face com um determinado sleep 
+  - !! PROBLEMAS !!
+    Continua executando mesmo com outro update da malha em tempo real, sobrepondo a renderização anterior
+
+
+
 
