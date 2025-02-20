@@ -2,38 +2,15 @@
 
 ## FEITO
 
-retirar fator homogeneo - ok
-criar os pontos de controle -OK
-Alterar N e M em tempo de execução ok
-ARRUMAR ROTACAO X - ok
-
-## TO DO
-VALORES 'ALTOS' DEFORMA A MALHA (PONTOS EXTREMOS) ?
-Problema de precisao na transformação
-
-Os updates estao ok mas os pontos editaveis deve ser separados
-
-## O PROBELMA ESTA NA ROTAÇÂO OU TRANSALCAO
-
-EXTERNELIZAR FUNCOES DE CONVERSAO
-
-VALORES DA CLASSE 
-- ESCALA
-- ROT
-
-E VALORES GERAIS
-- VRP
-- P 
-- ILUMINACAO
-
-3. Listagem de malhas e manipalçao de diversas malhas
-Clean CVX ERRO!!! - OKK
-
-Quando mudar axonometrica sim rotaçoes nao, mudar updates !!!
+Ordenar faces por distancias
+Visibilidade da face!
+Tranformar a face em no objeto e nao na função SRT
+Recorte! -> feito na face SRT !! Mais fácil de entender
 
 
-4. aplicar Bspline
-0.zbuffer
+
+4. aplicar Bspline - ok
+0. zbuffer
 5. cores e background
 6. iluminação e manipulação
 9. sombreamento?
