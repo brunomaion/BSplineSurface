@@ -443,7 +443,11 @@ function renderiza() {
       drawPontosControle(malha.gridControleSRT);
     }
     drawGridBspline(malha.gridBsplineSRT);
+
+    let faces = getFaces(malha.gridBsplineSRT);
+    console.log(faces.length);
   }
+  
 }
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -475,6 +479,29 @@ function printEixo3d(){
     ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
+}
+function paintFace(face, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.moveTo(face[0][0], face[0][1]);
+  for (let i = 1; i < face.length; i++) {
+      ctx.lineTo(face[i][0], face[i][1]);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function getFaces(grid) {
+  let faces = [];
+  for (let i = 0; i < grid.length - 1; i++) {
+      for (let j = 0; j < grid[i].length - 1; j++) {
+          let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
+          faces.push(face);
+      }
+  }
+  return faces;
 }
 function drawMalha(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
@@ -526,6 +553,9 @@ function drawPCselecionado() {
     drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
   }
 }
+
+
+
 }/////////////////////////////////////////////////////////////////////
 
 function matrizPontosControle(pontos, m, n) {
@@ -810,12 +840,8 @@ updateProgramaTotal();
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
 
-document.getElementById('aplicarBtn').addEventListener('click', function () {
-  visao = document.getElementById('visao').value;
-  updatePrograma();
-});
-
 function onFieldChange() {
+  visao = document.getElementById('visao').value
   xVrp = parseInt(document.getElementById('xVrp').value) || 0;
   yVrp = parseInt(document.getElementById('yVrp').value) || 0;
   zVrp = parseInt(document.getElementById('zVrp').value) || 0;
@@ -870,6 +896,7 @@ function onFieldChangePCselecionado() {
 
 
 // Adicionando os listeners para os campos
+document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
 document.getElementById('yVrp').addEventListener('input', onFieldChange);
 document.getElementById('zVrp').addEventListener('input', onFieldChange);
