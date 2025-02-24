@@ -27,9 +27,7 @@ class malha {
     this.visibilidadePC = true;
   };
 
-  debugPrint() {
-    console.log('Faces:', this.facesBsplineSRU);
-      
+  debugPrint() {      
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -40,8 +38,7 @@ class malha {
     this.gridControleSRUtransf = this.pipelineTransformacao(this.gridControleSRU);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRUtransf);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRUtransf);
-    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
-    console.log(this.gridBsplineSRU);
+    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);;
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.debugPrint();
   };
@@ -223,10 +220,6 @@ class malha {
   };
   createEstruturaFaces(grid) {
 
-    console.log(grid);
-    console.log(this.gridBsplineSRU);
-    
-    
     let vetFaces = getFaces(grid);    
     let vetFacesObj = [];
     let lenArray = vetFaces.length;
@@ -234,6 +227,8 @@ class malha {
       let objFace = new faceClass(i, vetFaces[i]);
       vetFacesObj.push(objFace);
     }
+    vetFacesObj = vetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+
     return vetFacesObj;
   }
 }
@@ -244,8 +239,22 @@ class faceClass {
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
     this.centroide = this.calculaCentroide();
     this.distanciaPintor = this.calculaDistanciaPintor();
+    this.vetorNormalDaFace = this.calculaVetorNormal();
+    this.vetObservacao = this.calculoVetObservacao();
+    this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
+    this.arestas = this.createAresta() //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
   };
-
+  createAresta() {
+    let arestas = [];
+    for (let i = 0; i < this.pontos.length-1; i++) {
+      let pontoInicial = this.pontos[i];
+      let pontoFinal = this.pontos[i+1];
+      arestas.push([pontoInicial, pontoFinal]);
+    }
+    arestas.push([this.pontos[this.pontos.length-1], this.pontos[0]]);
+    return arestas;
+  };
   calculaCentroide() {
     let somaX = 0;
     let somaY = 0;
@@ -261,6 +270,44 @@ class faceClass {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
     return distancia;
   };
+  calculaVetorNormal() {
+    let vetP2P1 = [this.pontos[0][0] - this.pontos[1][0], 
+                    this.pontos[0][1] - this.pontos[1][1], 
+                    this.pontos[0][2] - this.pontos[1][2]];
+    let vetP2P3 = [this.pontos[2][0] - this.pontos[1][0],
+                    this.pontos[2][1] - this.pontos[1][1],
+                    this.pontos[2][2] - this.pontos[1][2]];
+    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+    return vetorNormal;    
+  }
+  calculoVetObservacao() {
+    let vetObservacao = [vetVrp[0] - this.centroide[0], 
+                         vetVrp[1] - this.centroide[1], 
+                         vetVrp[2] - this.centroide[2]];
+    return vetObservacao;
+  }
+  calulaVisibilidadeNormal(){
+    let vetNormalDaFaceUnitario = vetorUnitario(this.vetorNormalDaFace); 
+    let vetObservacaoUnitario = vetorUnitario(this.vetObservacao);
+    let produtoEscalarVar = produtoEscalar(vetObservacaoUnitario, vetNormalDaFaceUnitario);
+    if (produtoEscalarVar > 0) {
+      return true;
+    }
+    return false;
+  }
+  calculaArestasSRT() {
+    let arestas = this.arestas;
+    let novoArray = [];
+    let novoPonto = [];
+    for (let i = 0; i < arestas.length; i++) {
+      novoPonto = addFatH(arestas[i]);
+      novoPonto = pontoSRUtoSRT(novoPonto);
+      novoPonto = removeFatH(novoPonto);
+      novoArray.push(novoPonto);
+    }
+    return novoArray;
+  }
 }
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
@@ -377,98 +424,6 @@ function fatorHomogeneo(vetor) {
 
 }/////////////////////////////////////////////////////////////////////
 
-{/// FUNCOES /////////////////////////////////////////
-
-function calculateBspline(pontosDeControle) {
-  //pontosDeControle = clampingBspline(pontosDeControle);
-  /*
-  if (document.getElementById('clamped').checked) {
-      pontosDeControle = clampingBspline(pontosDeControle);
-  }
-
-  if (document.getElementById('closed').checked) {
-      pontosDeControle = closedBspline(pontosDeControle);
-  }*/
-
-  let pontosDaCurva = [];
-
-  for (let i = 1; i < pontosDeControle.length - 2; i++) {
-      let [xA, xB, xC, xD] = [
-          pontosDeControle[i - 1][0], 
-          pontosDeControle[i][0], 
-          pontosDeControle[i + 1][0], 
-          pontosDeControle[i + 2][0]
-      ];
-      let [yA, yB, yC, yD] = [
-          pontosDeControle[i - 1][1], 
-          pontosDeControle[i][1], 
-          pontosDeControle[i + 1][1], 
-          pontosDeControle[i + 2][1]
-      ];
-      let [zA, zB, zC, zD] = [
-          pontosDeControle[i - 1][2], 
-          pontosDeControle[i][2], 
-          pontosDeControle[i + 1][2], 
-          pontosDeControle[i + 2][2]
-      ];
-      
-      let a3 = (-xA + 3 * (xB - xC) + xD) / 6; 
-      let b3 = (-yA + 3 * (yB - yC) + yD) / 6;
-      let c3 = (-zA + 3 * (zB - zC) + zD) / 6;
-
-      let a2 = (xA - 2 * xB + xC) / 2;
-      let b2 = (yA - 2 * yB + yC) / 2;
-      let c2 = (zA - 2 * zB + zC) / 2;
-      
-      let a1 = (xC - xA) / 2;
-      let b1 = (yC - yA) / 2;
-      let c1 = (zC - zA) / 2;
-
-      let a0 = (xA + 4 * xB + xC) / 6;
-      let b0 = (yA + 4 * yB + yC) / 6;
-      let c0 = (zA + 4 * zB + zC) / 6;
-      
-      
-
-      for (let j = 0; j < nSegmentos; j++) {
-          let t = j / nSegmentos;
-          let x = ((a3 * t + a2) * t + a1) * t + a0;
-          let y = ((b3 * t + b2) * t + b1) * t + b0;
-          let z = ((c3 * t + c2) * t + c1) * t + c0;
-          pontosDaCurva.push([x, y, z]);
-      }
-  }
-  return pontosDaCurva;
-}
-
-function createGridBspline(gridSRUPontosControle){
-  let gridBspline = [];
-  let auxPontosDeControle = [];
-  let lengthI = gridSRUPontosControle.length;
-  let lengthJ = gridSRUPontosControle[0].length;
-  //PARA N
-  // PEGAR OS INDICES PARA LINHAS
-  for (let i = 0; i < lengthI; i++) {
-      auxPontosDeControle = [];
-      for (let j = 0; j < lengthJ; j++) {
-          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
-      } 
-      gridBspline.push(calculateBspline(auxPontosDeControle));
-  }
-  lengthI = gridBspline.length;
-  lengthJ = gridBspline[0].length;
-
-  let gridBsplineFinal = [];
-  for (let j = 0; j < lengthJ; j++) {
-      auxPontosDeControle = [];
-      for (let i = 0; i < lengthI; i++) {
-          auxPontosDeControle.push(gridBspline[i][j]);
-      } 
-      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
-  }
-  return gridBsplineFinal;
-}
-
 {//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
 function renderiza() {
   var canvas = document.getElementById('viewport');
@@ -477,36 +432,10 @@ function renderiza() {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
-    if (malha.visibilidadeGridControle) {
-      drawMalha(malha.gridControleSRT);
-    }
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-    drawGridBspline(malha.gridBsplineSRT);
-
-    console.log(malha.facesBsplineSRU.length);
-    
-
-    if (!timerBool){
-      for (let j = 0; j < malha.facesBsplineSRU.length; j++) {
-        let face = malha.facesBsplineSRU[j];
-        let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
-        paintFace(pontoSRT, 'rgb(48, 255, 65)');
-      } 
-    } else {
-      let j = 0;
-      function desenharFaceTimer() {
-        if (j < malha.facesBsplineSRU.length) {
-          let face = malha.facesBsplineSRU[j];
-          let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
-          paintFace(pontoSRT, 'rgb(48, 255, 65)');
-          j++;
-          setTimeout(desenharFaceTimer, timerValue); // Espera 1 segundo antes de desenhar a próxima face
-        }
-      }
-      desenharFaceTimer(); 
-    }
+    drawGridBspline(malha);
 }
   
 }
@@ -575,20 +504,32 @@ function drawMalha(gridControle) {
           drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
       }
   }
-
-
 }
-function drawGridBspline(grid) {
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid[i].length - 1; j++) {
-        drawLine(grid[i][j][0], grid[i][j][1], grid[i][j + 1][0], grid[i][j + 1][1], 'red');
+function drawGridBspline(malha) {
+  let faces = malha.facesBsplineSRU;
+  console.log(faces);
+  
+  let facesLenght = faces.length;
+  for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+    let arestas = faces[i].arestasSRT;
+    let lenghtArestas = arestas.length;
+
+    if (faces[i].boolVisibilidadeNormal) {
+      for (let j = 0; j < lenghtArestas; j++) { 
+        let aresta = arestas[j];
+        let p0 = aresta[0];
+        let p1 = aresta[1];
+        drawLine(p0[0], p0[1], p1[0], p1[1], 'green');
+      }
+    } else {
+      for (let j = 0; j < lenghtArestas; j++) { 
+        let aresta = arestas[j];
+        let p0 = aresta[0];
+        let p1 = aresta[1];
+        drawLine(p0[0], p0[1], p1[0], p1[1], 'red');
+      }
     }
-  }
-  for (let j = 0; j < grid[0].length; j++) {
-    for (let i = 0; i < grid.length - 1; i++) {
-        drawLine(grid[i][j][0], grid[i][j][1], grid[i + 1][j][0], grid[i + 1][j][1], 'red');
-    }
-  }
+  }  
 }
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
@@ -618,6 +559,101 @@ function drawPCselecionado() {
 
 
 }/////////////////////////////////////////////////////////////////////
+
+{/// FUNCOES /////////////////////////////////////////
+
+function calculateBspline(pontosDeControle) {
+  //pontosDeControle = clampingBspline(pontosDeControle);
+  /*
+  if (document.getElementById('clamped').checked) {
+      pontosDeControle = clampingBspline(pontosDeControle);
+  }
+
+  if (document.getElementById('closed').checked) {
+      pontosDeControle = closedBspline(pontosDeControle);
+  }*/
+
+  let pontosDaCurva = [];
+
+  for (let i = 1; i < pontosDeControle.length - 2; i++) {
+      let [xA, xB, xC, xD] = [
+          pontosDeControle[i - 1][0], 
+          pontosDeControle[i][0], 
+          pontosDeControle[i + 1][0], 
+          pontosDeControle[i + 2][0]
+      ];
+      let [yA, yB, yC, yD] = [
+          pontosDeControle[i - 1][1], 
+          pontosDeControle[i][1], 
+          pontosDeControle[i + 1][1], 
+          pontosDeControle[i + 2][1]
+      ];
+      let [zA, zB, zC, zD] = [
+          pontosDeControle[i - 1][2], 
+          pontosDeControle[i][2], 
+          pontosDeControle[i + 1][2], 
+          pontosDeControle[i + 2][2]
+      ];
+      
+      let a3 = (-xA + 3 * (xB - xC) + xD) / 6; 
+      let b3 = (-yA + 3 * (yB - yC) + yD) / 6;
+      let c3 = (-zA + 3 * (zB - zC) + zD) / 6;
+
+      let a2 = (xA - 2 * xB + xC) / 2;
+      let b2 = (yA - 2 * yB + yC) / 2;
+      let c2 = (zA - 2 * zB + zC) / 2;
+      
+      let a1 = (xC - xA) / 2;
+      let b1 = (yC - yA) / 2;
+      let c1 = (zC - zA) / 2;
+
+      let a0 = (xA + 4 * xB + xC) / 6;
+      let b0 = (yA + 4 * yB + yC) / 6;
+      let c0 = (zA + 4 * zB + zC) / 6;
+      
+      
+
+      for (let j = 0; j < nSegmentos; j++) {
+          let t = j / nSegmentos;
+          let x = ((a3 * t + a2) * t + a1) * t + a0;
+          let y = ((b3 * t + b2) * t + b1) * t + b0;
+          let z = ((c3 * t + c2) * t + c1) * t + c0;
+          pontosDaCurva.push([x, y, z]);
+      }
+  }
+  return pontosDaCurva;
+}
+
+function createGridBspline(gridSRUPontosControle){
+  //console.log('CHAMO');
+  
+  let gridBspline = [];
+  let auxPontosDeControle = [];
+  let lengthI = gridSRUPontosControle.length;
+  let lengthJ = gridSRUPontosControle[0].length;
+  //PARA N
+  // PEGAR OS INDICES PARA LINHAS
+  for (let i = 0; i < lengthI; i++) {
+      auxPontosDeControle = [];
+      for (let j = 0; j < lengthJ; j++) {
+          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
+      } 
+      gridBspline.push(calculateBspline(auxPontosDeControle));
+  }
+  lengthI = gridBspline.length;
+  lengthJ = gridBspline[0].length;
+
+  let gridBsplineFinal = [];
+  for (let j = 0; j < lengthJ; j++) {
+      auxPontosDeControle = [];
+      for (let i = 0; i < lengthI; i++) {
+          auxPontosDeControle.push(gridBspline[i][j]);
+      } 
+      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
+  }
+  return gridBsplineFinal;
+}
+
 
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
@@ -870,14 +906,13 @@ let n = 4
 
 var vetMalha = [];
 
-let ponto1 = [0,10,0];
-let ponto2 = [0,15,0];
-let ponto3 = [10,15,0];
-let ponto4 = [10,10,0];
+let ponto1 = [0,15,0];
+let ponto2 = [0,10,0];
+let ponto3 = [10,10,0];
+let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
-
 
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];

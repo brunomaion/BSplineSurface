@@ -22,23 +22,27 @@ class malha {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
+    this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
 
-  debugPrint() {    
+  debugPrint() {
+    console.log('Faces:', this.facesBsplineSRU);
+      
   };
-
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha)
     this.update();
   };
-
   update() {
-    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
-    this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
+    this.gridControleSRUtransf = this.pipelineTransformacao(this.gridControleSRU);
+    this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRUtransf);
+    this.gridBsplineSRU = createGridBspline(this.gridControleSRUtransf);
     this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
+    console.log(this.gridBsplineSRU);
+    this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.debugPrint();
   };
 
@@ -57,7 +61,6 @@ class malha {
     }
     return pontosEscalados;
   };
-
   rotacao(pontos) {
     let ponto1 = this.p1;
     let ponto2 = this.p2;
@@ -137,7 +140,6 @@ class malha {
     }
     return pontosRotacionado; 
   };
-  
   translacao(pontos) {
   
     let matrizT = [
@@ -156,7 +158,6 @@ class malha {
   
     return pontosTransladados;
   };
-
   matrizPontosControle(pontos, m, n) {
     function calculoTaxaPontos(p0, p1, x) {
         let taxaX = (p1[0] - p0[0]) / (x - 1);
@@ -198,23 +199,67 @@ class malha {
     }
     return matrizPontosControleControle;
   }
-  
-  pipelineSruSrt(pSRU) {
-    pSRU = addFatH(pSRU);
-    let pontosRotacionados = this.rotacao(pSRU);
-    let pontosTransladados = this.translacao(pontosRotacionados);
-    let pontosEscalados = this.escala(pontosTransladados);
-    let pontosSRT = pontosSRUtoSRT(pontosEscalados);
-    pontosSRT = removeFatH(pontosSRT);
-    return pontosSRT;
+  pipelineTransformacao(matriz) {
+    let novaMatriz = [];
+    for (let i = 0; i < matriz.length; i++) {
+      let novoPonto = addFatH(matriz[i]);
+      novoPonto = this.rotacao(novoPonto);
+      novoPonto = this.translacao(novoPonto);
+      novoPonto = this.escala(novoPonto);
+      novoPonto = removeFatH(novoPonto);
+      novaMatriz.push(novoPonto);  
+    };
+    return novaMatriz;
   };
-
   pipelineMatrizSruSrt(matriz) {
     let novaMatriz = [];
     for (let i = 0; i < matriz.length; i++) {
-      novaMatriz.push(this.pipelineSruSrt(matriz[i]));  
+      let novoPonto = addFatH(matriz[i]);
+      novoPonto = pontoSRUtoSRT(novoPonto);
+      novoPonto = removeFatH(novoPonto);
+      novaMatriz.push(novoPonto);  
     };
     return novaMatriz;
+  };
+  createEstruturaFaces(grid) {
+
+    console.log(grid);
+    console.log(this.gridBsplineSRU);
+    
+    
+    let vetFaces = getFaces(grid);    
+    let vetFacesObj = [];
+    let lenArray = vetFaces.length;
+    for (let i = 0; i < lenArray; i++) {
+      let objFace = new faceClass(i, vetFaces[i]);
+      vetFacesObj.push(objFace);
+    }
+    return vetFacesObj;
+  }
+}
+
+class faceClass {
+  constructor(faceID, pontos) {
+    this.faceID = faceID;
+    this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
+    this.centroide = this.calculaCentroide();
+    this.distanciaPintor = this.calculaDistanciaPintor();
+  };
+
+  calculaCentroide() {
+    let somaX = 0;
+    let somaY = 0;
+    let somaZ = 0;
+    for (let i = 0; i < this.pontos.length; i++) {
+      somaX += this.pontos[i][0];
+      somaY += this.pontos[i][1];
+      somaZ += this.pontos[i][2];
+    }
+    return [somaX / 4, somaY / 4, somaZ / 4];
+  };
+  calculaDistanciaPintor() {
+    let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
+    return distancia;
   };
 }
 
@@ -257,8 +302,10 @@ class malha {
   var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
     
   //eixo
-  eixoBool = true;
-  eixoPCverde = true;
+  var eixoBool = true;
+  var eixoPCverde = true;
+  var timerBool = false;
+  var timerValue = parseInt(document.getElementById('timerValue').value) || 0;
 
 } ////////////////////////////////////////////////
   
@@ -332,15 +379,6 @@ function fatorHomogeneo(vetor) {
 
 {/// FUNCOES /////////////////////////////////////////
 
-function clampingBspline(pontosDeControle) {
-  let extendedpontosDeControle = [
-      pontosDeControle[0], pontosDeControle[0], // Repete o primeiro ponto
-      ...pontosDeControle,
-      pontosDeControle[pontosDeControle.length - 1], pontosDeControle[pontosDeControle.length - 1] // Repete o último ponto
-  ];
-  return extendedpontosDeControle;
-}
-
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
@@ -403,9 +441,6 @@ function calculateBspline(pontosDeControle) {
   return pontosDaCurva;
 }
 
-function transposeMatrix(matrix) {
-  return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
-}
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
   let auxPontosDeControle = [];
@@ -431,9 +466,6 @@ function createGridBspline(gridSRUPontosControle){
       } 
       gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
   }
-
-  console.log(gridBsplineFinal);
-  
   return gridBsplineFinal;
 }
 
@@ -452,7 +484,31 @@ function renderiza() {
       drawPontosControle(malha.gridControleSRT);
     }
     drawGridBspline(malha.gridBsplineSRT);
-  }
+
+    console.log(malha.facesBsplineSRU.length);
+    
+
+    if (!timerBool){
+      for (let j = 0; j < malha.facesBsplineSRU.length; j++) {
+        let face = malha.facesBsplineSRU[j];
+        let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
+        paintFace(pontoSRT, 'rgb(48, 255, 65)');
+      } 
+    } else {
+      let j = 0;
+      function desenharFaceTimer() {
+        if (j < malha.facesBsplineSRU.length) {
+          let face = malha.facesBsplineSRU[j];
+          let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
+          paintFace(pontoSRT, 'rgb(48, 255, 65)');
+          j++;
+          setTimeout(desenharFaceTimer, timerValue); // Espera 1 segundo antes de desenhar a próxima face
+        }
+      }
+      desenharFaceTimer(); 
+    }
+}
+  
 }
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -484,6 +540,29 @@ function printEixo3d(){
     ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
+}
+function paintFace(face, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.moveTo(face[0][0], face[0][1]);
+  for (let i = 1; i < face.length; i++) {
+      ctx.lineTo(face[i][0], face[i][1]);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function getFaces(grid) {
+  let faces = [];
+  for (let i = 0; i < grid.length - 1; i++) {
+      for (let j = 0; j < grid[i].length - 1; j++) {
+          let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
+          faces.push(face);
+      }
+  }
+  return faces;
 }
 function drawMalha(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
@@ -535,6 +614,9 @@ function drawPCselecionado() {
     drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
   }
 }
+
+
+
 }/////////////////////////////////////////////////////////////////////
 
 function matrizPontosControle(pontos, m, n) {
@@ -730,7 +812,7 @@ function projAxonometrica(ponto) {
 
 {//////// TRANSFORMACAO DE TELA////////////////////////////////////////////////
 
-function pontosSRUtoSRT(pontos) {
+function pontoSRUtoSRT(pontos) {
   let novosPontosSRT = [];
   if (visao == 'perspectiva') {
     for (let i = 0; i < pontos.length; i++) {
@@ -796,7 +878,7 @@ let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
 
-/*
+
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -805,7 +887,7 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
-//*/
+
 
 //// OUTRAS VARIAVEIS GLOBAIS
 var selectedMalha = vetMalha[0];
@@ -819,12 +901,8 @@ updateProgramaTotal();
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
 
-document.getElementById('aplicarBtn').addEventListener('click', function () {
-  visao = document.getElementById('visao').value;
-  updatePrograma();
-});
-
 function onFieldChange() {
+  visao = document.getElementById('visao').value
   xVrp = parseInt(document.getElementById('xVrp').value) || 0;
   yVrp = parseInt(document.getElementById('yVrp').value) || 0;
   zVrp = parseInt(document.getElementById('zVrp').value) || 0;
@@ -847,6 +925,10 @@ function onFieldChange() {
   nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;  
   selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
+
+  timerValue = parseInt(document.getElementById('timerValue').value) || 0;
+  timerBool = document.getElementById('timerBool').checked;
+
   updatePrograma();
 }
 
@@ -879,6 +961,7 @@ function onFieldChangePCselecionado() {
 
 
 // Adicionando os listeners para os campos
+document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
 document.getElementById('yVrp').addEventListener('input', onFieldChange);
 document.getElementById('zVrp').addEventListener('input', onFieldChange);
