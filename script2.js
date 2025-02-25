@@ -26,7 +26,7 @@ class malha {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.facesVetor = this.createEstruturaFaces(this.gridBsplineSRU);
+    this.facesVetorSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
@@ -246,24 +246,36 @@ class faceClass {
     this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
     this.vetObservacao = this.calculoVetObservacao();
     this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
-    this.arestas = this.createAresta() //armazenar as arestas ponto inicial e final
+    this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
+      iluminacaoKd, 
+      iluminacaoKs, 
+      iluminacaoN);
+    
+    this.pontosSRT = this.pontos2Srt() //armazenar as arestas ponto inicial e final
+
     this.arestasSRT = this.calculaArestasSRT();
+
     [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
     this.scanLinesFace = this.createScanlinesFace();
-    this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
-                                                  iluminacaoKd, 
-                                                  iluminacaoKs, 
-                                                  iluminacaoN);
+
   };
-  createAresta() {
-    let arestas = [];
-    for (let i = 0; i < this.pontos.length-1; i++) {
-      let pontoInicial = this.pontos[i];
-      let pontoFinal = this.pontos[i+1];
-      arestas.push([pontoInicial, pontoFinal]);
+  pontos2Srt() {
+    let pontosSRT = this.pontos;
+    pontosSRT = addFatH(pontosSRT);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    pontosSRT = recorte2D(pontosSRT) ;
+    return pontosSRT;
+  };
+  calculaArestasSRT() {
+    let arestasSRT = [];
+    let len = this.pontosSRT.length;
+    for (let i = 0; i < len; i++) {
+      let p0 = this.pontosSRT[i];
+      let p1 = this.pontosSRT[(i + 1) % len];
+      arestasSRT.push([p0, p1]);
     }
-    arestas.push([this.pontos[this.pontos.length-1], this.pontos[0]]);
-    return arestas;
+    return arestasSRT;
   };
   createArestaCompleta() {
     let lenI = this.arestasSRT.length;
@@ -400,18 +412,6 @@ class faceClass {
     }
     return false;
   }
-  calculaArestasSRT() {
-    let arestas = this.arestas;
-    let novoArray = [];
-    let novoPonto = [];
-    for (let i = 0; i < arestas.length; i++) {
-      novoPonto = addFatH(arestas[i]);
-      novoPonto = pontoSRUtoSRT(novoPonto);
-      novoPonto = removeFatH(novoPonto);
-      novoArray.push(novoPonto);
-    }
-    return novoArray;
-  }
   calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN) {
 
     if (tipoSombreamento == 'Nenhum') {
@@ -460,10 +460,18 @@ var xMin = document.getElementById('xMinSRU').value || -20;
 var xMax = document.getElementById('xMaxSRU').value || 20;
 var yMin = document.getElementById('yMinSRU').value || -15;
 var yMax = document.getElementById('yMaxSRU').value || 15;
+
+/*
 var uMin = 0;
 var uMax = 1099;
 var vMin = 0;
 var vMax = 699;
+*/
+var uMin = parseInt(document.getElementById('uMinW').value) || 0;
+var uMax = parseInt(document.getElementById('uMaxW').value) || 1299;
+var vMin = parseInt(document.getElementById('vMinW').value) || 0;
+var vMax = parseInt(document.getElementById('vMaxW').value) || 699;
+
 var dp = 40;
 var viewUp = [0, 1, 0];
 
@@ -630,7 +638,7 @@ function drawViewport() {
   context.beginPath();
   context.rect(uMinViewport, vMinViewport, uMaxViewport - uMinViewport, vMaxViewport - vMinViewport);
   context.strokeStyle = 'black';
-  context.lineWidth = 1;
+  context.lineWidth = 0.5;
   context.stroke();
 }
 
@@ -713,9 +721,6 @@ function drawGridBspline(malha) {
       paintFace(face.scanLinesFace, cor);
     }
   }  
-
-
-
 }
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
@@ -738,8 +743,76 @@ function drawPCselecionado() {
     let i = indicePCsele[0];
     let j = indicePCsele[1];
     gridObjeto = selectedMalha.gridControleSRT;
-    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
+    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
   }
+}
+function recorte2D(pontos) {
+
+  function testeDentroEsquerda(p) {
+      return p[0] >= uMinViewport;
+  }
+  function testeDentroDireita(p) {
+      return p[0] <= uMaxViewport;
+  }
+  function testeDentroAbaixo(p) {
+      return p[1] <= vMaxViewport;
+  }
+  function testeDentroAcima(p) {
+      return p[1] >= vMinViewport;
+  }
+
+  function intersecao(p1, p2, limite, eixo) {
+    let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+    let x2 = p2[0], y2 = p2[1], z2 = p2[2];
+
+    if (eixo === "x") {
+        let x = limite;
+        let y = y1 + (y2 - y1) * (limite - x1) / (x2 - x1);
+        let z = z1 + (z2 - z1) * (limite - x1) / (x2 - x1);
+        return [x, y, z];
+    } else if (eixo === "y") {
+        let y = limite;
+        let x = x1 + (x2 - x1) * (limite - y1) / (y2 - y1);
+        let z = z1 + (z2 - z1) * (limite - y1) / (y2 - y1);
+        return [x, y, z];
+    } 
+  }
+
+  function recorteContraBorda(pontos, testeDentro, limite, eixo) {
+      let novosPontos = [];
+
+      for (let i = 0; i < pontos.length; i++) {
+          let p0 = pontos[i];
+          let p1 = pontos[(i + 1) % pontos.length]; // Fechando o polígono
+
+          let dentro0 = testeDentro(p0);
+          let dentro1 = testeDentro(p1);
+
+          // dentro dentro -> adiciona p1
+          if (dentro0 && dentro1) {
+              novosPontos.push(p1);
+          } 
+          // dentro fora -> adiciona p1'
+          else if (dentro0 && !dentro1) {
+              novosPontos.push(intersecao(p0, p1, limite, eixo));
+          } 
+          // fora dentro -> adiciona p0' e p1
+          else if (!dentro0 && dentro1) {
+              novosPontos.push(intersecao(p0, p1, limite, eixo));
+              novosPontos.push(p1);
+          }
+      }
+      return novosPontos;
+  }
+
+  let recortado = pontos;
+  recortado = recorteContraBorda(recortado, testeDentroEsquerda, uMinViewport, "x");
+  recortado = recorteContraBorda(recortado, testeDentroDireita, uMaxViewport, "x");
+  recortado = recorteContraBorda(recortado, testeDentroAbaixo, vMaxViewport, "y");
+  recortado = recorteContraBorda(recortado, testeDentroAcima, vMinViewport, "y");
+  
+
+  return recortado;
 }
 
 
@@ -811,7 +884,7 @@ function calculateBspline(pontosDeControle) {
       
       
 
-      for (let j = 0; j < nSegmentos; j++) {
+      for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -1175,6 +1248,11 @@ function onFieldChange() {
   boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
   boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
+  uMinViewport = parseInt(document.getElementById('uMin').value) || 0;
+  uMaxViewport = parseInt(document.getElementById('uMax').value) || 0;
+  vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
+  vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
+
   updatePrograma();
 }
 
@@ -1199,10 +1277,12 @@ function onFieldChangeReset(){
   yMin = parseInt(document.getElementById('yMinSRU').value) || 0;
   yMax = parseInt(document.getElementById('yMaxSRU').value) || 0;
 
-  uMinViewport = parseInt(document.getElementById('uMin').value) || 0;
-  uMaxViewport = parseInt(document.getElementById('uMax').value) || 0;
-  vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
-  vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
+  uMin = parseInt(document.getElementById('uMinW').value) || 0;
+  uMax = parseInt(document.getElementById('uMaxW').value) || 0;
+  vMin = parseInt(document.getElementById('vMinW').value) || 0;
+  vMax = parseInt(document.getElementById('vMaxW').value) || 0;
+  
+
 
   updateProgramaTotal();
 }
@@ -1224,10 +1304,15 @@ document.getElementById('xMaxSRU').addEventListener('input', onFieldChangeReset)
 document.getElementById('yMinSRU').addEventListener('input', onFieldChangeReset);
 document.getElementById('yMaxSRU').addEventListener('input', onFieldChangeReset);
 
-document.getElementById('uMin').addEventListener('input', onFieldChangeReset);
-document.getElementById('uMax').addEventListener('input', onFieldChangeReset);
-document.getElementById('vMin').addEventListener('input', onFieldChangeReset);
-document.getElementById('vMax').addEventListener('input', onFieldChangeReset);
+document.getElementById('uMinW').addEventListener('input', onFieldChangeReset);
+document.getElementById('uMaxW').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMinW').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMaxW').addEventListener('input', onFieldChangeReset);
+
+document.getElementById('uMin').addEventListener('input', onFieldChange);
+document.getElementById('uMax').addEventListener('input', onFieldChange);
+document.getElementById('vMin').addEventListener('input', onFieldChange);
+document.getElementById('vMax').addEventListener('input', onFieldChange);
 
 document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);

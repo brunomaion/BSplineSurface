@@ -33,7 +33,7 @@ function drawPolygon(mObj, color = 'red') {
     context.stroke();
 }
 
-function recorte2D(pontos, uMinViewport, uMaxViewport, vMinViewport, vMaxViewport) {
+function recorte2D(pontos) {
 
     function testeDentroEsquerda(p) {
         return p[0] >= uMinViewport;
@@ -49,18 +49,20 @@ function recorte2D(pontos, uMinViewport, uMaxViewport, vMinViewport, vMaxViewpor
     }
 
     function intersecao(p1, p2, limite, eixo) {
-        let x1 = p1[0], y1 = p1[1];
-        let x2 = p2[0], y2 = p2[1];
+      let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+      let x2 = p2[0], y2 = p2[1], z2 = p2[2];
 
-        if (eixo === "x") {
-            let x = limite;
-            let y = y1 + (y2 - y1) * (limite - x1) / (x2 - x1);
-            return [x, y];
-        } else {
-            let y = limite;
-            let x = x1 + (x2 - x1) * (limite - y1) / (y2 - y1);
-            return [x, y];
-        }
+      if (eixo === "x") {
+          let x = limite;
+          let y = y1 + (y2 - y1) * (limite - x1) / (x2 - x1);
+          let z = z1 + (z2 - z1) * (limite - x1) / (x2 - x1);
+          return [x, y, z];
+      } else if (eixo === "y") {
+          let y = limite;
+          let x = x1 + (x2 - x1) * (limite - y1) / (y2 - y1);
+          let z = z1 + (z2 - z1) * (limite - y1) / (y2 - y1);
+          return [x, y, z];
+      } 
     }
 
     function recorteContraBorda(pontos, testeDentro, limite, eixo) {
@@ -144,7 +146,7 @@ let mObj3 = new Malha(pontos);
 
 drawPolygon(mObj3, 'red');
 console.log('ANTES DO RECORTE OBJ3', mObj3.pontos);
-mObj3.pontos = recorte2D(mObj3.pontos, uMinViewport, uMaxViewport, vMinViewport, vMaxViewport);
+mObj3.pontos = recorte2D(mObj3.pontos);
 drawPolygon(mObj3, 'blue');
 console.log('DPS DO RECORT OBJ3',mObj3.pontos);
 
