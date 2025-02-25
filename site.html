@@ -20,11 +20,6 @@
       <label for="boolGrid">Visibilidade do grid:</label>
       <input type="checkbox" id="visibilidadeGridControle" name="visibilidadeGridControle">
       <br>
-      <label for="boolPC">Visibilidade Pontos de Controle:</label>
-      <input type="checkbox" id="visibilidadePC" name="visibilidadePC" checked>
-      <br>
-      <label for="pcVerde">P.C. Selecionado (Verde):</label>
-      <input type="checkbox" id="pcVerde" name="pcVerde" checked>
     </div>
 
     <div class="tipoBspline"> 
@@ -64,6 +59,7 @@
       </div>
 
       <div class="pontosControleClass">
+
         <label for="mPontos">M (4 &le; m &le; 100): </label>
         <input type="number" id="mPontos" name="mPontos" min="4" max="100" value="4"><br>
         <label for="nPontos">N (4 &le; n &le; 100): </label>
@@ -82,6 +78,21 @@
 
 
     <div class="pontosControleEditar">
+      <label style="text-align: center; display: block;">PONTOS DE CONTROLE</label>
+
+      <div class="tamanhoPC">
+        <label for="tamanhoPC">Tamanho P. Controle:</label>
+        <input type="number" id="tamPC" name="tamPC" value="2" min="0" max="10" maxlength="3" size="4">
+      </div>
+
+
+      <label for="boolPC">Visibilidade Pontos de Controle:</label>
+      <input type="checkbox" id="visibilidadePC" name="visibilidadePC" checked>
+      <br>
+      <label for="pcVerde">P.C. Selecionado (Verde):</label>
+      <input type="checkbox" id="pcVerde" name="pcVerde" checked>
+      <br>
+  
       <label for="pontosControleEditar">P. Controle selecionado:</label><br>
       <label> ! Clique próximo do ponto ! </label><br>
       <label for="indexIPC">I:</label>
@@ -99,13 +110,7 @@
       <input type="number" id="zPC" name="zPC" value="0" step="0.1" maxlength="3" size="4">
     </div>
     
-    <label>Sombreamento:</label>
-    <select id="tipoSombreamento" name="tipoSombreamento">
-      <option value="Nenhum">Nenhum</option>
-      <option value="Constante">Constante</option>
-      <option value="Gouraud">Gouraud</option>
-      <option value="Phong">Phong</option>
-    </select>
+
 
     <div class="iluminacaoClass">
       <label style="text-align: center; display: block;">ILUMINAÇÃO</label>
@@ -143,11 +148,21 @@
 
     <div class="propriedadesRender">
       <label style="text-align: center; display: block;">RENDERIZAÇÃO</label>
-      <div>
-        <label for="timerBool">Timer: </label>
-        <input type="checkbox" id="timerBool" name="timerBool">
-        <input type="number" id="timerValue" name="timerValue" value="0" step="10" maxlength="3" size="4">
-      </div>
+
+      <label>Sombreamento:</label>
+      <select id="tipoSombreamento" name="tipoSombreamento">
+        <option value="Nenhum">Nenhum</option>
+        <option value="Constante">Constante</option>
+        <option value="Gouraud">Gouraud</option>
+        <option value="Phong">Phong</option>
+      </select>
+
+      <br>
+
+      <label for="boolPintarFaces">Pintar faces:</label>
+      <input type="checkbox" id="boolPintarFaces" name="boolPintarFaces" checked>
+
+      <br>
 
       <label for="boolArestasVerdeVermelha">Arestas Verde/Vermelha:</label>
       <input type="checkbox" id="boolArestasVerdeVermelha" name="boolArestasVerdeVermelha" checked>
@@ -156,11 +171,35 @@
 
   </div>
 
-
-
-
-
   <div class="sidebarRight">
+
+    <div class="selectSRU" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">SRU</label>
+      <label for="xMinSRU">xMin:</label>
+      <input type="number" id="xMinSRU" name="xMinSRU" value="-20" step="1" maxlength="3" size="4">
+      <label for="xMaxSRU">xMax:</label>
+      <input type="number" id="xMaxSRU" name="xMaxSRU" value="20" step="1" maxlength="3" size="4">
+      <br>
+      <label for="yMinSRU">yMin:</label>
+      <input type="number" id="yMinSRU" name="yMinSRU" value="-15" step="1" maxlength="3" size="4">
+      <label for="yMaxSRU">yMax:</label>
+      <input type="number" id="yMaxSRU" name="yMaxSRU" value="15" step="1" maxlength="3" size="4">
+      </select>
+    </div>
+
+    <div class="selectViewport" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">VIEWPORT</label>
+      <label for="uMin">uMin:</label>
+      <input type="number" id="uMin" name="uMin" value="0" step="1" maxlength="3" size="4">
+      <label for="uMax">uMax:</label>
+      <input type="number" id="uMax" name="uMax" value="1099" step="1" maxlength="3" size="4">
+      <br>
+      <label for="vMin">vMin:</label>
+      <input type="number" id="vMin" name="vMin" value="0" step="1" maxlength="3" size="4">
+      <label for="vMax">vMax:</label>
+      <input type="number" id="vMax" name="vMax" value="699" step="1" maxlength="3" size="4">
+      </select>
+    </div>
 
     <div class="selectVisao" style="text-align: center;"> 
       <label style="text-align: center; display: block;">VISÃO:</label>
@@ -174,12 +213,6 @@
       <label for="eixo3d">Eixo 3D:</label>
       <input type="checkbox" id="eixo3d" name="eixo3d" checked>
     </div>
-
-    <div class="tamanhoPC">
-      <label for="tamanhoPC">Tamanho P. Controle:</label>
-      <input type="number" id="tamPC" name="tamPC" value="2" min="0" max="10" maxlength="3" size="4">
-    </div>
-
 
     <div class="configCamera"> 
 

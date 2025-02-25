@@ -6,6 +6,16 @@ body {
   flex-direction: row-reverse; /* Move a sidebar para o lado direito */
 }
 
+#xMinSRU, #xMaxSRU, #yMinSRU, #yMaxSRU {
+  width: 35px; /* Largura da sub-div */
+  text-align: center;
+}
+
+#uMin, #uMax, #vMin, #vMax {
+  width: 50px; /* Largura da sub-div */
+  text-align: center;
+}
+
 
 
 #canvasContainer {
@@ -48,11 +58,6 @@ button:hover {
 }
 
 .rotDiv > div {
-  margin-bottom: 5px; /* Espaço entre as sub-divs */
-  margin-top: 5px; /* Espaço acima da primeira sub-div */
-}
-
-.tamanhoPC > div {
   margin-bottom: 5px; /* Espaço entre as sub-divs */
   margin-top: 5px; /* Espaço acima da primeira sub-div */
 }

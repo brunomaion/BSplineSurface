@@ -456,10 +456,10 @@ class faceClass {
   var vetMalha = []
   
   /// camera 
-  var xMin = -20;
-  var xMax = 20;
-  var yMin = -15;
-  var yMax = 15;
+  var xMin = document.getElementById('xMinSRU').value || -20;
+  var xMax = document.getElementById('xMaxSRU').value || 20;
+  var yMin = document.getElementById('yMinSRU').value || -15;
+  var yMax = document.getElementById('yMaxSRU').value || 15;
   var uMin = 0;
   var uMax = 1099;
   var vMin = 0;
@@ -492,9 +492,6 @@ class faceClass {
   //eixo
   var eixoBool = true;
   var eixoPCverde = true;
-  var timerBool = false;
-  var timerValue = parseInt(document.getElementById('timerValue').value) || 0;
-
   //ILUMINACAO
 
   var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
@@ -581,10 +578,10 @@ function renderiza() {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
+    drawGridBspline(malha);
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-    drawGridBspline(malha);
 }
   
 }
@@ -699,7 +696,9 @@ function drawGridBspline(malha) {
       paintAresta(face.scanLinesFace, cor);
     }
 
-    paintFace(face.scanLinesFace, cor);
+    if (boolPintarFaces) {
+      paintFace(face.scanLinesFace, cor);
+    }
   }  
 
 
@@ -735,6 +734,17 @@ function drawPCselecionado() {
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
+function closedBspline(pontosDeControle) {
+  let n = pontosDeControle.length;
+  let pontosDeControleFechado = [
+      pontosDeControle[n - 2],
+      pontosDeControle[n - 1],
+      ...pontosDeControle,
+      pontosDeControle[0],
+      pontosDeControle[1]
+  ];
+  return pontosDeControleFechado;
+}
 
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
@@ -746,6 +756,7 @@ function calculateBspline(pontosDeControle) {
   if (document.getElementById('closed').checked) {
       pontosDeControle = closedBspline(pontosDeControle);
   }*/
+  //pontosDeControle = closedBspline(pontosDeControle);
 
   let pontosDaCurva = [];
 
@@ -1101,6 +1112,7 @@ var pcSelecionado = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[
 
 var tipoSombreamento = document.getElementById('tipoSombreamento').value;
 var boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
+var boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
 /// ATUALIZAÇAO /////////////////
 
@@ -1134,8 +1146,6 @@ function onFieldChange() {
   selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
-  timerValue = parseInt(document.getElementById('timerValue').value) || 0;
-  timerBool = document.getElementById('timerBool').checked;
 
   iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
   iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
@@ -1150,6 +1160,7 @@ function onFieldChange() {
 
   tipoSombreamento = document.getElementById('tipoSombreamento').value;
   boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
+  boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
   updatePrograma();
 }
@@ -1169,6 +1180,11 @@ function onFieldChangeReset(){
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
   selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
   selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
+
+  xMin = parseInt(document.getElementById('xMinSRU').value) || 0;
+  xMax = parseInt(document.getElementById('xMaxSRU').value) || 0;
+  yMin = parseInt(document.getElementById('yMinSRU').value) || 0;
+  yMax = parseInt(document.getElementById('yMaxSRU').value) || 0;
   updateProgramaTotal();
 }
 
@@ -1183,6 +1199,12 @@ function onFieldChangePCselecionado() {
 
 
 // Adicionando os listeners para os campos
+
+document.getElementById('xMinSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('xMaxSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('yMinSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('yMaxSRU').addEventListener('input', onFieldChangeReset);
+
 document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
 document.getElementById('yVrp').addEventListener('input', onFieldChange);
@@ -1240,6 +1262,8 @@ document.getElementById('ks').addEventListener('input', onFieldChange);
 document.getElementById('nIluminacao').addEventListener('input', onFieldChange);
 
 document.getElementById('boolArestasVerdeVermelha').addEventListener('input', onFieldChange);
+document.getElementById('boolPintarFaces').addEventListener('input', onFieldChange);
+
 
 const selectMalha = document.getElementById("malhaSelecionada");
 const sclInput = document.getElementById("scl");
@@ -1342,9 +1366,6 @@ document.getElementById('viewport').addEventListener('click', function(event) {
   updatePrograma();
   atualizarInputsMalha(selectedMalha);
 });
-
-
-
 
 
 }/////////////////////////////////////////////////////////////////////////////////////////
