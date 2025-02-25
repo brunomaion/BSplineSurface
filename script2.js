@@ -222,42 +222,54 @@ class malha {
     return novaMatriz;
   };
   createEstruturaFaces(grid) {
-
     let vetFaces = getFaces(grid);    
     let vetFacesObj = [];
     let lenArray = vetFaces.length;
-    for (let i = 0; i < lenArray; i++) {
-      let objFace = new faceClass(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
-      vetFacesObj.push(objFace);
-    }
+
+    if (tipoSombreamento == 'Nenhum') {
+      for (let i = 0; i < lenArray; i++) {
+        let objFace = new faceClassCor(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
+        vetFacesObj.push(objFace);
+      }
+    };
+    if (tipoSombreamento == 'Constante') {
+      for (let i = 0; i < lenArray; i++) {
+        let objFace = new faceClassConstante(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
+        vetFacesObj.push(objFace);
+      }
+    };
+
+    if (tipoSombreamento == 'Constante') {
+      for (let i = 0; i < lenArray; i++) {
+        let objFace = new faceClassConstante(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
+        vetFacesObj.push(objFace);
+      }
+    };
+
+
+
+    // Ordenar para o algoritmo do pintor
     vetFacesObj = vetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
 
     return vetFacesObj;
   }
 }
 
-class faceClass {
+class faceClassCor{
   constructor(faceID, pontos, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {
     this.faceID = faceID;
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
     this.centroide = this.calculaCentroide();
     this.distanciaPintor = this.calculaDistanciaPintor();
-    this.vetorNormalDaFace = this.calculaVetorNormal();
+    this.vetorNormalDaFace = calculaVetorNormal(this.pontos);
     this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
-    this.vetObservacao = this.calculoVetObservacao();
-    this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
-    this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
-      iluminacaoKd, 
-      iluminacaoKs, 
-      iluminacaoN);
-    
+    this.vetObservacao = calculoVetObservacaoUnitario(this.centroide);
+    this.boolVisibilidadeNormal = this.calculaVisibilidadeNormal();
+    this.iluminacaoTotal = 255;
     this.pontosSRT = this.pontos2Srt() //armazenar as arestas ponto inicial e final
-
     this.arestasSRT = this.calculaArestasSRT();
-
     [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
     this.scanLinesFace = this.createScanlinesFace();
-
   };
   pontos2Srt() {
     let pontosSRT = this.pontos;
@@ -385,69 +397,170 @@ class faceClass {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
     return distancia;
   };
-  calculaVetorNormal() {
-
-    let vetP2P3 = [this.pontos[2][0] - this.pontos[1][0],
-                    this.pontos[2][1] - this.pontos[1][1],
-                    this.pontos[2][2] - this.pontos[1][2]];
-                    
-    let vetP2P1 = [this.pontos[0][0] - this.pontos[1][0], 
-                    this.pontos[0][1] - this.pontos[1][1], 
-                    this.pontos[0][2] - this.pontos[1][2]];
-    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
-    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
-    return vetorNormal;    
-  }
-  calculoVetObservacao() {
-    let vetObservacao = [vetVrp[0] - this.centroide[0], 
-                         vetVrp[1] - this.centroide[1], 
-                         vetVrp[2] - this.centroide[2]];
-    return vetObservacao;
-  }
-  calulaVisibilidadeNormal(){
-    let vetObservacaoUnitario = vetorUnitario(this.vetObservacao);
-    let produtoEscalarVar = produtoEscalar(vetObservacaoUnitario, this.vetorNormalUnitario);
+  calculaVisibilidadeNormal(){
+    let produtoEscalarVar = produtoEscalar(this.vetObservacao, this.vetorNormalUnitario);
     if (produtoEscalarVar >= 0) {
       return true;
     }
     return false;
   }
-  calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN) {
+}
 
-    if (tipoSombreamento == 'Nenhum') {
-      return 255;
-    };
-
-    let iluTotal = iluAmbiente*iluminacaoKa;
-
-    if (iluTotal>=255){
-      return 255;
+class faceClassConstante{
+  constructor(faceID, pontos, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {
+    this.faceID = faceID;
+    this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
+    this.centroide = this.calculaCentroide();
+    this.distanciaPintor = this.calculaDistanciaPintor();
+    this.vetorNormalDaFace = calculaVetorNormal(this.pontos);
+    this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
+    this.vetObservacao = calculoVetObservacaoUnitario(this.centroide);
+    this.boolVisibilidadeNormal = this.calculaVisibilidadeNormal();
+    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
+      iluminacaoKd, 
+      iluminacaoKs, 
+      iluminacaoN,
+      this.centroide,
+      this.vetorNormalUnitario,
+      this.vetObservacao);
+    
+    this.pontosSRT = this.pontos2Srt() //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
+    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
+    this.scanLinesFace = this.createScanlinesFace();
+  };
+  pontos2Srt() {
+    let pontosSRT = this.pontos;
+    pontosSRT = addFatH(pontosSRT);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    pontosSRT = recorte2D(pontosSRT) ;
+    return pontosSRT;
+  };
+  calculaArestasSRT() {
+    let arestasSRT = [];
+    let len = this.pontosSRT.length;
+    for (let i = 0; i < len; i++) {
+      let p0 = this.pontosSRT[i];
+      let p1 = this.pontosSRT[(i + 1) % len];
+      arestasSRT.push([p0, p1]);
+    }
+    return arestasSRT;
+  };
+  createArestaCompleta() {
+    let lenI = this.arestasSRT.length;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = this.arestasSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let ytestado = aresta[j][1];
+        if (ytestado < yMin) {
+          yMin = ytestado;
+        }
+        if (ytestado > yMax) {
+          yMax = ytestado;
+        }
+      }
     }
 
-    let vetorLuz = [xLampada - this.centroide[0],
-                    yLampada - this.centroide[1],
-                    zLampada - this.centroide[2]];
+    let novasArestas = [];
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let p0 = this.arestasSRT[i][0];
+      let p1 = this.arestasSRT[i][1];
 
-    let vetorLuzUnitario = vetorUnitario(vetorLuz);
 
-    let escalarNL = produtoEscalar(this.vetorNormalUnitario,vetorLuzUnitario)
-    let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
-    if (iluDifusa < 0) {
-      return iluTotal;
+      if (p0[1] < p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
+        let taxaXIncremento = deltaX / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        for (let j = 1; j < deltaY; j++) {
+            npx += taxaXIncremento;
+            npy += 1; 
+            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        }
+        //novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
+        let taxaXIncremento = deltaX / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        for (let j = 1; j < deltaY; j++) {
+            npx += taxaXIncremento;
+            npy += 1; 
+            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        }
+        novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
+      }
+      novasArestas.push(novaAresta);      
     }
-    iluTotal += iluDifusa;
+    return [novasArestas, Math.round(yMin), Math.round(yMax)];
+  };
+  createScanlinesFace() {
 
-    // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
-    //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
-    let vetorR = [2*escalarNL*this.vetorNormalUnitario[0] - vetorLuzUnitario[0],
-                  2*escalarNL*this.vetorNormalUnitario[1] - vetorLuzUnitario[1],
-                  2*escalarNL*this.vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
-    let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(this.vetObservacao)) ** iluminacaoN);
-    if (iluEspecular < 0) {
-      return iluTotal;
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
     }
-    iluTotal += iluEspecular;
-    return iluTotal
+    
+    let lenI = this.arestasCompletaSRT.length;
+
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = this.arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta[0]);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetXs = scanline[1];
+      vetXs = vetXs.sort((a, b) => a - b);
+      scanline[1] = vetXs;
+    }
+
+    return vetScanLinesFace;
+  };
+  calculaCentroide() {
+    let somaX = 0;
+    let somaY = 0;
+    let somaZ = 0;
+    for (let i = 0; i < this.pontos.length; i++) {
+      somaX += this.pontos[i][0];
+      somaY += this.pontos[i][1];
+      somaZ += this.pontos[i][2];
+    }
+    return [somaX / 4, somaY / 4, somaZ / 4];
+  };
+  calculaDistanciaPintor() {
+    let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
+    return distancia;
+  };
+  calculaVisibilidadeNormal(){
+    let produtoEscalarVar = produtoEscalar(this.vetObservacao, this.vetorNormalUnitario);
+    if (produtoEscalarVar >= 0) {
+      return true;
+    }
+    return false;
   }
 }
 
@@ -579,6 +692,28 @@ function matriz44x41(matrix4x4, ponto) {
 
 function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
+}
+
+// VETOR o OU s
+function calculoVetObservacaoUnitario(centroide) {
+  let vetObservacao = [vetVrp[0] - centroide[0], 
+                       vetVrp[1] - centroide[1], 
+                       vetVrp[2] - centroide[2]];
+  return vetorUnitario(vetObservacao);
+}
+
+function calculaVetorNormal(pontos) {
+
+  let vetP2P3 = [pontos[2][0] - pontos[1][0],
+                  pontos[2][1] - pontos[1][1],
+                  pontos[2][2] - pontos[1][2]];
+                  
+  let vetP2P1 = [pontos[0][0] - pontos[1][0], 
+                  pontos[0][1] - pontos[1][1], 
+                  pontos[0][2] - pontos[1][2]];
+  //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+  let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+  return vetorNormal;    
 }
 
 }/////////////////////////////////////////////////////////////////////
@@ -820,6 +955,53 @@ function recorte2D(pontos) {
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
+
+// ILUMINAÇÃO
+function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN, centroide, vetorNormalUnitario, vetorS) {
+
+  if (tipoSombreamento == 'Nenhum') {
+    return 255;
+  };
+
+  let iluTotal = iluAmbiente*iluminacaoKa;
+
+  if (iluTotal>=255){
+    return 255;
+  }
+
+  let vetorLuz = [xLampada - centroide[0],
+                  yLampada - centroide[1],
+                  zLampada - centroide[2]];
+
+  let vetorLuzUnitario = vetorUnitario(vetorLuz);
+
+  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
+
+  let escalarNL = produtoEscalar(vetorNormalUnitario,vetorLuzUnitario)
+  let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
+  console.log('iluDifusa', iluDifusa);
+  
+  if (iluDifusa <= 0) {
+    return iluTotal;
+  }
+  iluTotal += iluDifusa;
+
+  // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
+
+  //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
+
+  let vetorR = [2*escalarNL*vetorNormalUnitario[0] - vetorLuzUnitario[0],
+                2*escalarNL*vetorNormalUnitario[1] - vetorLuzUnitario[1],
+                2*escalarNL*vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
+  let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(vetorS)) ** iluminacaoN);
+  if (iluEspecular <= 0) {
+    return iluTotal;
+  }
+  iluTotal += iluEspecular;
+  return iluTotal
+}
+
+// BSPLINES
 function closedBspline(pontosDeControle) {
   let n = pontosDeControle.length;
   let pontosDeControleFechado = [
@@ -831,7 +1013,6 @@ function closedBspline(pontosDeControle) {
   ];
   return pontosDeControleFechado;
 }
-
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
@@ -884,7 +1065,7 @@ function calculateBspline(pontosDeControle) {
       
       
 
-      for (let j = 0; j <= nSegmentos; j++) {
+      for (let j = 0; j < nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -894,7 +1075,6 @@ function calculateBspline(pontosDeControle) {
   }
   return pontosDaCurva;
 }
-
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
   let auxPontosDeControle = [];
@@ -923,6 +1103,7 @@ function createGridBspline(gridSRUPontosControle){
   return gridBsplineFinal;
 }
 
+// GRID PONTOS DE CONTROLE
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
       let taxaX = (p1[0] - p0[0]) / (x - 1);
@@ -965,6 +1146,8 @@ function matrizPontosControle(pontos, m, n) {
   return matrizPontosControleControle;
 }
 
+
+// ATUALIZAR PONTOS CONTROLE E PROGRAMA
 function atualizarPCSelecionado(click){
   let matriz = selectedMalha.gridControleSRT;
   let menorDistancia = Infinity;
@@ -984,7 +1167,6 @@ function atualizarPCSelecionado(click){
   let pontoMaisPertoSRU = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
   return pontoMaisPertoSRU;
 }
-
 function updateProgramaTotal() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
@@ -993,7 +1175,6 @@ function updateProgramaTotal() {
   renderiza();
   drawPCselecionado();
 }
-
 function updatePrograma() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];

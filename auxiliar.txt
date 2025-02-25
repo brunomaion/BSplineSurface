@@ -1,16 +1,13 @@
-    <div class="selectWindow" style="text-align: center;"> 
-      <label style="text-align: center; display: block;">WINDOW</label>
-      <label for="uMinW">uMinW:</label>
-      <input type="number" id="uMinW" name="uMinW" value="0" step="10" maxlength="3" size="4">
-      
-      <label for="vMinW">vMinW:</label>
-      <input type="number" id="vMinW" name="vMinW" value="0" step="10" maxlength="3" size="4">
-      
-      <br>
-      <label for="uMaxW">uMaxW:</label>
-      <input type="number" id="uMaxW" name="uMaxW" value="1099" step="10" maxlength="3" size="4">
-      
-      <label for="vMaxW">vMaxW:</label>
-      <input type="number" id="vMaxW" name="vMaxW" value="699" step="10" maxlength="3" size="4">
-      </select>
-    </div>
+  calculaVetorNormal(pontos) {
+
+    let vetP2P3 = [pontos[2][0] - pontos[1][0],
+                    pontos[2][1] - pontos[1][1],
+                    pontos[2][2] - pontos[1][2]];
+                    
+    let vetP2P1 = [pontos[0][0] - pontos[1][0], 
+                    pontos[0][1] - pontos[1][1], 
+                    pontos[0][2] - pontos[1][2]];
+    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+    return vetorNormal;    
+  }
