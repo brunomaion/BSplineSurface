@@ -452,53 +452,58 @@ class faceClass {
 }
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
-  var visao = 'axonometrica';
-  var vetMalha = []
-  
-  /// camera 
-  var xMin = document.getElementById('xMinSRU').value || -20;
-  var xMax = document.getElementById('xMaxSRU').value || 20;
-  var yMin = document.getElementById('yMinSRU').value || -15;
-  var yMax = document.getElementById('yMaxSRU').value || 15;
-  var uMin = 0;
-  var uMax = 1099;
-  var vMin = 0;
-  var vMax = 699;
-  var dp = 40;
-  var viewUp = [0, 1, 0];
-  
-  var xVrp = document.getElementById('xVrp').value || 0;
-  var yVrp = document.getElementById('yVrp').value || 0;
-  var zVrp = document.getElementById('zVrp').value || 0;
-  
-  var vetVrp = [xVrp,yVrp,zVrp];
-  
-  var xP = document.getElementById('xP').value || 0;
-  var yP = document.getElementById('yP').value || 0;
-  var zP = document.getElementById('zP').value || 0;
-  
-  var vetP = [xP,yP,zP];
-  var fatH = 1;
-  
-  //Tamanho dos pontos de controle
-  var lenPontosControle = document.getElementById('tamPC').value || 4;
-  
-  //Index do ponto de controle selecionado
-  var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
-                      parseInt(document.getElementById('indexJPC').value) || 0]; 
+var visao = 'axonometrica';
+var vetMalha = []
 
-  var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
-    
-  //eixo
-  var eixoBool = true;
-  var eixoPCverde = true;
-  //ILUMINACAO
+/// camera 
+var xMin = document.getElementById('xMinSRU').value || -20;
+var xMax = document.getElementById('xMaxSRU').value || 20;
+var yMin = document.getElementById('yMinSRU').value || -15;
+var yMax = document.getElementById('yMaxSRU').value || 15;
+var uMin = 0;
+var uMax = 1099;
+var vMin = 0;
+var vMax = 699;
+var dp = 40;
+var viewUp = [0, 1, 0];
 
-  var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
-  var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
-  var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
-  var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
-  var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+var uMinViewport = document.getElementById('uMin').value || 0;
+var uMaxViewport = document.getElementById('uMax').value || 1299;
+var vMinViewport = document.getElementById('vMin').value || 0;
+var vMaxViewport = document.getElementById('vMax').value || 699;
+
+var xVrp = document.getElementById('xVrp').value || 0;
+var yVrp = document.getElementById('yVrp').value || 0;
+var zVrp = document.getElementById('zVrp').value || 0;
+
+var vetVrp = [xVrp,yVrp,zVrp];
+
+var xP = document.getElementById('xP').value || 0;
+var yP = document.getElementById('yP').value || 0;
+var zP = document.getElementById('zP').value || 0;
+
+var vetP = [xP,yP,zP];
+var fatH = 1;
+
+//Tamanho dos pontos de controle
+var lenPontosControle = document.getElementById('tamPC').value || 4;
+
+//Index do ponto de controle selecionado
+var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
+                    parseInt(document.getElementById('indexJPC').value) || 0]; 
+
+var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
+  
+//eixo
+var eixoBool = true;
+var eixoPCverde = true;
+//ILUMINACAO
+
+var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
+var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
+var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
+var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
+var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
 } ////////////////////////////////////////////////
   
@@ -582,6 +587,8 @@ function renderiza() {
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
+
+  drawViewport();
 }
   
 }
@@ -617,8 +624,15 @@ function printEixo3d(){
   } 
 }
 
-
-
+function drawViewport() { 
+  var canvas = document.getElementById('viewport');
+  var context = canvas.getContext('2d');
+  context.beginPath();
+  context.rect(uMinViewport, vMinViewport, uMaxViewport - uMinViewport, vMaxViewport - vMinViewport);
+  context.strokeStyle = 'black';
+  context.lineWidth = 1;
+  context.stroke();
+}
 
 function getFaces(grid) {
   let faces = [];
@@ -662,7 +676,6 @@ function paintFace(scanLines, color) {
     }
   }
 }
-
 function paintAresta(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1185,6 +1198,12 @@ function onFieldChangeReset(){
   xMax = parseInt(document.getElementById('xMaxSRU').value) || 0;
   yMin = parseInt(document.getElementById('yMinSRU').value) || 0;
   yMax = parseInt(document.getElementById('yMaxSRU').value) || 0;
+
+  uMinViewport = parseInt(document.getElementById('uMin').value) || 0;
+  uMaxViewport = parseInt(document.getElementById('uMax').value) || 0;
+  vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
+  vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
+
   updateProgramaTotal();
 }
 
@@ -1204,6 +1223,11 @@ document.getElementById('xMinSRU').addEventListener('input', onFieldChangeReset)
 document.getElementById('xMaxSRU').addEventListener('input', onFieldChangeReset);
 document.getElementById('yMinSRU').addEventListener('input', onFieldChangeReset);
 document.getElementById('yMaxSRU').addEventListener('input', onFieldChangeReset);
+
+document.getElementById('uMin').addEventListener('input', onFieldChangeReset);
+document.getElementById('uMax').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMin').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMax').addEventListener('input', onFieldChangeReset);
 
 document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
