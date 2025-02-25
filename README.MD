@@ -1,5 +1,11 @@
 ## Duvidas
 
+É IMPOSSIVEL TROCAR? 
+AS SCANLINES DEVE SER FEITAS POR FACE OU POR VIEWPORT?
+
+A widnown editavel muda a matriz de projecao ou so o recorte?
+
+
 ## FEITO
 
 Ordenar faces por distancias

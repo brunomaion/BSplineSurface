@@ -14,6 +14,11 @@ class malha {
     this.translY = 0;
     this.translZ = 0;  
 
+    this.ka = 0.5;
+    this.kd = 0.5;
+    this.ks = 0.5;
+    this.nIluminacao = 10;
+
     this.mMalha = 4;
     this.nMalha = 4;
 
@@ -21,15 +26,12 @@ class malha {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
 
-  debugPrint() {
-    console.log('Faces:', this.facesBsplineSRU);
-      
+  debugPrint() {      
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -40,8 +42,6 @@ class malha {
     this.gridControleSRUtransf = this.pipelineTransformacao(this.gridControleSRU);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRUtransf);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRUtransf);
-    this.gridBsplineSRT = this.pipelineMatrizSruSrt(this.gridBsplineSRU);
-    console.log(this.gridBsplineSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.debugPrint();
   };
@@ -223,29 +223,46 @@ class malha {
   };
   createEstruturaFaces(grid) {
 
-    console.log(grid);
-    console.log(this.gridBsplineSRU);
-    
-    
     let vetFaces = getFaces(grid);    
     let vetFacesObj = [];
     let lenArray = vetFaces.length;
     for (let i = 0; i < lenArray; i++) {
-      let objFace = new faceClass(i, vetFaces[i]);
+      let objFace = new faceClass(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
       vetFacesObj.push(objFace);
     }
+    vetFacesObj = vetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+
     return vetFacesObj;
   }
 }
 
 class faceClass {
-  constructor(faceID, pontos) {
+  constructor(faceID, pontos, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {
     this.faceID = faceID;
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
     this.centroide = this.calculaCentroide();
     this.distanciaPintor = this.calculaDistanciaPintor();
+    this.vetorNormalDaFace = this.calculaVetorNormal();
+    this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
+    this.vetObservacao = this.calculoVetObservacao();
+    this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
+    this.arestas = this.createAresta() //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
+    this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
+                                                  iluminacaoKd, 
+                                                  iluminacaoKs, 
+                                                  iluminacaoN);
   };
-
+  createAresta() {
+    let arestas = [];
+    for (let i = 0; i < this.pontos.length-1; i++) {
+      let pontoInicial = this.pontos[i];
+      let pontoFinal = this.pontos[i+1];
+      arestas.push([pontoInicial, pontoFinal]);
+    }
+    arestas.push([this.pontos[this.pontos.length-1], this.pontos[0]]);
+    return arestas;
+  };
   calculaCentroide() {
     let somaX = 0;
     let somaY = 0;
@@ -261,6 +278,76 @@ class faceClass {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
     return distancia;
   };
+  calculaVetorNormal() {
+
+    let vetP2P3 = [this.pontos[2][0] - this.pontos[1][0],
+                    this.pontos[2][1] - this.pontos[1][1],
+                    this.pontos[2][2] - this.pontos[1][2]];
+                    
+    let vetP2P1 = [this.pontos[0][0] - this.pontos[1][0], 
+                    this.pontos[0][1] - this.pontos[1][1], 
+                    this.pontos[0][2] - this.pontos[1][2]];
+    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+    return vetorNormal;    
+  }
+  calculoVetObservacao() {
+    let vetObservacao = [vetVrp[0] - this.centroide[0], 
+                         vetVrp[1] - this.centroide[1], 
+                         vetVrp[2] - this.centroide[2]];
+    return vetObservacao;
+  }
+  calulaVisibilidadeNormal(){
+    let vetObservacaoUnitario = vetorUnitario(this.vetObservacao);
+    let produtoEscalarVar = produtoEscalar(vetObservacaoUnitario, this.vetorNormalUnitario);
+    if (produtoEscalarVar >= 0) {
+      return true;
+    }
+    return false;
+  }
+  calculaArestasSRT() {
+    let arestas = this.arestas;
+    let novoArray = [];
+    let novoPonto = [];
+    for (let i = 0; i < arestas.length; i++) {
+      novoPonto = addFatH(arestas[i]);
+      novoPonto = pontoSRUtoSRT(novoPonto);
+      novoPonto = removeFatH(novoPonto);
+      novoArray.push(novoPonto);
+    }
+    return novoArray;
+  }
+  calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN) {
+    let iluTotal = iluAmbiente*iluminacaoKa;
+
+    if (iluTotal>=255){
+      return 255;
+    }
+    let vetorLuz = [xLampada - this.centroide[0],
+                    yLampada - this.centroide[1],
+                    zLampada - this.centroide[2]];
+
+    let vetorLuzUnitario = vetorUnitario(vetorLuz);
+
+    let escalarNL = produtoEscalar(this.vetorNormalUnitario,vetorLuzUnitario)
+    let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
+    if (iluDifusa < 0) {
+      return iluTotal;
+    }
+    iluTotal += iluDifusa;
+
+    // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
+    //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
+    let vetorR = [2*escalarNL*this.vetorNormalUnitario[0] - vetorLuzUnitario[0],
+                  2*escalarNL*this.vetorNormalUnitario[1] - vetorLuzUnitario[1],
+                  2*escalarNL*this.vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
+    let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(this.vetObservacao)) ** iluminacaoN);
+    if (iluEspecular < 0) {
+      return iluTotal;
+    }
+    iluTotal += iluEspecular;
+    return iluTotal
+  }
 }
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
@@ -306,6 +393,14 @@ class faceClass {
   var eixoPCverde = true;
   var timerBool = false;
   var timerValue = parseInt(document.getElementById('timerValue').value) || 0;
+
+  //ILUMINACAO
+
+  var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
+  var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
+  var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
+  var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
+  var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
 } ////////////////////////////////////////////////
   
@@ -374,6 +469,161 @@ function matriz44x41(matrix4x4, ponto) {
 function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
 }
+
+}/////////////////////////////////////////////////////////////////////
+
+{//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
+function renderiza() {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  printEixo3d();
+  for (let i = 0; i < vetMalha.length; i++) {
+    let malha = vetMalha[i];
+    if (malha.visibilidadePC) {
+      drawPontosControle(malha.gridControleSRT);
+    }
+    drawGridBspline(malha);
+}
+  
+}
+function drawLine(x1, y1, x2, y2, color = 'black') {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.beginPath(); // Inicia o caminho
+  ctx.moveTo(x1, y1); // Move para o ponto inicial
+  ctx.lineTo(x2, y2); // Desenha até o ponto final
+  ctx.strokeStyle = color; // Define a cor da linha
+  ctx.stroke(); // Renderiza a linha
+}
+function printEixo3d(){
+  let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
+  let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
+  let eixoZSRU = [[0, 0, 0, 1], [0, 0, 10, 1]];
+  
+  eixoXSRT = eixopontosSRUtoSRT(eixoXSRU);
+  eixoYSRT = eixopontosSRUtoSRT(eixoYSRU);
+  eixoZSRT = eixopontosSRUtoSRT(eixoZSRU);
+  
+  if (eixoBool) {
+    drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
+    drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
+    drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
+    var canvas = document.getElementById('viewport');
+    var ctx = canvas.getContext('2d');
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText('X', eixoXSRT[1][0], eixoXSRT[1][1]);
+    ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
+    ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
+  } 
+}
+
+
+
+
+function getFaces(grid) {
+  let faces = [];
+  for (let i = 0; i < grid.length - 1; i++) {
+      for (let j = 0; j < grid[i].length - 1; j++) {
+          let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
+          faces.push(face);
+      }
+  }
+  return faces;
+}
+function drawMalha(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+      for (let j = 0; j < gridControle[i].length - 1; j++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
+      }
+  }
+  for (let j = 0; j < gridControle[0].length; j++) {
+      for (let i = 0; i < gridControle.length - 1; i++) {
+          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
+      }
+  }
+}
+function paintFace(pontos, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(pontos[0][0], pontos[0][1]);
+  for (let i = 1; i < pontos.length; i++) {
+    ctx.lineTo(pontos[i][0], pontos[i][1]);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function drawGridBspline(malha) {
+
+
+
+  let faces = malha.facesBsplineSRU;
+
+
+  let facesLenght = faces.length;
+  for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+    let arestas = faces[i].arestasSRT;
+    let lenghtArestas = arestas.length;
+
+    /*
+    for (let j = 0; j < malha.facesBsplineSRU.length; j++) {
+      let face = malha.facesBsplineSRU[j];
+      let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
+      let ilu = face.iluminacaoTotal;
+      paintFace(pontoSRT, `rgb(${ilu}, ${ilu}, ${ilu})`);
+    } 
+    */
+
+    if (faces[i].boolVisibilidadeNormal) {
+      for (let j = 0; j < lenghtArestas; j++) { 
+        let aresta = arestas[j];
+        let p0 = aresta[0];
+        let p1 = aresta[1];
+        drawLine(p0[0], p0[1], p1[0], p1[1], 'green');
+        
+      }
+    } else {
+      for (let j = 0; j < lenghtArestas; j++) { 
+        let aresta = arestas[j];
+        let p0 = aresta[0];
+        let p1 = aresta[1];
+        drawLine(p0[0], p0[1], p1[0], p1[1], 'red');
+      }
+    }
+  }  
+
+
+
+}
+function drawPontosControle(gridControle) {
+  for (let i = 0; i < gridControle.length; i++) {
+    for (let j = 0; j < gridControle[i].length; j++) {
+        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
+    }
+  }
+}
+function drawCircle(x, y, radius, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function drawPCselecionado() {
+  if (eixoPCverde) {
+    let i = indicePCsele[0];
+    let j = indicePCsele[1];
+    gridObjeto = selectedMalha.gridControleSRT;
+    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
+  }
+}
+
+
 
 }/////////////////////////////////////////////////////////////////////
 
@@ -468,156 +718,6 @@ function createGridBspline(gridSRUPontosControle){
   }
   return gridBsplineFinal;
 }
-
-{//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
-function renderiza() {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  printEixo3d();
-  for (let i = 0; i < vetMalha.length; i++) {
-    let malha = vetMalha[i];
-    if (malha.visibilidadeGridControle) {
-      drawMalha(malha.gridControleSRT);
-    }
-    if (malha.visibilidadePC) {
-      drawPontosControle(malha.gridControleSRT);
-    }
-    drawGridBspline(malha.gridBsplineSRT);
-
-    console.log(malha.facesBsplineSRU.length);
-    
-
-    if (!timerBool){
-      for (let j = 0; j < malha.facesBsplineSRU.length; j++) {
-        let face = malha.facesBsplineSRU[j];
-        let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
-        paintFace(pontoSRT, 'rgb(48, 255, 65)');
-      } 
-    } else {
-      let j = 0;
-      function desenharFaceTimer() {
-        if (j < malha.facesBsplineSRU.length) {
-          let face = malha.facesBsplineSRU[j];
-          let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
-          paintFace(pontoSRT, 'rgb(48, 255, 65)');
-          j++;
-          setTimeout(desenharFaceTimer, timerValue); // Espera 1 segundo antes de desenhar a próxima face
-        }
-      }
-      desenharFaceTimer(); 
-    }
-}
-  
-}
-function drawLine(x1, y1, x2, y2, color = 'black') {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  ctx.beginPath(); // Inicia o caminho
-  ctx.moveTo(x1, y1); // Move para o ponto inicial
-  ctx.lineTo(x2, y2); // Desenha até o ponto final
-  ctx.strokeStyle = color; // Define a cor da linha
-  ctx.stroke(); // Renderiza a linha
-}
-function printEixo3d(){
-  let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
-  let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
-  let eixoZSRU = [[0, 0, 0, 1], [0, 0, 10, 1]];
-  
-  eixoXSRT = eixopontosSRUtoSRT(eixoXSRU);
-  eixoYSRT = eixopontosSRUtoSRT(eixoYSRU);
-  eixoZSRT = eixopontosSRUtoSRT(eixoZSRU);
-  
-  if (eixoBool) {
-    drawLine(eixoXSRT[0][0], eixoXSRT[0][1], eixoXSRT[1][0], eixoXSRT[1][1], color='blue');
-    drawLine(eixoYSRT[0][0], eixoYSRT[0][1], eixoYSRT[1][0], eixoYSRT[1][1], color='blue');
-    drawLine(eixoZSRT[0][0], eixoZSRT[0][1], eixoZSRT[1][0], eixoZSRT[1][1], color='blue');
-    var canvas = document.getElementById('viewport');
-    var ctx = canvas.getContext('2d');
-    ctx.font = '12px Arial';
-    ctx.fillStyle = 'black';
-    ctx.fillText('X', eixoXSRT[1][0], eixoXSRT[1][1]);
-    ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
-    ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
-  } 
-}
-function paintFace(face, color) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-
-  ctx.beginPath();
-  ctx.moveTo(face[0][0], face[0][1]);
-  for (let i = 1; i < face.length; i++) {
-      ctx.lineTo(face[i][0], face[i][1]);
-  }
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-function getFaces(grid) {
-  let faces = [];
-  for (let i = 0; i < grid.length - 1; i++) {
-      for (let j = 0; j < grid[i].length - 1; j++) {
-          let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
-          faces.push(face);
-      }
-  }
-  return faces;
-}
-function drawMalha(gridControle) {
-  for (let i = 0; i < gridControle.length; i++) {
-      for (let j = 0; j < gridControle[i].length - 1; j++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
-      }
-  }
-  for (let j = 0; j < gridControle[0].length; j++) {
-      for (let i = 0; i < gridControle.length - 1; i++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
-      }
-  }
-
-
-}
-function drawGridBspline(grid) {
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid[i].length - 1; j++) {
-        drawLine(grid[i][j][0], grid[i][j][1], grid[i][j + 1][0], grid[i][j + 1][1], 'red');
-    }
-  }
-  for (let j = 0; j < grid[0].length; j++) {
-    for (let i = 0; i < grid.length - 1; i++) {
-        drawLine(grid[i][j][0], grid[i][j][1], grid[i + 1][j][0], grid[i + 1][j][1], 'red');
-    }
-  }
-}
-function drawPontosControle(gridControle) {
-  for (let i = 0; i < gridControle.length; i++) {
-    for (let j = 0; j < gridControle[i].length; j++) {
-        drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
-    }
-  }
-}
-function drawCircle(x, y, radius, color) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-function drawPCselecionado() {
-  if (eixoPCverde) {
-    let i = indicePCsele[0];
-    let j = indicePCsele[1];
-    gridObjeto = selectedMalha.gridControleSRT;
-    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
-  }
-}
-
-
-
-}/////////////////////////////////////////////////////////////////////
 
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
@@ -870,14 +970,13 @@ let n = 4
 
 var vetMalha = [];
 
-let ponto1 = [0,10,0];
-let ponto2 = [0,15,0];
-let ponto3 = [10,15,0];
-let ponto4 = [10,10,0];
+let ponto1 = [0,15,0];
+let ponto2 = [0,10,0];
+let ponto3 = [10,10,0];
+let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
-
 
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
@@ -928,6 +1027,17 @@ function onFieldChange() {
 
   timerValue = parseInt(document.getElementById('timerValue').value) || 0;
   timerBool = document.getElementById('timerBool').checked;
+
+  iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
+  iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
+  xLampada = parseInt(document.getElementById('xLampada').value) || 0;
+  yLampada = parseInt(document.getElementById('yLampada').value) || 0;
+  zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+
+  selectedMalha.ka = parseFloat(document.getElementById('ka').value) || 0;
+  selectedMalha.kd = parseFloat(document.getElementById('kd').value) || 0;
+  selectedMalha.ks = parseFloat(document.getElementById('ks').value) || 0;
+  selectedMalha.nIluminacao = parseFloat(document.getElementById('nIluminacao').value) || 0;
 
   updatePrograma();
 }
@@ -1005,6 +1115,17 @@ document.getElementById('p4Z').addEventListener('input', onFieldChangeReset);
 document.getElementById('mPontos').addEventListener('input', onFieldChangeReset);
 document.getElementById('nPontos').addEventListener('input', onFieldChangeReset);
 
+document.getElementById('iluAmbiente').addEventListener('input', onFieldChange);
+document.getElementById('iluLampada').addEventListener('input', onFieldChange);
+document.getElementById('xLampada').addEventListener('input', onFieldChange);
+document.getElementById('yLampada').addEventListener('input', onFieldChange);
+document.getElementById('zLampada').addEventListener('input', onFieldChange);
+
+document.getElementById('ka').addEventListener('input', onFieldChange);
+document.getElementById('kd').addEventListener('input', onFieldChange);
+document.getElementById('ks').addEventListener('input', onFieldChange);
+document.getElementById('nIluminacao').addEventListener('input', onFieldChange);
+
 const selectMalha = document.getElementById("malhaSelecionada");
 const sclInput = document.getElementById("scl");
 const rotXInput = document.getElementById("xRot");
@@ -1034,6 +1155,11 @@ const indexJPCinput = document.getElementById("indexJPC");
 const xPCInput = document.getElementById("xPC");
 const yPCInput = document.getElementById("yPC");
 const zPCInput = document.getElementById("zPC");
+
+const kaInput = document.getElementById("ka");
+const kdInput = document.getElementById("kd");
+const ksInput = document.getElementById("ks");
+const nIluminacaoInput = document.getElementById("nIluminacao");
 
 // Função para atualizar os valores de rotação nos inputs
 function atualizarInputsMalha(malha) {
@@ -1065,6 +1191,10 @@ function atualizarInputsMalha(malha) {
   xPCInput.value = pcSelecionado[0];
   yPCInput.value = pcSelecionado[1];
   zPCInput.value = pcSelecionado[2];
+  kaInput.value = malha.ka;
+  kdInput.value = malha.kd;
+  ksInput.value = malha.ks;
+  nIluminacaoInput.value = malha.nIluminacao;
 }
 
 
