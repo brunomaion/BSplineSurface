@@ -26,7 +26,7 @@ class malha {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
+    this.facesVetor = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
@@ -248,6 +248,8 @@ class faceClass {
     this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
     this.arestas = this.createAresta() //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
+    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
+    this.scanLinesFace = this.createScanlinesFace();
     this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
                                                   iluminacaoKd, 
                                                   iluminacaoKs, 
@@ -262,6 +264,99 @@ class faceClass {
     }
     arestas.push([this.pontos[this.pontos.length-1], this.pontos[0]]);
     return arestas;
+  };
+  createArestaCompleta() {
+    let lenI = this.arestasSRT.length;
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = this.arestasSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let ytestado = aresta[j][1];
+        if (ytestado < yMin) {
+          yMin = ytestado;
+        }
+        if (ytestado > yMax) {
+          yMax = ytestado;
+        }
+      }
+    }
+
+    let novasArestas = [];
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let p0 = this.arestasSRT[i][0];
+      let p1 = this.arestasSRT[i][1];
+
+
+      if (p0[1] < p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
+        let taxaXIncremento = deltaX / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        for (let j = 1; j < deltaY; j++) {
+            npx += taxaXIncremento;
+            npy += 1; 
+            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        }
+        //novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
+        let taxaXIncremento = deltaX / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        for (let j = 1; j < deltaY; j++) {
+            npx += taxaXIncremento;
+            npy += 1; 
+            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        }
+        novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
+      }
+      novasArestas.push(novaAresta);      
+    }
+    return [novasArestas, Math.round(yMin), Math.round(yMax)];
+  };
+  createScanlinesFace() {
+
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
+    }
+    
+    let lenI = this.arestasCompletaSRT.length;
+
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = this.arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta[0]);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetXs = scanline[1];
+      vetXs = vetXs.sort((a, b) => a - b);
+      scanline[1] = vetXs;
+    }
+
+    return vetScanLinesFace;
   };
   calculaCentroide() {
     let somaX = 0;
@@ -318,11 +413,17 @@ class faceClass {
     return novoArray;
   }
   calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN) {
+
+    if (tipoSombreamento == 'Nenhum') {
+      return 255;
+    };
+
     let iluTotal = iluAmbiente*iluminacaoKa;
 
     if (iluTotal>=255){
       return 255;
     }
+
     let vetorLuz = [xLampada - this.centroide[0],
                     yLampada - this.centroide[1],
                     zLampada - this.centroide[2]];
@@ -355,10 +456,10 @@ class faceClass {
   var vetMalha = []
   
   /// camera 
-  var xMin = -20;
-  var xMax = 20;
-  var yMin = -15;
-  var yMax = 15;
+  var xMin = document.getElementById('xMinSRU').value || -20;
+  var xMax = document.getElementById('xMaxSRU').value || 20;
+  var yMin = document.getElementById('yMinSRU').value || -15;
+  var yMax = document.getElementById('yMaxSRU').value || 15;
   var uMin = 0;
   var uMax = 1099;
   var vMin = 0;
@@ -391,9 +492,6 @@ class faceClass {
   //eixo
   var eixoBool = true;
   var eixoPCverde = true;
-  var timerBool = false;
-  var timerValue = parseInt(document.getElementById('timerValue').value) || 0;
-
   //ILUMINACAO
 
   var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
@@ -480,10 +578,10 @@ function renderiza() {
   printEixo3d();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
+    drawGridBspline(malha);
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-    drawGridBspline(malha);
 }
   
 }
@@ -544,54 +642,62 @@ function drawMalha(gridControle) {
       }
   }
 }
-function paintFace(pontos, color) {
+function paintFace(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
-  ctx.beginPath();
-  ctx.moveTo(pontos[0][0], pontos[0][1]);
-  for (let i = 1; i < pontos.length; i++) {
-    ctx.lineTo(pontos[i][0], pontos[i][1]);
-  }
-  ctx.closePath();
   ctx.fillStyle = color;
-  ctx.fill();
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let pontoY = scanLines[i][0];
+    let pontosX = scanLines[i][1];
+    let lenPontosX = pontosX.length;
+    let x0 = pontosX[0];
+    let x1 = pontosX[lenPontosX - 1];
+    if (x0 == x1) {
+      ctx.fillRect(x0, pontoY, 1, 1);
+    } else {
+      for (let x = x0+1; x < x1; x++) {
+        ctx.fillRect(x, pontoY, 1, 1);
+      }
+    }
+  }
 }
+
+function paintAresta(scanLines, color) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let pontoY = scanLines[i][0];
+    let pontosX = scanLines[i][1];
+    let lenPontosX = pontosX.length;
+    for (let j = 0; j < lenPontosX; j++) {
+      ctx.fillRect(pontosX[j], pontoY, 1, 1);
+    }
+  }
+}
+
 function drawGridBspline(malha) {
-
-
-
   let faces = malha.facesBsplineSRU;
-
-
   let facesLenght = faces.length;
   for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
-    let arestas = faces[i].arestasSRT;
-    let lenghtArestas = arestas.length;
-
-    /*
-    for (let j = 0; j < malha.facesBsplineSRU.length; j++) {
-      let face = malha.facesBsplineSRU[j];
-      let pontoSRT = pontoSRUtoSRT(addFatH(face.pontos));
-      let ilu = face.iluminacaoTotal;
-      paintFace(pontoSRT, `rgb(${ilu}, ${ilu}, ${ilu})`);
-    } 
-    */
-
-    if (faces[i].boolVisibilidadeNormal) {
-      for (let j = 0; j < lenghtArestas; j++) { 
-        let aresta = arestas[j];
-        let p0 = aresta[0];
-        let p1 = aresta[1];
-        drawLine(p0[0], p0[1], p1[0], p1[1], 'green');
-        
-      }
+    let face = faces[i];
+    let iluTotal = Math.round(face.iluminacaoTotal);
+    let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+  
+    if (boolArestasVerdeVermelha) {
+      if (face.boolVisibilidadeNormal) {
+        paintAresta(face.scanLinesFace, 'green');
+      } else {
+        paintAresta(face.scanLinesFace, 'red');
+      } 
     } else {
-      for (let j = 0; j < lenghtArestas; j++) { 
-        let aresta = arestas[j];
-        let p0 = aresta[0];
-        let p1 = aresta[1];
-        drawLine(p0[0], p0[1], p1[0], p1[1], 'red');
-      }
+      paintAresta(face.scanLinesFace, cor);
+    }
+
+    if (boolPintarFaces) {
+      paintFace(face.scanLinesFace, cor);
     }
   }  
 
@@ -628,6 +734,17 @@ function drawPCselecionado() {
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
+function closedBspline(pontosDeControle) {
+  let n = pontosDeControle.length;
+  let pontosDeControleFechado = [
+      pontosDeControle[n - 2],
+      pontosDeControle[n - 1],
+      ...pontosDeControle,
+      pontosDeControle[0],
+      pontosDeControle[1]
+  ];
+  return pontosDeControleFechado;
+}
 
 function calculateBspline(pontosDeControle) {
   //pontosDeControle = clampingBspline(pontosDeControle);
@@ -639,6 +756,7 @@ function calculateBspline(pontosDeControle) {
   if (document.getElementById('closed').checked) {
       pontosDeControle = closedBspline(pontosDeControle);
   }*/
+  //pontosDeControle = closedBspline(pontosDeControle);
 
   let pontosDaCurva = [];
 
@@ -992,6 +1110,9 @@ vetMalha.push(malha2);
 var selectedMalha = vetMalha[0];
 var pcSelecionado = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
 
+var tipoSombreamento = document.getElementById('tipoSombreamento').value;
+var boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
+var boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
 /// ATUALIZAÇAO /////////////////
 
@@ -1025,8 +1146,6 @@ function onFieldChange() {
   selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
-  timerValue = parseInt(document.getElementById('timerValue').value) || 0;
-  timerBool = document.getElementById('timerBool').checked;
 
   iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
   iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
@@ -1038,6 +1157,10 @@ function onFieldChange() {
   selectedMalha.kd = parseFloat(document.getElementById('kd').value) || 0;
   selectedMalha.ks = parseFloat(document.getElementById('ks').value) || 0;
   selectedMalha.nIluminacao = parseFloat(document.getElementById('nIluminacao').value) || 0;
+
+  tipoSombreamento = document.getElementById('tipoSombreamento').value;
+  boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
+  boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
   updatePrograma();
 }
@@ -1057,6 +1180,11 @@ function onFieldChangeReset(){
   selectedMalha.p4[2] = parseFloat(document.getElementById('p4Z').value) || 0;
   selectedMalha.mMalha = parseInt(document.getElementById('mPontos').value) || 0;
   selectedMalha.nMalha = parseInt(document.getElementById('nPontos').value) || 0;
+
+  xMin = parseInt(document.getElementById('xMinSRU').value) || 0;
+  xMax = parseInt(document.getElementById('xMaxSRU').value) || 0;
+  yMin = parseInt(document.getElementById('yMinSRU').value) || 0;
+  yMax = parseInt(document.getElementById('yMaxSRU').value) || 0;
   updateProgramaTotal();
 }
 
@@ -1071,6 +1199,12 @@ function onFieldChangePCselecionado() {
 
 
 // Adicionando os listeners para os campos
+
+document.getElementById('xMinSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('xMaxSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('yMinSRU').addEventListener('input', onFieldChangeReset);
+document.getElementById('yMaxSRU').addEventListener('input', onFieldChangeReset);
+
 document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
 document.getElementById('yVrp').addEventListener('input', onFieldChange);
@@ -1091,6 +1225,7 @@ document.getElementById('tamPC').addEventListener('input', onFieldChange);
 document.getElementById('pcVerde').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadeGridControle').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
+document.getElementById('tipoSombreamento').addEventListener('input', onFieldChange);
 
 document.getElementById('indexIPC').addEventListener('input', onFieldChange);
 document.getElementById('indexJPC').addEventListener('input', onFieldChange);
@@ -1125,6 +1260,10 @@ document.getElementById('ka').addEventListener('input', onFieldChange);
 document.getElementById('kd').addEventListener('input', onFieldChange);
 document.getElementById('ks').addEventListener('input', onFieldChange);
 document.getElementById('nIluminacao').addEventListener('input', onFieldChange);
+
+document.getElementById('boolArestasVerdeVermelha').addEventListener('input', onFieldChange);
+document.getElementById('boolPintarFaces').addEventListener('input', onFieldChange);
+
 
 const selectMalha = document.getElementById("malhaSelecionada");
 const sclInput = document.getElementById("scl");
@@ -1227,9 +1366,6 @@ document.getElementById('viewport').addEventListener('click', function(event) {
   updatePrograma();
   atualizarInputsMalha(selectedMalha);
 });
-
-
-
 
 
 }/////////////////////////////////////////////////////////////////////////////////////////
