@@ -321,6 +321,7 @@ class malha {
             }
           }
           vetorNormalMedioPonto = calculaVetorMedioFaces(vetFacesCompartilhadas);
+          vetorNormalMedioPonto = vetorUnitario(vetorNormalMedioPonto);
           vetorNormalMedio.push(vetorNormalMedioPonto);
         }
         let faceObj = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
@@ -622,17 +623,45 @@ class faceClassGourad{
     this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
-    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
-                                            iluminacaoKd, 
-                                            iluminacaoKs, 
-                                            iluminacaoN,
-                                            face.centroide,
-                                            face.vetorNormalUnitario,
-                                            face.vetObservacao);
+    this.iluminacaoPontos = this.calculaIluminacaoPontos(iluminacaoKa, 
+                                                          iluminacaoKd, 
+                                                          iluminacaoKs, 
+                                                          iluminacaoN,
+                                                          this.vetorNormalMedio,
+                                                          face.pontos,
+                                                          face.vetObservacao);
+    
+    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,iluminacaoKd, iluminacaoKs, iluminacaoN,face.centroide,face.vetorNormalUnitario,face.vetObservacao);
+    this.pontosIluminados = this.createPontosIluminados(face.pontos, this.iluminacaoPontos); // [ [p1, iluP1], [p2, iluP2], [p3, iluP3], [p4, iluP4] ]
     this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
     [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
     this.scanLinesFace = this.createScanlinesFace();
+  };
+
+  calculaIluminacaoPontos(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN,vetorNormalMedio, pontos, vetObservacao) {
+    let iluminacaoPontos = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let vetorNormal = vetorNormalMedio[i];
+      let iluminacaoPonto = calcularIluTotal(iluminacaoKa,     // [iluP1, iluP2, iluP3, iluP4]
+                                              iluminacaoKd, 
+                                              iluminacaoKs, 
+                                              iluminacaoN,
+                                              ponto, // Gourad, NO PONTO !
+                                              vetorNormal,
+                                              vetObservacao);      
+      iluminacaoPontos.push(iluminacaoPonto); 
+    }
+    return iluminacaoPontos;
+  }
+  createPontosIluminados(pontos, iluminacaoPontos) {
+    let pontosIluminados = [];
+    for (let i = 0; i < pontos.length; i++) {
+      pontosIluminados.push([pontos[i], iluminacaoPontos[i]]);
+    }
+
+    return pontosIluminados;
   };
   pontos2Srt(pontos) {
     let pontosSRT = addFatH(pontos);
@@ -1135,8 +1164,6 @@ function recorte2D(pontos) {
 
   return recortado;
 }
-
-
 
 }/////////////////////////////////////////////////////////////////////
 

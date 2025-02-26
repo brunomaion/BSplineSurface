@@ -1,13 +1,16 @@
-  calculaVetorNormal(pontos) {
-
-    let vetP2P3 = [pontos[2][0] - pontos[1][0],
-                    pontos[2][1] - pontos[1][1],
-                    pontos[2][2] - pontos[1][2]];
-                    
-    let vetP2P1 = [pontos[0][0] - pontos[1][0], 
-                    pontos[0][1] - pontos[1][1], 
-                    pontos[0][2] - pontos[1][2]];
-    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
-    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
-    return vetorNormal;    
-  }
+  calculaIluminacaoPontos(vetorNormalMedio, pontos, iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN, vetObservacao) {
+    console.log(vetorNormalMedio);
+    let iluminacaoPontos = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let vetorNormal = vetorNormalMedio[i];
+      
+      let iluminacaoPonto = calcularIluTotal(iluminacaoKa,
+                                              iluminacaoKd, 
+                                              iluminacaoKs, 
+                                              iluminacaoN,
+                                              ponto,
+                                              vetorNormal,
+                                              vetObservacao);      
+      iluminacaoPontos.push(iluminacaoPonto); 
+    }
