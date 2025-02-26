@@ -26,7 +26,7 @@ class malha {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.facesVetorSRU = this.createEstruturaFaces(this.gridBsplineSRU);
+    this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
@@ -1370,6 +1370,10 @@ function updateProgramaTotal() {
   renderiza();
   drawPCselecionado();
 }
+function inicializaPrograma() {
+  renderiza();
+  drawPCselecionado();
+}
 function updatePrograma() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
@@ -1579,7 +1583,7 @@ var boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
 /// ATUALIZAÇAO /////////////////
 
-
+//inicializaPrograma();
 updateProgramaTotal();
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
