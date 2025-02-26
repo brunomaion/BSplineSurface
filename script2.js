@@ -222,81 +222,97 @@ class malha {
     return novaMatriz;
   };
   createEstruturaFaces(grid) {
-    let matrizFaces = getFaces(grid);  
-    let matrizFacesClass = [];
-    for (let i = 0; i < matrizFaces.length; i++) {
-      let vetFaces = [];
-      for (let j = 0; j < matrizFaces[i].length; j++) {
-        let face = new faceClass(matrizFaces[i][j]);
-        vetFaces.push(face);
-      }
-      matrizFacesClass.push(vetFaces);
-    }
-
-
-    let lenImatriz = matrizFacesClass.length;
-    let lenJmatriz = matrizFacesClass[0].length;
-
-    console.log('lenImatriz', lenImatriz);
-
-    for (let i = 0; i < lenImatriz; i++) {
-      for (let j = 0; j < lenJmatriz; j++) {
-        if (i==0 && j==0) { //
-
-
-        }
-      }
-    }
-
 
     function calculaVetorMedioFaces(vFacesNormal){
-      if (vFacesNormal.length == 1) {
-        let vetorNormalMedio = vFacesNormal[0].vetorNormalUnitario;
-        return vetorNormalMedio;
-      } else {
-        let somaX = 0;
-        let somaY = 0;
-        let somaZ = 0;
-        for (let i = 0; i < vFacesNormal.length; i++) {
-          let normalUniFace = vFacesNormal[i].vetorNormalUnitario;
-          somaX += normalUniFace[0];
-          somaY += normalUniFace[1];
-          somaZ += normalUniFace[2];
-        }
-        let vetorNormalMedio = [somaX / vFacesNormal.length, somaY / vFacesNormal.length, somaZ / vFacesNormal.length];
-        return vetorNormalMedio;
+      let somaX = 0;
+      let somaY = 0;
+      let somaZ = 0;
+      for (let i = 0; i < vFacesNormal.length; i++) {
+        let normalUniFace = vFacesNormal[i].vetorNormalUnitario;
+        somaX += normalUniFace[0];
+        somaY += normalUniFace[1];
+        somaZ += normalUniFace[2];
       }
-    }
-    
-    // 1 Face 
-    if (lenImatriz == 1 && lenJmatriz == 1) {
-      let aux = matrizFacesClass[0][0].vetorNormalUnitario;
-      let vetorNormalP1 = aux;
-      let vetorNormalP2 = aux;
-      let vetorNormalP3 = aux;
-      let vetorNormalP4 = aux;
-      let vetorNormalMedio = [vetorNormalP1, vetorNormalP2, vetorNormalP3, vetorNormalP4];
+      let vetorNormalMedio = [somaX / vFacesNormal.length, somaY / vFacesNormal.length, somaZ / vFacesNormal.length];
       return vetorNormalMedio;
-    } else {
-
-
-
+    }
+    function compararPontosFace(ponto, matriz) {
+      let vetFacesCompartilhadas = [];
+      for (let m = 0; m < matriz.length; i++) {
+        for (let n = 0; n < matriz[m].length; n++) {
+          if (ponto == matriz[m][n]) {
+            vetFacesCompartilhadas.push(matriz[m][n]);
+          }
+        }
+      }
+      return vetFacesCompartilhadas;
     }
 
+    let vetFaces = getFaces(grid);  
+    let lenI = vetFaces.length;
+    let vetFacesObj = [];
+
+    // CONSTROI AS FACES SRU
+    for (let i = 0; i < lenI; i++) {
+        let faceObj = new faceClass(vetFaces[i]);
+        vetFacesObj.push(faceObj);
+    }
+
+  
+
+    ///////////////////////
 
     /*
-    if (tipoSombreamento == 'Nenhum') {
-      //CONSTROI AS FACES - NAO IMPORTA ORDEM
-      let newVetFacesObj = []
-      let vetFacesObj = [];
+    if (vetFacesObj.length == 1) { //Tiver uma face
+      let newVetFacesObj = [];
+      let vetorNormalMedioP1 = vetFacesObj[0].vetorNormalUnitario;
+      let vetorNormalMedioP2 = vetFacesObj[0].vetorNormalUnitario;
+      let vetorNormalMedioP3 = vetFacesObj[0].vetorNormalUnitario;
+      let vetorNormalMedioP4 = vetFacesObj[0].vetorNormalUnitario;
+      let vetorNormalMedio = [vetorNormalMedioP1, vetorNormalMedioP2, vetorNormalMedioP3, vetorNormalMedioP4];
+      let faceObj = new faceClassGourad(vetFacesObj[0], vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+      newVetFacesObj.push(faceObj);
+      console.log('Uma Face', newVetFacesObj);
+      
+      return newVetFacesObj;
+    }
+    */
+    let hit = 0;
+    for (let i = 0; i < lenI; i++) {
+      
+      let faceTestada = vetFacesObj[i];      
+      for (let j = 0; j < lenI; j++) {
+        let faceAlvo = vetFacesObj[j];
+        if (faceTestada != faceAlvo) {
+          let pontosFaceAlvo = faceAlvo.pontos;
+          let pontosFaceTestada = faceTestada.pontos;
 
-      for (let i = 0; i < matrizFaces.length; i++) {
-        for (let j = 0; j < matrizFaces[i].length; j++) {
-          let faceObj = new faceClass(matrizFaces[i][j]);
-          vetFacesObj.push(faceObj);
-        }
+
+          let p1Teste = pontosFaceTestada[0];
+          let p2Teste = pontosFaceTestada[1];
+          let p3Teste = pontosFaceTestada[2];
+          let p4Teste = pontosFaceTestada[3];
+
+          for (let l = 0; l < pontosFaceAlvo.length; l++) {
+            for (let m = 0; m < pontosFaceTestada.length; m++) {
+              if (pontosFaceAlvo[l] == pontosFaceTestada[m]) {
+                console.log('HIT');
+              }
+            }
+          }
+        }    
       }
+    }
 
+
+
+
+
+
+    ///////////////////////
+    
+    if (tipoSombreamento == 'Nenhum') {
+      let newVetFacesObj = [];
       //CONSTROI AS FACES SRT 
       let lenArray = vetFacesObj.length;
       for (let i = 0; i < lenArray; i++) {
@@ -310,16 +326,7 @@ class malha {
 
     if (tipoSombreamento == 'Constante') {
       //CONSTROI AS FACES - NAO IMPORTA ORDEM
-      let newVetFacesObj = []
-      let vetFacesObj = [];
-
-      for (let i = 0; i < matrizFaces.length; i++) {
-        for (let j = 0; j < matrizFaces[i].length; j++) {
-          let faceObj = new faceClass(matrizFaces[i][j]);
-          vetFacesObj.push(faceObj);
-        }
-      }
-
+      let newVetFacesObj = [];
       //CONSTROI AS FACES SRT 
       let lenArray = vetFacesObj.length;
       for (let i = 0; i < lenArray; i++) {
@@ -333,7 +340,7 @@ class malha {
 
     if (tipoSombreamento == 'Gouraud') {
     };
-    */
+    
   }
 }
 
@@ -964,23 +971,16 @@ function drawViewport() {
 }
 
 function getFaces(grid) {
-  let k =0
-  let MatrizFaces = [];
-
   let lenI = grid.length - 1;
   let lenJ = grid[0].length - 1;
-
+  let faces = [];
   for (let i = 0; i < lenI; i++) {
-    let faces = [];
     for (let j = 0; j < lenJ; j++) {
       let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
       faces.push(face);
-      k++;
     }
-    MatrizFaces.push(faces);
   }
-
-  return MatrizFaces;
+  return faces;
 }
 
 
