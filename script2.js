@@ -224,7 +224,7 @@ class malha {
   };
   createEstruturaFaces(grid) {
 
-    function calculaVetorMedioFaces(vFacesNormal){
+    function calculaVetorMedioFaces(vFacesNormal){ //FACES COMPARTILHADAS
       let somaX = 0;
       let somaY = 0;
       let somaZ = 0;
@@ -235,8 +235,10 @@ class malha {
         somaZ += normalUniFace[2];
       }
       let vetorNormalMedio = [somaX / vFacesNormal.length, somaY / vFacesNormal.length, somaZ / vFacesNormal.length];
+
       return vetorNormalMedio;
     }
+
     function compararPontosFace(ponto, matriz) {
       let vetFacesCompartilhadas = [];
       for (let m = 0; m < matriz.length; i++) {
@@ -257,52 +259,8 @@ class malha {
     for (let i = 0; i < lenI; i++) {
         let faceObj = new faceClass(vetFaces[i]);
         vetFacesObj.push(faceObj);
-    }
+    }    
 
-  
-
-    ///////////////////////
-
-    /*
-    if (vetFacesObj.length == 1) { //Tiver uma face
-      let newVetFacesObj = [];
-      let vetorNormalMedioP1 = vetFacesObj[0].vetorNormalUnitario;
-      let vetorNormalMedioP2 = vetFacesObj[0].vetorNormalUnitario;
-      let vetorNormalMedioP3 = vetFacesObj[0].vetorNormalUnitario;
-      let vetorNormalMedioP4 = vetFacesObj[0].vetorNormalUnitario;
-      let vetorNormalMedio = [vetorNormalMedioP1, vetorNormalMedioP2, vetorNormalMedioP3, vetorNormalMedioP4];
-      let faceObj = new faceClassGourad(vetFacesObj[0], vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
-      newVetFacesObj.push(faceObj);
-      console.log('Uma Face', newVetFacesObj);
-      
-      return newVetFacesObj;
-    }
-    */
-    for (let i = 0; i < lenI; i++) {
-      
-      let faceTestada = vetFacesObj[i];      
-      for (let j = 0; j < lenI; j++) {
-        let faceAlvo = vetFacesObj[j];
-        if (faceTestada != faceAlvo) {
-          let pontosFaceAlvo = faceAlvo.pontos;
-          let pontosFaceTestada = faceTestada.pontos;
-
-
-          let p1Teste = pontosFaceTestada[0];
-          let p2Teste = pontosFaceTestada[1];
-          let p3Teste = pontosFaceTestada[2];
-          let p4Teste = pontosFaceTestada[3];
-          for (let l = 0; l < pontosFaceTestada.length; l++) {
-            for (let m = 0; m < pontosFaceAlvo.length; m++) {
-              if (pontosFaceAlvo[l] == pontosFaceTestada[m]) {
-                console.log('HIT');
-              }
-            }
-          }
-        }    
-      }
-    }
-    ///////////////////////
     
     if (tipoSombreamento == 'Nenhum') {
       let newVetFacesObj = [];
@@ -332,8 +290,46 @@ class malha {
     };
 
     if (tipoSombreamento == 'Gouraud') {
+      let newVetFacesObj = []
+      // FOR PARA CADA FACE testar os pontos e criar nova face
+      for (let i = 0; i < lenI; i++) {
+        let faceTestada = vetFacesObj[i];    
+        let vetorNormalMedio = [];
+        let pontosFaceTestada = faceTestada.pontos;
+  
+        //FOR PARA CADA PONTO DA FACE TESTADA
+        for (let j = 0; j < pontosFaceTestada.length; j++) {
+          let vetorNormalMedioPonto = [];
+          let vetFacesCompartilhadas = [];
+          let pontoTestado = pontosFaceTestada[j];
+  
+          //ADD a face em que o ponto está
+          vetFacesCompartilhadas.push(faceTestada);
+  
+          //COMPARAR PONTO COM TODAS AS FACES
+          for (let k = 0; k < vetFacesObj.length; k++) {
+            let faceComparada = vetFacesObj[k];
+            let pontosFaceComparada = faceComparada.pontos;
+  
+            if (faceTestada != faceComparada) {
+              for (let l = 0; l < pontosFaceComparada.length; l++) {
+                let pontoComparado = pontosFaceComparada[l];
+                if (pontoTestado == pontoComparado) {
+                  vetFacesCompartilhadas.push(faceComparada);
+                }
+              }
+            }
+          }
+          vetorNormalMedioPonto = calculaVetorMedioFaces(vetFacesCompartilhadas);
+          vetorNormalMedio.push(vetorNormalMedioPonto);
+        }
+        let faceObj = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+        newVetFacesObj.push(faceObj);
+      }
+  
+      newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+      return newVetFacesObj;
     };
-    
   }
 }
 
@@ -623,7 +619,7 @@ class faceClassConstante{
 class faceClassGourad{
   constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
 
-    this.vetorNormalMedioP1 = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
+    this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
     this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
