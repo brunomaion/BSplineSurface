@@ -31,7 +31,8 @@ class malha {
     this.visibilidadePC = true;
   };
 
-  debugPrint() {      
+  debugPrint() {  
+    console.log('Update' );
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -277,7 +278,6 @@ class malha {
       return newVetFacesObj;
     }
     */
-    let hit = 0;
     for (let i = 0; i < lenI; i++) {
       
       let faceTestada = vetFacesObj[i];      
@@ -292,9 +292,8 @@ class malha {
           let p2Teste = pontosFaceTestada[1];
           let p3Teste = pontosFaceTestada[2];
           let p4Teste = pontosFaceTestada[3];
-
-          for (let l = 0; l < pontosFaceAlvo.length; l++) {
-            for (let m = 0; m < pontosFaceTestada.length; m++) {
+          for (let l = 0; l < pontosFaceTestada.length; l++) {
+            for (let m = 0; m < pontosFaceAlvo.length; m++) {
               if (pontosFaceAlvo[l] == pontosFaceTestada[m]) {
                 console.log('HIT');
               }
@@ -303,12 +302,6 @@ class malha {
         }    
       }
     }
-
-
-
-
-
-
     ///////////////////////
     
     if (tipoSombreamento == 'Nenhum') {
@@ -1367,10 +1360,6 @@ function updateProgramaTotal() {
     let malha = vetMalha[i];
     malha.updateReset();
   }
-  renderiza();
-  drawPCselecionado();
-}
-function inicializaPrograma() {
   renderiza();
   drawPCselecionado();
 }
