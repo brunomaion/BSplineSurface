@@ -824,7 +824,9 @@ var lenPontosControle = document.getElementById('tamPC').value || 4;
 var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
                     parseInt(document.getElementById('indexJPC').value) || 0]; 
 
-var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
+
+var nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
+var nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
   
 //eixo
 var eixoBool = true;
@@ -1224,7 +1226,7 @@ function closedBspline(pontosDeControle) {
   ];
   return pontosDeControleFechado;
 }
-function calculateBspline(pontosDeControle) {
+function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
   if (document.getElementById('clamped').checked) {
@@ -1298,7 +1300,7 @@ function createGridBspline(gridSRUPontosControle){
       for (let j = 0; j < lengthJ; j++) {
           auxPontosDeControle.push(gridSRUPontosControle[i][j]);
       } 
-      gridBspline.push(calculateBspline(auxPontosDeControle));
+      gridBspline.push(calculateBspline(auxPontosDeControle, nSegmentosU));
   }
   lengthI = gridBspline.length;
   lengthJ = gridBspline[0].length;
@@ -1309,7 +1311,7 @@ function createGridBspline(gridSRUPontosControle){
       for (let i = 0; i < lengthI; i++) {
           auxPontosDeControle.push(gridBspline[i][j]);
       } 
-      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
+      gridBsplineFinal.push(calculateBspline(auxPontosDeControle, nSegmentosV));
   }
   return gridBsplineFinal;
 }
@@ -1571,10 +1573,11 @@ let ponto2 = [0,10,0];
 let ponto3 = [10,10,0];
 let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
-malha1 = new malha(pontosMalha, m, n, 1111);
-vetMalha.push(malha1);
 
-/*
+//malha1 = new malha(pontosMalha, m, n, 1111);
+//vetMalha.push(malha1);
+
+
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
 ponto3 = [10, 0, 10];
@@ -1583,7 +1586,7 @@ pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha2 = new malha(pontosMalha, m, n, 2222);
 vetMalha.push(malha2);
-*/
+
 
 //// OUTRAS VARIAVEIS GLOBAIS
 var selectedMalha = vetMalha[0];
@@ -1620,8 +1623,9 @@ function onFieldChange() {
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
   eixoBool = document.getElementById('eixo3d').checked;
   eixoPCverde = document.getElementById('pcVerde').checked;
-  lenPontosControle = document.getElementById('tamPC').value || 4;
-  nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;  
+  lenPontosControle = document.getElementById('tamPC').value || 4; 
+  nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
+  nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
   selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
@@ -1734,7 +1738,8 @@ document.getElementById('indexJPC').addEventListener('input', onFieldChange);
 document.getElementById('xPC').addEventListener('input', onFieldChangePCselecionado);
 document.getElementById('yPC').addEventListener('input', onFieldChangePCselecionado);
 document.getElementById('zPC').addEventListener('input', onFieldChangePCselecionado);
-document.getElementById('numSegmentos').addEventListener('input', onFieldChange);
+document.getElementById('nSegmentosU').addEventListener('input', onFieldChange);
+document.getElementById('nSegmentosV').addEventListener('input', onFieldChange);
 
 //RESETA MALHA
 document.getElementById('p1X').addEventListener('input', onFieldChangeReset);
