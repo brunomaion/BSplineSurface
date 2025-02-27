@@ -907,6 +907,17 @@ function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
 }
 
+function transporUmaMatriz(matriz) {
+  let transposta = [];
+  for (let i = 0; i < matriz[0].length; i++) {
+    transposta[i] = [];
+    for (let j = 0; j < matriz.length; j++) {
+      transposta[i][j] = matriz[j][i];
+    }
+  }
+  return transposta;
+}
+
 // VETOR o OU s
 function calculoVetObservacaoUnitario(centroide) {
   let vetObservacao = [vetVrp[0] - centroide[0], 
@@ -1278,7 +1289,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
       
       
 
-      for (let j = 0; j < nSegmentos; j++) {
+      for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -1290,30 +1301,19 @@ function calculateBspline(pontosDeControle, nSegmentos) {
 }
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
-  let auxPontosDeControle = [];
   let lengthI = gridSRUPontosControle.length;
-  let lengthJ = gridSRUPontosControle[0].length;
-  //PARA N
   // PEGAR OS INDICES PARA LINHAS
-  for (let i = 0; i < lengthI; i++) {
-      auxPontosDeControle = [];
-      for (let j = 0; j < lengthJ; j++) {
-          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
-      } 
-      gridBspline.push(calculateBspline(auxPontosDeControle, nSegmentosU));
-  }
-  lengthI = gridBspline.length;
-  lengthJ = gridBspline[0].length;
 
-  let gridBsplineFinal = [];
-  for (let j = 0; j < lengthJ; j++) {
-      auxPontosDeControle = [];
-      for (let i = 0; i < lengthI; i++) {
-          auxPontosDeControle.push(gridBspline[i][j]);
-      } 
-      gridBsplineFinal.push(calculateBspline(auxPontosDeControle, nSegmentosV));
+
+  for (let i = 0; i < lengthI; i++) {
+    gridBspline.push(calculateBspline(gridSRUPontosControle[i], nSegmentosU));
   }
-  return gridBsplineFinal;
+  gridBspline = transporUmaMatriz(gridBspline);
+  lengthI = gridBspline.length;
+  for (let i = 0; i < lengthI; i++) {
+    gridBspline.push(calculateBspline(gridSRUPontosControle[i], nSegmentosU));
+  }
+  return gridBspline;
 }
 
 // GRID PONTOS DE CONTROLE
