@@ -251,7 +251,7 @@ class malha {
       return vetFacesCompartilhadas;
     }
 
-    let vetFaces = getFaces(grid);  
+    let vetFaces = getFaces(grid); 
     let lenI = vetFaces.length;
     let vetFacesObj = [];
 
@@ -999,7 +999,8 @@ function getFaces(grid) {
       let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
       faces.push(face);
     }
-  }
+  }  
+  console.log('Faces len', faces.length);
   return faces;
 }
 
@@ -1226,6 +1227,18 @@ function closedBspline(pontosDeControle) {
   ];
   return pontosDeControleFechado;
 }
+
+function transporUmaMatriz(matriz) {
+  let matrizTransposta = [];
+  for (let i = 0; i < matriz[0].length; i++) {
+    matrizTransposta[i] = [];
+    for (let j = 0; j < matriz.length; j++) {
+      matrizTransposta[i][j] = matriz[j][i];
+    }
+  }
+  return matrizTransposta;
+}
+
 function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
@@ -1240,6 +1253,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
 
   let pontosDaCurva = [];
 
+  let ultimoSegmento = pontosDeControle.length - 3;
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
       let [xA, xB, xC, xD] = [
           pontosDeControle[i - 1][0], 
@@ -1276,46 +1290,50 @@ function calculateBspline(pontosDeControle, nSegmentos) {
       let b0 = (yA + 4 * yB + yC) / 6;
       let c0 = (zA + 4 * zB + zC) / 6;
       
-      
-
-      for (let j = 0; j < nSegmentos; j++) {
+      if (i==ultimoSegmento){
+        for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
           let z = ((c3 * t + c2) * t + c1) * t + c0;
+  
           pontosDaCurva.push([x, y, z]);
+        }
+      } else {
+        for (let j = 0; j < nSegmentos; j++) {
+          let t = j / nSegmentos;
+          let x = ((a3 * t + a2) * t + a1) * t + a0;
+          let y = ((b3 * t + b2) * t + b1) * t + b0;
+          let z = ((c3 * t + c2) * t + c1) * t + c0;
+  
+          pontosDaCurva.push([x, y, z]);
+        }
       }
   }
+
   return pontosDaCurva;
 }
 function createGridBspline(gridSRUPontosControle){
+  console.log('createGridBspline', gridSRUPontosControle);
+  
   let gridBspline = [];
-  let auxPontosDeControle = [];
   let lengthI = gridSRUPontosControle.length;
-  let lengthJ = gridSRUPontosControle[0].length;
-  //PARA N
   // PEGAR OS INDICES PARA LINHAS
   for (let i = 0; i < lengthI; i++) {
-      auxPontosDeControle = [];
-      for (let j = 0; j < lengthJ; j++) {
-          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
-      } 
-      gridBspline.push(calculateBspline(auxPontosDeControle, nSegmentosU));
+    gridBspline.push(calculateBspline(gridSRUPontosControle[i], nSegmentosU));
   }
+  gridBspline = transporUmaMatriz(gridBspline);
   lengthI = gridBspline.length;
-  lengthJ = gridBspline[0].length;
-
   let gridBsplineFinal = [];
-  for (let j = 0; j < lengthJ; j++) {
-      auxPontosDeControle = [];
-      for (let i = 0; i < lengthI; i++) {
-          auxPontosDeControle.push(gridBspline[i][j]);
-      } 
-      gridBsplineFinal.push(calculateBspline(auxPontosDeControle, nSegmentosV));
+  for (let i = 0; i < lengthI; i++) {
+    gridBsplineFinal.push(calculateBspline(gridBspline[i], nSegmentosV));
   }
+
+  console.log('gridBsplineFinal', gridBspline);
+  
+
   return gridBsplineFinal;
 }
-
 // GRID PONTOS DE CONTROLE
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
