@@ -239,36 +239,16 @@ class malha {
       return vetorNormalMedio;
     }
 
-    function compararPontosFace(ponto, matriz) {
-      let vetFacesCompartilhadas = [];
-      for (let m = 0; m < matriz.length; i++) {
-        for (let n = 0; n < matriz[m].length; n++) {
-          if (ponto == matriz[m][n]) {
-            vetFacesCompartilhadas.push(matriz[m][n]);
-          }
-        }
-      }
-      return vetFacesCompartilhadas;
-    }
-
-    let vetFaces = getFaces(grid); 
-    let lenI = vetFaces.length;
-    let vetFacesObj = [];
-
-    // CONSTROI AS FACES SRU
-    for (let i = 0; i < lenI; i++) {
-        let faceObj = new faceClass(vetFaces[i]);
-        vetFacesObj.push(faceObj);
-    }    
-
     
     if (tipoSombreamento == 'Nenhum') {
+      let vetFaces = getFaces(grid); 
       let newVetFacesObj = [];
       //CONSTROI AS FACES SRT 
-      let lenArray = vetFacesObj.length;
-      for (let i = 0; i < lenArray; i++) {
-        let objFace = new faceClassCor(vetFacesObj[i]);
-        newVetFacesObj.push(objFace);
+      for (let i = 0; i < vetFaces.length; i++) {
+        for (let j = 0; j < vetFaces[i].length; j++) {
+          let objFace = new faceClassCor(vetFaces[i][j]);
+          newVetFacesObj.push(objFace);
+        }
       }
       //PINTOR
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
@@ -276,13 +256,18 @@ class malha {
     };
 
     if (tipoSombreamento == 'Constante') {
-      //CONSTROI AS FACES - NAO IMPORTA ORDEM
+      let vetFaces = getFaces(grid); 
       let newVetFacesObj = [];
       //CONSTROI AS FACES SRT 
-      let lenArray = vetFacesObj.length;
-      for (let i = 0; i < lenArray; i++) {
-        let objFace = new faceClassConstante(vetFacesObj[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
-        newVetFacesObj.push(objFace);
+      for (let i = 0; i < vetFaces.length; i++) {
+        for (let j = 0; j < vetFaces[i].length; j++) {
+          let objFace = new faceClassConstante(vetFaces[i][j], 
+                                                [this.ka,
+                                                this.kd,
+                                                this.ks,
+                                                this.nIluminacao]);
+          newVetFacesObj.push(objFace);
+        }
       }
       //PINTOR
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
@@ -290,46 +275,25 @@ class malha {
     };
 
     if (tipoSombreamento == 'Gouraud') {
+      let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
       // FOR PARA CADA FACE testar os pontos e criar nova face
-      for (let i = 0; i < lenI; i++) {
-        let faceTestada = vetFacesObj[i];    
-        let vetorNormalMedio = [];
-        let pontosFaceTestada = faceTestada.pontos;
-  
-        //FOR PARA CADA PONTO DA FACE TESTADA
-        for (let j = 0; j < pontosFaceTestada.length; j++) {
-          let vetorNormalMedioPonto = [];
-          let vetFacesCompartilhadas = [];
-          let pontoTestado = pontosFaceTestada[j];
-  
-          //ADD a face em que o ponto está
-          vetFacesCompartilhadas.push(faceTestada);
-  
-          //COMPARAR PONTO COM TODAS AS FACES
-          for (let k = 0; k < vetFacesObj.length; k++) {
-            let faceComparada = vetFacesObj[k];
-            let pontosFaceComparada = faceComparada.pontos;
-  
-            if (faceTestada != faceComparada) {
-              for (let l = 0; l < pontosFaceComparada.length; l++) {
-                let pontoComparado = pontosFaceComparada[l];
-                if (pontoTestado == pontoComparado) {
-                  vetFacesCompartilhadas.push(faceComparada);
-                }
-              }
-            }
-          }
-          vetorNormalMedioPonto = calculaVetorMedioFaces(vetFacesCompartilhadas);
-          vetorNormalMedioPonto = vetorUnitario(vetorNormalMedioPonto);
-          vetorNormalMedio.push(vetorNormalMedioPonto);
+
+      
+      for (let i = 0; i < matrizFacesObj.length; i++) {
+        for (let j = 0; j < matrizFacesObj[i].length; j++) {
+          let faceTestada = matrizFacesObj[i][j];
+          let vetFacesCompartilhadas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
+          vetFacesCompartilhadas.push(faceTestada); //Propia Face
+
+          //Testar pontos
+          let pontosFace = faceTestada.pontos;
         }
-        let faceObj = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
-        newVetFacesObj.push(faceObj);
       }
   
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
       return newVetFacesObj;
+
     };
   }
 }
@@ -993,15 +957,16 @@ function drawViewport() {
 function getFaces(grid) {
   let lenI = grid.length - 1;
   let lenJ = grid[0].length - 1;
-  let faces = [];
+  let matrizFaces = [];
   for (let i = 0; i < lenI; i++) {
+    let faces = [];
     for (let j = 0; j < lenJ; j++) {
       let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
-      faces.push(face);
+      faces.push(new faceClass(face));
     }
+    matrizFaces.push(faces);
   }  
-  console.log('Faces len', faces.length);
-  return faces;
+  return matrizFaces;
 }
 
 
@@ -1172,13 +1137,56 @@ function recorte2D(pontos) {
 
 {/// FUNCOES /////////////////////////////////////////
 
+function obterVizinhos(i, j, matrizFaces) {
+  let vizinhos = [];
+  let linhas = matrizFaces.length;
+  let colunas = matrizFaces[i].length;
+  // Verifica o vizinho à esquerda
+  if (j > 0) {
+    vizinhos.push(matrizFaces[i][j - 1]);
+  }
+  
+  // Verifica o vizinho à direita
+  if (j < colunas - 1) {
+    vizinhos.push(matrizFaces[i][j + 1]);
+  }
+  
+  // Verifica o vizinho acima
+  if (i > 0) {
+    vizinhos.push(matrizFaces[i - 1][j]);
+  }
+  
+  // Verifica o vizinho abaixo
+  if (i < linhas - 1) {
+    vizinhos.push(matrizFaces[i + 1][j]);
+  }
+
+  // Verifica o vizinho diagonal superior esquerda
+  if (i > 0 && j > 0) {
+    vizinhos.push(matrizFaces[i - 1][j - 1]);
+  }
+  
+  // Verifica o vizinho diagonal superior direita
+  if (i > 0 && j < colunas - 1) {
+    vizinhos.push(matrizFaces[i - 1][j + 1]);
+  }
+  
+  // Verifica o vizinho diagonal inferior esquerda
+  if (i < linhas - 1 && j > 0) {
+    vizinhos.push(matrizFaces[i + 1][j - 1]);
+  }
+
+  // Verifica o vizinho diagonal inferior direita
+  if (i < linhas - 1 && j < colunas - 1) {
+    vizinhos.push(matrizFaces[i + 1][j + 1]);
+  }
+  return vizinhos;
+}
+
+
 // ILUMINAÇÃO
 function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN, centroide, vetorNormalUnitario, vetorS) {
   
-  if (tipoSombreamento == 'Nenhum') {
-    return 255;
-  };
-
   let iluTotal = iluAmbiente*iluminacaoKa;
 
   if (iluTotal>=255){
@@ -1252,8 +1260,6 @@ function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = closedBspline(pontosDeControle);
 
   let pontosDaCurva = [];
-
-  let ultimoSegmento = pontosDeControle.length - 3;
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
       let [xA, xB, xC, xD] = [
           pontosDeControle[i - 1][0], 
@@ -1290,7 +1296,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
       let b0 = (yA + 4 * yB + yC) / 6;
       let c0 = (zA + 4 * zB + zC) / 6;
       
-      if (i==ultimoSegmento){
+      if (i==1){
         for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
@@ -1300,7 +1306,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
           pontosDaCurva.push([x, y, z]);
         }
       } else {
-        for (let j = 0; j < nSegmentos; j++) {
+        for (let j = 1; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
@@ -1315,8 +1321,6 @@ function calculateBspline(pontosDeControle, nSegmentos) {
   return pontosDaCurva;
 }
 function createGridBspline(gridSRUPontosControle){
-  console.log('createGridBspline', gridSRUPontosControle);
-  
   let gridBspline = [];
   let lengthI = gridSRUPontosControle.length;
   // PEGAR OS INDICES PARA LINHAS
@@ -1329,10 +1333,6 @@ function createGridBspline(gridSRUPontosControle){
   for (let i = 0; i < lengthI; i++) {
     gridBsplineFinal.push(calculateBspline(gridBspline[i], nSegmentosV));
   }
-
-  console.log('gridBsplineFinal', gridBspline);
-  
-
   return gridBsplineFinal;
 }
 // GRID PONTOS DE CONTROLE
