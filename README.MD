@@ -19,21 +19,6 @@ Recorte! -> feito na face SRT !! Mais fácil de entender
 0. zbuffer
 5. cores e background
 6. iluminação e manipulação
-9. sombreamento?
-
-
-Os pontos de controle são por interseções?
-
-
-
-## horas gasta
-?? - 4
-22/1 - 3,5
-23/1 - 4
-24/1 - 3,5
-
-
-
 
 
 ##### INFORMAÇOES PERTINENTES
