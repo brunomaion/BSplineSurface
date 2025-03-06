@@ -362,7 +362,6 @@ class faceClassCor{
   constructor(face) {
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;
-    this.iluminacaoTotal = 255;
     this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
     [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
@@ -409,37 +408,46 @@ class faceClassCor{
       let p0 = this.arestasSRT[i][0];
       let p1 = this.arestasSRT[i][1];
 
-
       if (p0[1] < p1[1]) {
         let deltaX = p1[0] - p0[0];
         let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let npx = p0[0];
         let npy = p0[1];
-
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        let npz = p0[2];
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy)], npz)  
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
         }
+        novaAresta.push([Math.round(p1[0]), Math.round(p1[1]), p1[2]])
 
       } else {
         let deltaX = p0[0] - p1[0];
         let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let npx = p1[0];
         let npy = p1[1];
-
-        novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
+        let npz = p1[2];
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz])   
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
         }
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1]), p0[2]])
+        
       }
       novasArestas.push(novaAresta);      
     }
+
+    
+
     return [novasArestas, Math.round(yMin), Math.round(yMax)];
   };
   createScanlinesFace() {
@@ -464,7 +472,7 @@ class faceClassCor{
         
         for (let k = 0; k < lenK; k++) {
           if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push(pontoAresta[0]);
+            vetScanLinesFace[k][1].push(pontoAresta);
           }
         }
       }
@@ -472,9 +480,9 @@ class faceClassCor{
     // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < vetScanLinesFace.length; i++) {
       let scanline = vetScanLinesFace[i];
-      let vetXs = scanline[1];
-      vetXs = vetXs.sort((a, b) => a - b);
-      scanline[1] = vetXs;
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
     }
 
     return vetScanLinesFace;
@@ -494,8 +502,8 @@ class faceClassConstante{
                                             face.vetObservacao);
     this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
-    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
-    this.scanLinesFace = this.createScanlinesFace();
+    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(this.arestasSRT); //NO SRT
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
   };
   pontos2Srt(pontos) {
     let pontosSRT = addFatH(pontos);
@@ -514,97 +522,114 @@ class faceClassConstante{
     }
     return arestasSRT;
   };
-  createArestaCompleta() {
-    let lenI = this.arestasSRT.length;
+  createArestaCompleta(arestasSRT) {
+
+    let lenI = arestasSRT.length;
     let yMin = Infinity;
     let yMax = -Infinity;
     
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasSRT[i];
+      let aresta = arestasSRT[i];
       let lenJ = aresta.length;
       for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
         let ytestado = aresta[j][1];
         if (ytestado < yMin) {
-          yMin = ytestado;
+          yMin = (ytestado);
         }
         if (ytestado > yMax) {
-          yMax = ytestado;
+          yMax = (ytestado);
         }
       }
     }
+
+    console.log('yMin', yMin);
+    console.log('yMax', yMax);
 
     let novasArestas = [];
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
       let novaAresta = [];
-      let p0 = this.arestasSRT[i][0];
-      let p1 = this.arestasSRT[i][1];
+      let p0 = arestasSRT[i][0];
+      let p1 = arestasSRT[i][1];
 
 
-      if (p0[1] < p1[1]) {
+      if (p0[1] <= p1[1]) {
         let deltaX = p1[0] - p0[0];
         let deltaY = p1[1] - p0[1];
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
+        let deltaZ = p1[2] - p0[2];
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let npx = p0[0];
         let npy = p0[1];
-        for (let j = 1; j < deltaY; j++) {
+        let npz = p0[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])   
             npx += taxaXIncremento;
+            npz += taxaZIncremento;
             npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
         }
+        novaAresta.push([Math.round(p1[0]), Math.round(p1[1]), p1[2]])
 
       } else {
         let deltaX = p0[0] - p1[0];
         let deltaY = p0[1] - p1[1];
-        novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
+        let deltaZ = p0[2] - p1[2];
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let npx = p1[0];
         let npy = p1[1];
-        for (let j = 1; j < deltaY; j++) {
+        let npz = p1[2];
+        for (let j = 0; j <= deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])  
             npx += taxaXIncremento;
+            npz += taxaZIncremento;
             npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
         }
+        novaAresta.push([Math.round(p0[0]), Math.round(p0[1]), p0[2]])
       }
-      
+
       novasArestas.push(novaAresta);      
+
+      
     }
+
+    //console.log('novaAresta', novasArestas);
     return [novasArestas, Math.round(yMin), Math.round(yMax)];
   };
-  createScanlinesFace() {
+  createScanlinesFace(arestasCompletaSRT) {
 
     // INICIALIZAR SCANLINES [Y, [X...]]
     let vetScanLinesFace = [];
     let aux = this.yMin
+
     for (let i = this.yMin; i <= this.yMax; i++) {
       vetScanLinesFace.push([aux, []]);
       aux++;
     }
     
-    let lenI = this.arestasCompletaSRT.length;
+    let lenI = arestasCompletaSRT.length;
 
     // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasCompletaSRT[i];
+      let aresta = arestasCompletaSRT[i];
       let lenJ = aresta.length;
       for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
         let lenK = vetScanLinesFace.length;
         let pontoAresta = aresta[j];        
-        
         for (let k = 0; k < lenK; k++) {
           if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push(pontoAresta[0]);
+            vetScanLinesFace[k][1].push(pontoAresta);
           }
         }
       }
     }
-    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
     for (let i = 0; i < vetScanLinesFace.length; i++) {
       let scanline = vetScanLinesFace[i];
-      let vetXs = scanline[1];
-      vetXs = vetXs.sort((a, b) => a - b);
-      scanline[1] = vetXs;
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
     }
+    
 
     return vetScanLinesFace;
   };
@@ -703,37 +728,43 @@ class faceClassGourad{
       if (p0[1] < p1[1]) {
         let deltaX = p1[0] - p0[0];
         let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
         let deltaIlu = p1Ilu - p0Ilu;
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let taxIluIncremento = deltaIlu / deltaY;
         let npx = p0[0];
         let npy = p0[1];
+        let npz = p0[2];
         let npIlu = p0Ilu;
-
-        
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1]), p0Ilu])
+        novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
         for (let j = 1; j < deltaY; j++) {
             npx += taxaXIncremento;
+            npz += taxaZIncremento;
             npy += 1; 
             npIlu += taxIluIncremento;
-            novaAresta.push([Math.round(npx), Math.round(npy), npIlu])  
+            novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
         }
 
       } else {
         let deltaX = p0[0] - p1[0];
         let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
         let deltaIlu = p0Ilu - p1Ilu;
         let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
         let taxIluIncremento = deltaIlu / deltaY;
         let npx = p1[0];
         let npy = p1[1];
+        let npz = p1[2];
         let npIlu = p1Ilu;
-        novaAresta.push([[Math.round(p1[0]), Math.round(p1[1])], p1Ilu])
+        novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
         for (let j = 1; j < deltaY; j++) {
             npx += taxaXIncremento;
+            npz += taxaZIncremento;
             npy += 1; 
             npIlu += taxIluIncremento;
-            novaAresta.push([[Math.round(npx), Math.round(npy)], npIlu])  
+            novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
         }
       }
       novasArestas.push(novaAresta);      
@@ -762,21 +793,20 @@ class faceClassGourad{
         
         for (let k = 0; k < lenK; k++) {
           if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push([pontoAresta[0], pontoAresta[2]]);
+            vetScanLinesFace[k][1].push(pontoAresta[0]);
           }
         }
       }
     }
-    console.log(vetScanLinesFace);
     
-    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < vetScanLinesFace.length; i++) {
       let scanline = vetScanLinesFace[i];
-      let vetXs = scanline[1];
-      vetXs = vetXs.sort((a, b) => a[0] - b[0]);
-      scanline[1] = vetXs;
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
     }
 
+    
     return vetScanLinesFace;
   };
 }
@@ -1034,27 +1064,32 @@ function drawMalha(gridControle) {
       }
   }
 }
-function paintFace(scanLines, color) {
+function paintFace(scanLines, color) {;
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
-    let pontosX = scanLines[i][1];
-    let lenPontosX = pontosX.length;
-    let x0 = pontosX[0];
-    let x1 = pontosX[lenPontosX - 1];
+    let vetPontos = scanLines[i][1];
+    let lenPontos = vetPontos.length;
+    let p0 = vetPontos[0];
+    let p1 = vetPontos[lenPontos - 1];
+    let x0 = p0[0];
+    let x1 = p1[0];
+    
     if (x0 == x1) {
       ctx.fillRect(x0, pontoY, 1, 1);
     } else {
-      for (let x = x0+1; x < x1; x++) {
-        ctx.fillRect(x, pontoY, 1, 1);
+      for (let j = x0; j < x1; j++) {
+        ctx.fillRect(j, pontoY, 1, 1);
       }
     }
+
   }
 }
-function paintFaceGourad(scanLines, color) {
+
+function paintFaceGourad(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
@@ -1081,10 +1116,10 @@ function paintAresta(scanLines, color) {
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
-    let pontosX = scanLines[i][1];
-    let lenPontosX = pontosX.length;
-    for (let j = 0; j < lenPontosX; j++) {
-      ctx.fillRect(pontosX[j], pontoY, 1, 1);
+    let pontos = scanLines[i][1];
+    let lenPontos = pontos.length;
+    for (let j = 0; j < lenPontos; j++) {
+      ctx.fillRect(pontos[j][0], pontoY, 1, 1);
     }
   }
 }
@@ -1092,12 +1127,10 @@ function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
  
-  if (tipoSombreamento === 'Nenhum' || tipoSombreamento === 'Constante') {
+  if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
-      let iluTotal = Math.round(face.iluminacaoTotal);
-      let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
-    
+      let cor = 'white';
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
           paintAresta(face.scanLinesFace, 'green');
@@ -1107,11 +1140,36 @@ function drawGridBspline(malha) {
       } else {
         paintAresta(face.scanLinesFace, cor);
       }
-  
       if (boolPintarFaces) {
         paintFace(face.scanLinesFace, cor);
       }
     }
+  }
+
+  if (tipoSombreamento === 'Constante') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      let iluTotal = Math.round(face.iluminacaoTotal);
+      let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+  
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        } 
+      } else {
+        paintAresta(face.scanLinesFace, cor);
+      }
+        
+      if (boolPintarFaces) {
+        paintFace(face.scanLinesFace, cor);
+      }
+    }
+  }
+
+  if (tipoSombreamento === 'Gourad') {
+    console.log('Gourad');
   }
 }
 function drawPontosControle(gridControle) {
