@@ -364,145 +364,8 @@ class faceClassCor{
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;
     this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
-    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
-    this.scanLinesFace = this.createScanlinesFace();
-  };
-  pontos2Srt(pontos) {
-    let pontosSRT = addFatH(pontos);
-    pontosSRT = pontoSRUtoSRT(pontosSRT);
-    pontosSRT = removeFatH(pontosSRT);
-    pontosSRT = recorte2D(pontosSRT) ;
-    return pontosSRT;
-  };
-  calculaArestasSRT() {
-    let arestasSRT = [];
-    let len = this.pontosSRT.length;
-    for (let i = 0; i < len; i++) {
-      let p0 = this.pontosSRT[i];
-      let p1 = this.pontosSRT[(i + 1) % len];
-      arestasSRT.push([p0, p1]);
-    }
-    return arestasSRT;
-  };
-  createArestaCompleta() {
-    let lenI = this.arestasSRT.length;
-    let yMin = Infinity;
-    let yMax = -Infinity;
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasSRT[i];
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let ytestado = aresta[j][1];
-        if (ytestado < yMin) {
-          yMin = ytestado;
-        }
-        if (ytestado > yMax) {
-          yMax = ytestado;
-        }
-      }
-    }
-
-    let novasArestas = [];
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let novaAresta = [];
-      let p0 = this.arestasSRT[i][0];
-      let p1 = this.arestasSRT[i][1];
-
-      if (p0[1] < p1[1]) {
-        let deltaX = p1[0] - p0[0];
-        let deltaY = p1[1] - p0[1];
-        let deltaZ = p1[2] - p0[2];
-        let taxaXIncremento = deltaX / deltaY;
-        let taxaZIncremento = deltaZ / deltaY;
-        let npx = p0[0];
-        let npy = p0[1];
-        let npz = p0[2];
-        for (let j = 0; j < deltaY; j++) {
-          novaAresta.push([Math.round(npx), Math.round(npy)], npz)  
-          npx += taxaXIncremento;
-          npz += taxaZIncremento;
-          npy += 1; 
-        }
-        novaAresta.push([Math.round(p1[0]), Math.round(p1[1]), p1[2]])
-
-      } else {
-        let deltaX = p0[0] - p1[0];
-        let deltaY = p0[1] - p1[1];
-        let deltaZ = p0[2] - p1[2];
-        let taxaXIncremento = deltaX / deltaY;
-        let taxaZIncremento = deltaZ / deltaY;
-        let npx = p1[0];
-        let npy = p1[1];
-        let npz = p1[2];
-        for (let j = 0; j < deltaY; j++) {
-          novaAresta.push([Math.round(npx), Math.round(npy), npz])   
-          npx += taxaXIncremento;
-          npz += taxaZIncremento;
-          npy += 1; 
-        }
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1]), p0[2]])
-        
-      }
-      novasArestas.push(novaAresta);      
-    }
-
-    
-
-    return [novasArestas, Math.round(yMin), Math.round(yMax)];
-  };
-  createScanlinesFace() {
-
-    // INICIALIZAR SCANLINES [Y, [X...]]
-    let vetScanLinesFace = [];
-    let aux = this.yMin
-    for (let i = this.yMin; i <= this.yMax; i++) {
-      vetScanLinesFace.push([aux, []]);
-      aux++;
-    }
-    
-    let lenI = this.arestasCompletaSRT.length;
-
-    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasCompletaSRT[i];
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let lenK = vetScanLinesFace.length;
-        let pontoAresta = aresta[j];        
-        
-        for (let k = 0; k < lenK; k++) {
-          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push(pontoAresta);
-          }
-        }
-      }
-    }
-    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
-    for (let i = 0; i < vetScanLinesFace.length; i++) {
-      let scanline = vetScanLinesFace[i];
-      let vetPontos = scanline[1];
-      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
-      scanline[1] = vetPontos;
-    }
-
-    return vetScanLinesFace;
-  };
-}
-class faceClassConstante{
-  constructor(face, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
-
-    this.distanciaPintor = face.distanciaPintor;
-    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
-    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
-                                            iluminacaoKd, 
-                                            iluminacaoKs, 
-                                            iluminacaoN,
-                                            face.centroide,
-                                            face.vetorNormalUnitario,
-                                            face.vetObservacao);
-    this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
-    this.arestasSRT = this.calculaArestasSRT();
-    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(this.arestasSRT); //NO SRT
+    this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSRT);//NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRT);
     this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
   };
   pontos2Srt(pontos) {
@@ -523,28 +386,7 @@ class faceClassConstante{
     return arestasSRT;
   };
   createArestaCompleta(arestasSRT) {
-
     let lenI = arestasSRT.length;
-    let yMin = Infinity;
-    let yMax = -Infinity;
-    
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = arestasSRT[i];
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let ytestado = aresta[j][1];
-        if (ytestado < yMin) {
-          yMin = (ytestado);
-        }
-        if (ytestado > yMax) {
-          yMax = (ytestado);
-        }
-      }
-    }
-
-    console.log('yMin', yMin);
-    console.log('yMax', yMax);
-
     let novasArestas = [];
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
       let novaAresta = [];
@@ -567,7 +409,6 @@ class faceClassConstante{
             npz += taxaZIncremento;
             npy += 1; 
         }
-        novaAresta.push([Math.round(p1[0]), Math.round(p1[1]), p1[2]])
 
       } else {
         let deltaX = p0[0] - p1[0];
@@ -578,36 +419,28 @@ class faceClassConstante{
         let npx = p1[0];
         let npy = p1[1];
         let npz = p1[2];
-        for (let j = 0; j <= deltaY; j++) {
+        for (let j = 0; j < deltaY; j++) {
             novaAresta.push([Math.round(npx), Math.round(npy), npz])  
             npx += taxaXIncremento;
             npz += taxaZIncremento;
             npy += 1; 
         }
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1]), p0[2]])
       }
-
       novasArestas.push(novaAresta);      
-
-      
     }
 
     //console.log('novaAresta', novasArestas);
-    return [novasArestas, Math.round(yMin), Math.round(yMax)];
+    return novasArestas;
   };
   createScanlinesFace(arestasCompletaSRT) {
-
     // INICIALIZAR SCANLINES [Y, [X...]]
     let vetScanLinesFace = [];
     let aux = this.yMin
-
     for (let i = this.yMin; i <= this.yMax; i++) {
       vetScanLinesFace.push([aux, []]);
       aux++;
     }
-    
     let lenI = arestasCompletaSRT.length;
-
     // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
       let aresta = arestasCompletaSRT[i];
@@ -629,8 +462,121 @@ class faceClassConstante{
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }
-    
+    return vetScanLinesFace;
+  };
+}
+class faceClassConstante{
+  constructor(face, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
 
+    this.distanciaPintor = face.distanciaPintor;
+    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
+    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
+                                            iluminacaoKd, 
+                                            iluminacaoKs, 
+                                            iluminacaoN,
+                                            face.centroide,
+                                            face.vetorNormalUnitario,
+                                            face.vetObservacao);
+    this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
+    this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSRT);//NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRT);
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
+  };
+  pontos2Srt(pontos) {
+    let pontosSRT = addFatH(pontos);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    pontosSRT = recorte2D(pontosSRT) ;
+    return pontosSRT;
+  };
+  calculaArestasSRT() {
+    let arestasSRT = [];
+    let len = this.pontosSRT.length;
+    for (let i = 0; i < len; i++) {
+      let p0 = this.pontosSRT[i];
+      let p1 = this.pontosSRT[(i + 1) % len];
+      arestasSRT.push([p0, p1]);
+    }
+    return arestasSRT;
+  };
+  createArestaCompleta(arestasSRT) {
+    let lenI = arestasSRT.length;
+    let novasArestas = [];
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let p0 = arestasSRT[i][0];
+      let p1 = arestasSRT[i][1];
+
+
+      if (p0[1] <= p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        let npz = p0[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])   
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        let npz = p1[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])  
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+      }
+      novasArestas.push(novaAresta);      
+    }
+
+    //console.log('novaAresta', novasArestas);
+    return novasArestas;
+  };
+  createScanlinesFace(arestasCompletaSRT) {
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
+    }
+    let lenI = arestasCompletaSRT.length;
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
+    }
     return vetScanLinesFace;
   };
 }
@@ -892,6 +838,25 @@ function removeFatH(vetor) {
 }/////////////////////////////////////////////////////////////////////
 
 {//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
+
+function getMinMax(arestas) {
+  let yMin = Infinity;
+  let yMax = -Infinity;
+  for (let i = 0; i < arestas.length; i++) { // PERCORRE AS ARESTAS
+    let aresta = arestas[i];
+    for (let j = 0; j < aresta.length; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+      let ytestado = aresta[j][1];
+      if (ytestado < yMin) {
+        yMin = ytestado;
+      }
+      if (ytestado > yMax) {
+        yMax = ytestado;
+      }
+    }
+  }
+  return [yMin, yMax];
+} 
+
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
@@ -1079,13 +1044,12 @@ function paintFace(scanLines, color) {;
     let x1 = p1[0];
     
     if (x0 == x1) {
-      ctx.fillRect(x0, pontoY, 1, 1);
+      //ctx.fillRect(x0, pontoY, 1, 1);
     } else {
-      for (let j = x0; j < x1; j++) {
+      for (let j = x0+1; j < x1; j++) {
         ctx.fillRect(j, pontoY, 1, 1);
       }
     }
-
   }
 }
 
@@ -1127,6 +1091,8 @@ function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
  
+  console.log('Tipo Sombreamento', tipoSombreamento);
+  
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
