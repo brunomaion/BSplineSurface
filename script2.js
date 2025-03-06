@@ -429,7 +429,6 @@ class faceClassCor{
       novasArestas.push(novaAresta);      
     }
 
-    //console.log('novaAresta', novasArestas);
     return novasArestas;
   };
   createScanlinesFace(arestasCompletaSRT) {
@@ -544,7 +543,6 @@ class faceClassConstante{
       novasArestas.push(novaAresta);      
     }
 
-    //console.log('novaAresta', novasArestas);
     return novasArestas;
   };
   createScanlinesFace(arestasCompletaSRT) {
@@ -597,7 +595,8 @@ class faceClassGourad{
     this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,iluminacaoKd, iluminacaoKs, iluminacaoN,face.centroide,face.vetorNormalUnitario,face.vetObservacao); // [ [p1, iluP1], [p2, iluP2], [p3, iluP3], [p4, iluP4] ]
     this.pontosSrtIluminados = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSrtIluminada = this.calculaArestasSRT(this.pontosSrtIluminados);
-    [this.arestasCompletaSRTiluminada, this.yMin, this.yMax] = this.createArestaCompleta(this.arestasSrtIluminada); //NO SRT
+    this.arestasCompletaSRTiluminada = this.createArestaCompleta(this.arestasSrtIluminada); //NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRTiluminada);
     this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRTiluminada);
   };
 
@@ -640,25 +639,7 @@ class faceClassGourad{
   createArestaCompleta(arestasSrtIluminada) {
 
     let lenI = arestasSrtIluminada.length;
-    let yMin = Infinity;
-    let yMax = -Infinity;
-
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = arestasSrtIluminada[i][0];      
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let ytestado = aresta[j][1];
-        if (ytestado < yMin) {
-          yMin = ytestado;
-        }
-        if (ytestado > yMax) {
-          yMax = ytestado;
-        }
-      }
-    }
-
     let novasArestas = [];
-
     
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
       let novaAresta = [];
@@ -670,8 +651,7 @@ class faceClassGourad{
       let p1 = aresta[1];
       let p1Ilu = arestaIlu[1];
 
-
-      if (p0[1] < p1[1]) {
+      if (p0[1] <= p1[1]) {
         let deltaX = p1[0] - p0[0];
         let deltaY = p1[1] - p0[1];
         let deltaZ = p1[2] - p0[2];
@@ -682,14 +662,13 @@ class faceClassGourad{
         let npx = p0[0];
         let npy = p0[1];
         let npz = p0[2];
-        let npIlu = p0Ilu;
-        novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npz += taxaZIncremento;
-            npy += 1; 
-            npIlu += taxIluIncremento;
-            novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
+        let npIlu = p0Ilu; 
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          npIlu += taxIluIncremento;
         }
 
       } else {
@@ -704,21 +683,19 @@ class faceClassGourad{
         let npy = p1[1];
         let npz = p1[2];
         let npIlu = p1Ilu;
-        novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npz += taxaZIncremento;
-            npy += 1; 
-            npIlu += taxIluIncremento;
-            novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])    
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          npIlu += taxIluIncremento;
         }
       }
       novasArestas.push(novaAresta);      
     }
-    return [novasArestas, Math.round(yMin), Math.round(yMax)];
+    return novasArestas;
   };
-  createScanlinesFace(arestasSRT) {
-
+  createScanlinesFace(arestasCompletaSRT) {
     // INICIALIZAR SCANLINES [Y, [X...]]
     let vetScanLinesFace = [];
     let aux = this.yMin
@@ -726,33 +703,29 @@ class faceClassGourad{
       vetScanLinesFace.push([aux, []]);
       aux++;
     }
-    
-    let lenI = arestasSRT.length;
-
+    let lenI = arestasCompletaSRT.length;
     // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = arestasSRT[i];
+      let aresta = arestasCompletaSRT[i];
       let lenJ = aresta.length;
       for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
         let lenK = vetScanLinesFace.length;
         let pontoAresta = aresta[j];        
-        
         for (let k = 0; k < lenK; k++) {
           if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push(pontoAresta[0]);
+            vetScanLinesFace[k][1].push(pontoAresta);
           }
         }
       }
     }
-    
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
     for (let i = 0; i < vetScanLinesFace.length; i++) {
       let scanline = vetScanLinesFace[i];
       let vetPontos = scanline[1];
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }
-
-    
+    console.log(vetScanLinesFace);
     return vetScanLinesFace;
   };
 }
@@ -958,10 +931,8 @@ function renderiza() {
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-
   drawViewport();
-}
-  
+  }
 }
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -1052,7 +1023,6 @@ function paintFace(scanLines, color) {;
     }
   }
 }
-
 function paintFaceGourad(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1090,8 +1060,6 @@ function paintAresta(scanLines, color) {
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
- 
-  console.log('Tipo Sombreamento', tipoSombreamento);
   
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1230,7 +1198,6 @@ function recorte2D(pontos) {
 
   return recortado;
 }
-
 function recorte2DGourad(pontosIluminados) {
   let pontos = pontosIluminados[0];
   let iluminacao = pontosIluminados[1];
