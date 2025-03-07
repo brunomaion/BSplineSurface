@@ -94,7 +94,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTP);
-    }
+    };
     
     function rotacaoX(pontoY) {
       let angulo = var_rotacaoX;
@@ -105,7 +105,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoY);
-    }
+    };
   
     function rotacaoY(pontoY) {
       let angulo = var_rotacaoY;
@@ -116,7 +116,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoY);
-    }
+    };
   
     function rotacaoZ(pontoZ) {
       let angulo = var_rotacaoZ;
@@ -127,7 +127,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoZ);
-    }
+    };
 
     let pontosRotacionado = [];
     for (let i = 0; i < pontos.length; i++) {
@@ -138,7 +138,7 @@ class malha {
       ponto = rotacaoX(ponto);
       ponto = translP(ponto);
       pontosRotacionado.push(ponto);
-    }
+    };
     return pontosRotacionado; 
   };
   translacao(pontos) {
@@ -199,7 +199,7 @@ class malha {
         matrizPontosControleControle.push(ponto);
     }
     return matrizPontosControleControle;
-  }
+  };
   pipelineTransformacao(matriz) {
     let novaMatriz = [];
     for (let i = 0; i < matriz.length; i++) {
@@ -267,8 +267,8 @@ class malha {
                                                 this.ks,
                                                 this.nIluminacao]);
           newVetFacesObj.push(objFace);
-        }
-      }
+        };
+      };
       //PINTOR
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
       return newVetFacesObj;
@@ -303,23 +303,23 @@ class malha {
                 let pontoFaceVizinha = pontosFaceCompartilhada[m];
                 if (pontoTestado == pontoFaceVizinha) {
                   facesCompatilhadas.push(faceVizinha);
-                }
-              }
-            }
+                };
+              };
+            };
 
             vetorNormalMedio.push(calculaVetorMedioFaces(facesCompatilhadas));            
 
-          }
+          };
 
           let face = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
           newVetFacesObj.push(face);
-        }
-      }
+        };
+      };
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
       return newVetFacesObj;
     };
-  }
-}
+  };
+};
 class faceClass{
   constructor(pontos) {
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
@@ -357,7 +357,7 @@ class faceClass{
     this.vetorNormalUnitario = vetorNormalUnitarioInverso;
     return false;
   }
-}
+};
 class faceClassCor{
   constructor(face) {
     this.distanciaPintor = face.distanciaPintor;
@@ -463,7 +463,7 @@ class faceClassCor{
     }
     return vetScanLinesFace;
   };
-}
+};
 class faceClassConstante{
   constructor(face, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
 
@@ -577,7 +577,7 @@ class faceClassConstante{
     }
     return vetScanLinesFace;
   };
-}
+};
 class faceClassGourad{
   constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
 
@@ -727,7 +727,7 @@ class faceClassGourad{
     }
     return vetScanLinesFace;
   };
-}
+};
 class ZBuffer{
   constructor(u,v) {
     this.zBuffer = this.createZBuffer(u,v);
@@ -748,10 +748,10 @@ class ZBuffer{
   updateZBuffer(x,y,z) {
     this.zBuffer[x][y] = z;
   };
-}
+};
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
-var visao = 'axonometrica';
+var visao = document.getElementById('visao').value || 'axonometrica';
 var vetMalha = []
 
 /// camera 
@@ -957,7 +957,7 @@ function renderiza() {
     }
   }
   drawPCselecionado();
-}
+};
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -966,7 +966,7 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.lineTo(x2, y2); // Desenha até o ponto final
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
-}
+};
 function printEixo3d(){
   let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
@@ -988,7 +988,7 @@ function printEixo3d(){
     ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
-}
+};
 function drawViewport() { 
   var canvas = document.getElementById('viewport');
   var context = canvas.getContext('2d');
@@ -997,7 +997,7 @@ function drawViewport() {
   context.strokeStyle = 'black';
   context.lineWidth = 0.5;
   context.stroke();
-}
+};
 function getFaces(grid) {
   let lenI = grid.length - 1;
   let lenJ = grid[0].length - 1;
@@ -1011,7 +1011,7 @@ function getFaces(grid) {
     matrizFaces.push(faces);
   }  
   return matrizFaces;
-}
+};
 function drawMalha(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
       for (let j = 0; j < gridControle[i].length - 1; j++) {
@@ -1023,8 +1023,8 @@ function drawMalha(gridControle) {
           drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
       }
   }
-}
-function paintFace(scanLines, color) {;
+};
+function paintFace(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
@@ -1043,18 +1043,16 @@ function paintFace(scanLines, color) {;
     let pontoZ = z0;
     if (x0 == x1) {
       //ctx.fillRect(x0, pontoY, 1, 1);
-    } else {
-      console.log(zBuffer);
-      
+    } else {      
       for (let pontoX = x0+1; pontoX < x1; pontoX++) {
-        if (pontoZ > zBuffer.getZBuffer(pontoX, pontoY)) {
+
           ctx.fillRect(pontoX, pontoY, 1, 1);
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        };
+
       }
     }
   }
-}
+};
 function paintFaceGouraud(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1084,7 +1082,7 @@ function paintFaceGouraud(scanLines) {
       }
     }
   }
-}
+};
 function paintAresta(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1095,10 +1093,12 @@ function paintAresta(scanLines, color) {
     let pontos = scanLines[i][1];
     let lenPontos = pontos.length;
     for (let j = 0; j < lenPontos; j++) {
-      ctx.fillRect(pontos[j][0], pontoY, 1, 1);
-    }
-  }
-}
+      let pontoX = pontos[j][0];
+      let pontoZ = pontos[j][2];
+      ctx.fillRect(pontoX, pontoY, 1, 1);
+    };
+  };
+};
 function paintArestaGouraud(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1113,10 +1113,12 @@ function paintArestaGouraud(scanLines) {
       ctx.fillRect(pontos[j][0], pontoY, 1, 1);
     }
   }
-}
+};
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
+  console.log(faces);
+  
 
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1127,15 +1129,15 @@ function drawGridBspline(malha) {
           paintAresta(face.scanLinesFace, 'green');
         } else {
           paintAresta(face.scanLinesFace, 'red');
-        } 
+        };
       } else {
         paintAresta(face.scanLinesFace, cor);
-      }
+      };
       if (boolPintarFaces) {
         paintFace(face.scanLinesFace, cor);
-      }
-    }
-  }
+      };
+    };
+  };
 
   if (tipoSombreamento === 'Constante') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1148,16 +1150,16 @@ function drawGridBspline(malha) {
           paintAresta(face.scanLinesFace, 'green');
         } else {
           paintAresta(face.scanLinesFace, 'red');
-        } 
+        };
       } else {
         paintAresta(face.scanLinesFace, cor);
-      }
+      };
         
       if (boolPintarFaces) {
         paintFace(face.scanLinesFace, cor);
-      }
-    }
-  }
+      };
+    };
+  };
 
   if (tipoSombreamento === 'Gouraud') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1170,21 +1172,21 @@ function drawGridBspline(malha) {
         } 
       } else{
         paintArestaGouraud(face.scanLinesFace);
-      }
+      };
       if (boolPintarFaces) {
         paintFaceGouraud(face.scanLinesFace);
-      }
+      };
       
-    }
-  }
-}
+    };
+  };
+};
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
     for (let j = 0; j < gridControle[i].length; j++) {
         drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
     }
   }
-}
+};
 function drawCircle(x, y, radius, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1193,7 +1195,7 @@ function drawCircle(x, y, radius, color) {
   ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
   ctx.fillStyle = color;
   ctx.fill();
-}
+};
 function drawPCselecionado() {
   if (eixoPCverde) {
     let i = indicePCsele[0];
@@ -1201,7 +1203,7 @@ function drawPCselecionado() {
     gridObjeto = selectedMalha.gridControleSRT;
     drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
   }
-}
+};
 function recorte2D(pontos) {
 
   function testeDentroEsquerda(p) {
@@ -1269,7 +1271,7 @@ function recorte2D(pontos) {
   
 
   return recortado;
-}
+};
 function recorte2DGourad(pontosIluminados) {
   let pontos = pontosIluminados[0];
   let iluminacao = pontosIluminados[1];
@@ -1337,7 +1339,7 @@ function recorte2DGourad(pontosIluminados) {
   resultado = recorteContraBorda(...resultado, testeDentroAcima, vMinViewport, "y");
 
   return resultado;
-}
+};
 
 
 
@@ -1352,42 +1354,42 @@ function obterVizinhos(i, j, matrizFaces) {
   // Verifica o vizinho à esquerda
   if (j > 0) {
     vizinhos.push(matrizFaces[i][j - 1]);
-  }
+  };
   
   // Verifica o vizinho à direita
   if (j < colunas - 1) {
     vizinhos.push(matrizFaces[i][j + 1]);
-  }
+  };
   
   // Verifica o vizinho acima
   if (i > 0) {
     vizinhos.push(matrizFaces[i - 1][j]);
-  }
+  };
   
   // Verifica o vizinho abaixo
   if (i < linhas - 1) {
     vizinhos.push(matrizFaces[i + 1][j]);
-  }
+  };
 
   // Verifica o vizinho diagonal superior esquerda
   if (i > 0 && j > 0) {
     vizinhos.push(matrizFaces[i - 1][j - 1]);
-  }
+  };
   
   // Verifica o vizinho diagonal superior direita
   if (i > 0 && j < colunas - 1) {
     vizinhos.push(matrizFaces[i - 1][j + 1]);
-  }
+  };
   
   // Verifica o vizinho diagonal inferior esquerda
   if (i < linhas - 1 && j > 0) {
     vizinhos.push(matrizFaces[i + 1][j - 1]);
-  }
+  };
 
   // Verifica o vizinho diagonal inferior direita
   if (i < linhas - 1 && j < colunas - 1) {
     vizinhos.push(matrizFaces[i + 1][j + 1]);
-  }
+  };
   return vizinhos;
 }
 
@@ -1399,7 +1401,7 @@ function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN,
 
   if (iluTotal>=255){
     return 255;
-  }
+  };
 
   let vetorLuz = [xLampada - centroide[0],
                   yLampada - centroide[1],
@@ -1430,7 +1432,7 @@ function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN,
   }
   iluTotal += iluEspecular;
   return iluTotal
-}
+};
 // BSPLINES
 function closedBspline(pontosDeControle) {
   let n = pontosDeControle.length;
@@ -1442,7 +1444,7 @@ function closedBspline(pontosDeControle) {
       pontosDeControle[1]
   ];
   return pontosDeControleFechado;
-}
+};
 
 function transporUmaMatriz(matriz) {
   let matrizTransposta = [];
@@ -1453,7 +1455,7 @@ function transporUmaMatriz(matriz) {
     }
   }
   return matrizTransposta;
-}
+};
 
 function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = clampingBspline(pontosDeControle);
@@ -1527,7 +1529,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
   }
 
   return pontosDaCurva;
-}
+};
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
   let lengthI = gridSRUPontosControle.length;
@@ -1542,7 +1544,7 @@ function createGridBspline(gridSRUPontosControle){
     gridBsplineFinal.push(calculateBspline(gridBspline[i], nSegmentosV));
   }
   return gridBsplineFinal;
-}
+};
 // GRID PONTOS DE CONTROLE
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
@@ -1584,7 +1586,7 @@ function matrizPontosControle(pontos, m, n) {
       matrizPontosControleControle.push(ponto);
   }
   return matrizPontosControleControle;
-}
+};
 
 
 // ATUALIZAR PONTOS CONTROLE E PROGRAMA
@@ -1606,21 +1608,21 @@ function atualizarPCSelecionado(click){
   }
   let pontoMaisPertoSRU = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
   return pontoMaisPertoSRU;
-}
+};
 function updateProgramaTotal() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     malha.updateReset();
   }
   renderiza();
-}
+};
 function updatePrograma() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     malha.update();
   }
   renderiza();
-}
+};
 
 }/////////////////////////////////////////////////////////////////////
 
@@ -1743,7 +1745,6 @@ function pontoSRUtoSRT(pontos) {
       let pontoSRT = projPersp(pontoSRU);
       novosPontosSRT.push(pontoSRT);
     }
-    novosPontosSRT = removeFatH(novosPontosSRT);
     return novosPontosSRT;
 
   } else if (visao == 'axonometrica') {
@@ -1794,8 +1795,8 @@ let n = 4;
 var vetMalha = [];
 
 let ponto1 = [0,15,0];
-let ponto2 = [0,10,0];
-let ponto3 = [10,10,0];
+let ponto2 = [0,-15,0];
+let ponto3 = [10,-15,0];
 let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
@@ -1905,7 +1906,7 @@ function onFieldChangeReset(){
   vMin = parseInt(document.getElementById('vMinW').value) || 0;
   vMax = parseInt(document.getElementById('vMaxW').value) || 0;
   
-
+  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
 
   updateProgramaTotal();
 }
