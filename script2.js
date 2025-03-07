@@ -725,7 +725,6 @@ class faceClassGourad{
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }
-    console.log(vetScanLinesFace);
     return vetScanLinesFace;
   };
 }
@@ -1023,22 +1022,32 @@ function paintFace(scanLines, color) {;
     }
   }
 }
-function paintFaceGourad(scanLines) {
+function paintFaceGouraud(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
-    let pontoY = scanLines[i][0];
-    let pontosX = scanLines[i][1];
-    let lenPontosX = pontosX.length;
-    let x0 = pontosX[0];
-    let x1 = pontosX[lenPontosX - 1];
+    let scanline = scanLines[i];
+    let pontoY = scanline[0];
+    let pontos = scanline[1];
+    let lenPontos = pontos.length;
+    let p0 = pontos[0];
+    let p1 = pontos[lenPontos - 1];
+    let x0 = p0[0];
+    let x1 = p1[0];
+    let cor0 = p0[3];
+    let cor1 = p1[3];
+    let taxaCor = (cor1 - cor0) / (x1 - x0);
+    let cor = cor0;
     if (x0 == x1) {
+      ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
       ctx.fillRect(x0, pontoY, 1, 1);
     } else {
       for (let x = x0+1; x < x1; x++) {
+        ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
         ctx.fillRect(x, pontoY, 1, 1);
+        cor += taxaCor;
       }
     }
   }
@@ -1048,7 +1057,7 @@ function paintAresta(scanLines, color) {
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
   let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline; i++) {
+  for (let i = 0; i < lenScanline-1; i++) {
     let pontoY = scanLines[i][0];
     let pontos = scanLines[i][1];
     let lenPontos = pontos.length;
@@ -1057,10 +1066,25 @@ function paintAresta(scanLines, color) {
     }
   }
 }
+function paintArestaGouraud(scanLines) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline-1; i++) {
+    let pontoY = scanLines[i][0];
+    let pontos = scanLines[i][1];
+    let lenPontos = pontos.length;
+    for (let j = 0; j < lenPontos; j++) {
+      let cor = `rgb(${pontos[j][3]},${pontos[j][3]},${pontos[j][3]})`;
+      ctx.fillStyle = cor;
+      ctx.fillRect(pontos[j][0], pontoY, 1, 1);
+    }
+  }
+}
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
-  
+
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
@@ -1102,8 +1126,20 @@ function drawGridBspline(malha) {
     }
   }
 
-  if (tipoSombreamento === 'Gourad') {
-    console.log('Gourad');
+  if (tipoSombreamento === 'Gouraud') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        } 
+      } else{
+        paintArestaGouraud(face.scanLinesFace);
+      }
+      paintFaceGouraud(face.scanLinesFace);
+    }
   }
 }
 function drawPontosControle(gridControle) {
