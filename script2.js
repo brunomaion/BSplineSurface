@@ -728,6 +728,27 @@ class faceClassGourad{
     return vetScanLinesFace;
   };
 }
+class ZBuffer{
+  constructor(u,v) {
+    this.zBuffer = this.createZBuffer(u,v);
+  };
+  createZBuffer(u,v) {
+    let zBuffer = [];
+    for (let i = 0; i < u; i++) {
+      zBuffer.push([]);
+      for (let j = 0; j < v; j++) {
+        zBuffer[i].push(-Infinity);
+      }
+    }
+    return zBuffer;
+  };
+  getZBuffer(x,y) {
+    return this.zBuffer[x][y];
+  };
+  updateZBuffer(x,y,z) {
+    this.zBuffer[x][y] = z;
+  };
+}
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = 'axonometrica';
@@ -792,6 +813,9 @@ var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
 var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+
+
+var zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
 
 } ////////////////////////////////////////////////
   
@@ -924,14 +948,15 @@ function renderiza() {
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   printEixo3d();
+  drawViewport();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     drawGridBspline(malha);
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-  drawViewport();
   }
+  drawPCselecionado();
 }
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
@@ -1012,12 +1037,20 @@ function paintFace(scanLines, color) {;
     let p1 = vetPontos[lenPontos - 1];
     let x0 = p0[0];
     let x1 = p1[0];
-    
+    let z0 = p0[2];
+    let z1 = p1[2];
+    let taxaZ = (z1 - z0) / (x1 - x0);
+    let pontoZ = z0;
     if (x0 == x1) {
       //ctx.fillRect(x0, pontoY, 1, 1);
     } else {
-      for (let j = x0+1; j < x1; j++) {
-        ctx.fillRect(j, pontoY, 1, 1);
+      console.log(zBuffer);
+      
+      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
+        if (pontoZ > zBuffer.getZBuffer(pontoX, pontoY)) {
+          ctx.fillRect(pontoX, pontoY, 1, 1);
+          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+        };
       }
     }
   }
@@ -1057,7 +1090,7 @@ function paintAresta(scanLines, color) {
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
   let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline-1; i++) {
+  for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
     let pontos = scanLines[i][1];
     let lenPontos = pontos.length;
@@ -1070,7 +1103,7 @@ function paintArestaGouraud(scanLines) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline-1; i++) {
+  for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
     let pontos = scanLines[i][1];
     let lenPontos = pontos.length;
@@ -1138,7 +1171,10 @@ function drawGridBspline(malha) {
       } else{
         paintArestaGouraud(face.scanLinesFace);
       }
-      paintFaceGouraud(face.scanLinesFace);
+      if (boolPintarFaces) {
+        paintFaceGouraud(face.scanLinesFace);
+      }
+      
     }
   }
 }
@@ -1577,7 +1613,6 @@ function updateProgramaTotal() {
     malha.updateReset();
   }
   renderiza();
-  drawPCselecionado();
 }
 function updatePrograma() {  
   for (let i = 0; i < vetMalha.length; i++) {
@@ -1585,7 +1620,6 @@ function updatePrograma() {
     malha.update();
   }
   renderiza();
-  drawPCselecionado();
 }
 
 }/////////////////////////////////////////////////////////////////////
@@ -1765,8 +1799,8 @@ let ponto3 = [10,10,0];
 let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
-//malha1 = new malha(pontosMalha, m, n, 1111);
-//vetMalha.push(malha1);
+malha1 = new malha(pontosMalha, m, n, 1111);
+vetMalha.push(malha1);
 
 
 ponto1 = [0,0,0];
@@ -1841,6 +1875,7 @@ function onFieldChange() {
   vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
   vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
 
+  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
   updatePrograma();
 }
 
