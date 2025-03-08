@@ -26,12 +26,13 @@ class malha {
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
-    this.facesVetor = this.createEstruturaFaces(this.gridBsplineSRU);
+    this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
 
-  debugPrint() {      
+  debugPrint() {  
+    console.log('Update' );
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -93,7 +94,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizTranslado, pontoTP);
-    }
+    };
     
     function rotacaoX(pontoY) {
       let angulo = var_rotacaoX;
@@ -104,7 +105,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoY);
-    }
+    };
   
     function rotacaoY(pontoY) {
       let angulo = var_rotacaoY;
@@ -115,7 +116,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoY);
-    }
+    };
   
     function rotacaoZ(pontoZ) {
       let angulo = var_rotacaoZ;
@@ -126,7 +127,7 @@ class malha {
         [0, 0, 0, 1]
       ];
       return matriz44x41(matrizRotacao, pontoZ);
-    }
+    };
 
     let pontosRotacionado = [];
     for (let i = 0; i < pontos.length; i++) {
@@ -137,7 +138,7 @@ class malha {
       ponto = rotacaoX(ponto);
       ponto = translP(ponto);
       pontosRotacionado.push(ponto);
-    }
+    };
     return pontosRotacionado; 
   };
   translacao(pontos) {
@@ -198,7 +199,7 @@ class malha {
         matrizPontosControleControle.push(ponto);
     }
     return matrizPontosControleControle;
-  }
+  };
   pipelineTransformacao(matriz) {
     let novaMatriz = [];
     for (let i = 0; i < matriz.length; i++) {
@@ -223,141 +224,111 @@ class malha {
   };
   createEstruturaFaces(grid) {
 
-    let vetFaces = getFaces(grid);    
-    let vetFacesObj = [];
-    let lenArray = vetFaces.length;
-    for (let i = 0; i < lenArray; i++) {
-      let objFace = new faceClass(i, vetFaces[i], [this.ka, this.kd, this.ks, this.nIluminacao]);
-      vetFacesObj.push(objFace);
+    function calculaVetorMedioFaces(vFacesNormal){ //FACES COMPARTILHADAS
+      let somaX = 0;
+      let somaY = 0;
+      let somaZ = 0;
+      for (let i = 0; i < vFacesNormal.length; i++) {
+        let normalUniFace = vFacesNormal[i].vetorNormalUnitario;
+        somaX += normalUniFace[0];
+        somaY += normalUniFace[1];
+        somaZ += normalUniFace[2];
+      }
+      let vetorNormalMedio = [somaX / vFacesNormal.length, somaY / vFacesNormal.length, somaZ / vFacesNormal.length];
+
+      return vetorNormalMedio;
     }
-    vetFacesObj = vetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
 
-    return vetFacesObj;
-  }
-}
+    
+    if (tipoSombreamento == 'Nenhum') {
+      let vetFaces = getFaces(grid); 
+      let newVetFacesObj = [];
+      //CONSTROI AS FACES SRT 
+      for (let i = 0; i < vetFaces.length; i++) {
+        for (let j = 0; j < vetFaces[i].length; j++) {
+          let objFace = new faceClassCor(vetFaces[i][j]);
+          newVetFacesObj.push(objFace);
+        }
+      }
+      //PINTOR
+      newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+      return newVetFacesObj;
+    };
 
-class faceClass {
-  constructor(faceID, pontos, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {
-    this.faceID = faceID;
+    if (tipoSombreamento == 'Constante') {
+      let vetFaces = getFaces(grid); 
+      let newVetFacesObj = [];
+      //CONSTROI AS FACES SRT 
+      for (let i = 0; i < vetFaces.length; i++) {
+        for (let j = 0; j < vetFaces[i].length; j++) {
+          let objFace = new faceClassConstante(vetFaces[i][j], 
+                                                [this.ka,
+                                                this.kd,
+                                                this.ks,
+                                                this.nIluminacao]);
+          newVetFacesObj.push(objFace);
+        };
+      };
+      //PINTOR
+      newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+      return newVetFacesObj;
+    };
+
+    if (tipoSombreamento == 'Gouraud') {
+      let matrizFaces = getFaces(grid);
+      let newVetFacesObj = []
+      // FOR PARA CADA FACE testar os pontos e criar nova face
+
+      
+      for (let i = 0; i < matrizFaces.length; i++) {
+        for (let j = 0; j < matrizFaces[i].length; j++) {
+          let faceTestada = matrizFaces[i][j];
+          let vetFacesVizinhas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
+          vetFacesVizinhas.push(faceTestada); //Propia Face
+
+          let vetorNormalMedio = []
+          //Testar pontos
+          let pontosFace = faceTestada.pontos;
+          for (let k = 0; k < pontosFace.length; k++) {
+            let pontoTestado = pontosFace[k];
+            let facesCompatilhadas = [];
+
+            for (let l = 0; l < vetFacesVizinhas.length; l++) {
+              
+              let faceVizinha = vetFacesVizinhas[l];
+              let pontosFaceCompartilhada = faceVizinha.pontos;
+               //AS Q TEM O MESMO PONTO
+              
+              for (let m = 0; m < pontosFaceCompartilhada.length; m++) {
+                let pontoFaceVizinha = pontosFaceCompartilhada[m];
+                if (pontoTestado == pontoFaceVizinha) {
+                  facesCompatilhadas.push(faceVizinha);
+                };
+              };
+            };
+
+            vetorNormalMedio.push(calculaVetorMedioFaces(facesCompatilhadas));            
+
+          };
+
+          let face = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+          newVetFacesObj.push(face);
+        };
+      };
+      newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+      return newVetFacesObj;
+    };
+  };
+};
+class faceClass{
+  constructor(pontos) {
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
     this.centroide = this.calculaCentroide();
     this.distanciaPintor = this.calculaDistanciaPintor();
-    this.vetorNormalDaFace = this.calculaVetorNormal();
+    this.vetorNormalDaFace = calculaVetorNormal(this.pontos);
     this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
-    this.vetObservacao = this.calculoVetObservacao();
-    this.boolVisibilidadeNormal = this.calulaVisibilidadeNormal();
-    
-    this.arestas = this.createAresta() //armazenar as arestas ponto inicial e final
-    this.arestasSRT = this.calculaArestasSRT();
-    [this.arestasCompletaSRT, this.yMin, this.yMax] = this.createArestaCompleta(); //NO SRT
-    this.scanLinesFace = this.createScanlinesFace();
-    this.iluminacaoTotal = this.calcularIluTotal(iluminacaoKa,
-                                                  iluminacaoKd, 
-                                                  iluminacaoKs, 
-                                                  iluminacaoN);
-  };
-  createAresta() {
-    let arestas = [];
-    for (let i = 0; i < this.pontos.length-1; i++) {
-      let pontoInicial = this.pontos[i];
-      let pontoFinal = this.pontos[i+1];
-      arestas.push([pontoInicial, pontoFinal]);
-    }
-    arestas.push([this.pontos[this.pontos.length-1], this.pontos[0]]);
-    return arestas;
-  };
-  createArestaCompleta() {
-    let lenI = this.arestasSRT.length;
-    let yMin = Infinity;
-    let yMax = -Infinity;
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasSRT[i];
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let ytestado = aresta[j][1];
-        if (ytestado < yMin) {
-          yMin = ytestado;
-        }
-        if (ytestado > yMax) {
-          yMax = ytestado;
-        }
-      }
-    }
-
-    let novasArestas = [];
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let novaAresta = [];
-      let p0 = this.arestasSRT[i][0];
-      let p1 = this.arestasSRT[i][1];
-
-
-      if (p0[1] < p1[1]) {
-        let deltaX = p1[0] - p0[0];
-        let deltaY = p1[1] - p0[1];
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
-        let taxaXIncremento = deltaX / deltaY;
-        let npx = p0[0];
-        let npy = p0[1];
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
-        }
-        //novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
-      } else {
-        let deltaX = p0[0] - p1[0];
-        let deltaY = p0[1] - p1[1];
-        novaAresta.push([Math.round(p0[0]), Math.round(p0[1])])
-        let taxaXIncremento = deltaX / deltaY;
-        let npx = p1[0];
-        let npy = p1[1];
-        for (let j = 1; j < deltaY; j++) {
-            npx += taxaXIncremento;
-            npy += 1; 
-            novaAresta.push([Math.round(npx), Math.round(npy)])  
-        }
-        novaAresta.push([Math.round(p1[0]), Math.round(p1[1])])
-      }
-      novasArestas.push(novaAresta);      
-    }
-    return [novasArestas, Math.round(yMin), Math.round(yMax)];
-  };
-  createScanlinesFace() {
-
-    // INICIALIZAR SCANLINES [Y, [X...]]
-    let vetScanLinesFace = [];
-    let aux = this.yMin
-    for (let i = this.yMin; i <= this.yMax; i++) {
-      vetScanLinesFace.push([aux, []]);
-      aux++;
-    }
-    
-    let lenI = this.arestasCompletaSRT.length;
-
-    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
-    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
-      let aresta = this.arestasCompletaSRT[i];
-      let lenJ = aresta.length;
-      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
-        let lenK = vetScanLinesFace.length;
-        let pontoAresta = aresta[j];        
-        
-        for (let k = 0; k < lenK; k++) {
-          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
-            vetScanLinesFace[k][1].push(pontoAresta[0]);
-          }
-        }
-      }
-    }
-    // ORDENAR VETOR Xs EM SCANLINES [Y, [X1, X2, ... Xn]]
-    for (let i = 0; i < vetScanLinesFace.length; i++) {
-      let scanline = vetScanLinesFace[i];
-      let vetXs = scanline[1];
-      vetXs = vetXs.sort((a, b) => a - b);
-      scanline[1] = vetXs;
-    }
-
-    return vetScanLinesFace;
+    this.vetObservacao = calculoVetObservacaoUnitario(this.centroide);
+    this.boolVisibilidadeNormal = this.calculaVisibilidadeNormal();
   };
   calculaCentroide() {
     let somaX = 0;
@@ -374,132 +345,474 @@ class faceClass {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
     return distancia;
   };
-  calculaVetorNormal() {
-
-    let vetP2P3 = [this.pontos[2][0] - this.pontos[1][0],
-                    this.pontos[2][1] - this.pontos[1][1],
-                    this.pontos[2][2] - this.pontos[1][2]];
-                    
-    let vetP2P1 = [this.pontos[0][0] - this.pontos[1][0], 
-                    this.pontos[0][1] - this.pontos[1][1], 
-                    this.pontos[0][2] - this.pontos[1][2]];
-    //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
-    let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
-    return vetorNormal;    
-  }
-  calculoVetObservacao() {
-    let vetObservacao = [vetVrp[0] - this.centroide[0], 
-                         vetVrp[1] - this.centroide[1], 
-                         vetVrp[2] - this.centroide[2]];
-    return vetObservacao;
-  }
-  calulaVisibilidadeNormal(){
-    let vetObservacaoUnitario = vetorUnitario(this.vetObservacao);
-    let produtoEscalarVar = produtoEscalar(vetObservacaoUnitario, this.vetorNormalUnitario);
+  calculaVisibilidadeNormal(){
+    let produtoEscalarVar = produtoEscalar(this.vetObservacao, this.vetorNormalUnitario);
     if (produtoEscalarVar >= 0) {
       return true;
     }
+
+    let vetNormalInverso = calculaVetorNormalInverso(this.pontos);
+    let vetorNormalUnitarioInverso = vetorUnitario(vetNormalInverso);
+    this.vetorNormalDaFace = vetNormalInverso;
+    this.vetorNormalUnitario = vetorNormalUnitarioInverso;
     return false;
   }
+};
+class faceClassCor{
+  constructor(face) {
+    this.distanciaPintor = face.distanciaPintor;
+    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;
+    this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
+    this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSRT);//NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRT);
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
+  };
+  pontos2Srt(pontos) {
+    let pontosSRT = addFatH(pontos);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    pontosSRT = recorte2D(pontosSRT) ;
+    return pontosSRT;
+  };
   calculaArestasSRT() {
-    let arestas = this.arestas;
-    let novoArray = [];
-    let novoPonto = [];
-    for (let i = 0; i < arestas.length; i++) {
-      novoPonto = addFatH(arestas[i]);
-      novoPonto = pontoSRUtoSRT(novoPonto);
-      novoPonto = removeFatH(novoPonto);
-      novoArray.push(novoPonto);
+    let arestasSRT = [];
+    let len = this.pontosSRT.length;
+    for (let i = 0; i < len; i++) {
+      let p0 = this.pontosSRT[i];
+      let p1 = this.pontosSRT[(i + 1) % len];
+      arestasSRT.push([p0, p1]);
     }
-    return novoArray;
+    return arestasSRT;
+  };
+  createArestaCompleta(arestasSRT) {
+    let lenI = arestasSRT.length;
+    let novasArestas = [];
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let p0 = arestasSRT[i][0];
+      let p1 = arestasSRT[i][1];
+
+
+      if (p0[1] <= p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        let npz = p0[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])   
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        let npz = p1[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])  
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+      }
+      novasArestas.push(novaAresta);      
+    }
+
+    return novasArestas;
+  };
+  createScanlinesFace(arestasCompletaSRT) {
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
+    }
+    let lenI = arestasCompletaSRT.length;
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
+    }
+    return vetScanLinesFace;
+  };
+};
+class faceClassConstante{
+  constructor(face, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+
+    this.distanciaPintor = face.distanciaPintor;
+    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
+    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
+                                            iluminacaoKd, 
+                                            iluminacaoKs, 
+                                            iluminacaoN,
+                                            face.centroide,
+                                            face.vetorNormalUnitario,
+                                            face.vetObservacao);
+    this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
+    this.arestasSRT = this.calculaArestasSRT();
+    this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSRT);//NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRT);
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
+  };
+  pontos2Srt(pontos) {
+    let pontosSRT = addFatH(pontos);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    pontosSRT = recorte2D(pontosSRT) ;
+    return pontosSRT;
+  };
+  calculaArestasSRT() {
+    let arestasSRT = [];
+    let len = this.pontosSRT.length;
+    for (let i = 0; i < len; i++) {
+      let p0 = this.pontosSRT[i];
+      let p1 = this.pontosSRT[(i + 1) % len];
+      arestasSRT.push([p0, p1]);
+    }
+    return arestasSRT;
+  };
+  createArestaCompleta(arestasSRT) {
+    let lenI = arestasSRT.length;
+    let novasArestas = [];
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let p0 = arestasSRT[i][0];
+      let p1 = arestasSRT[i][1];
+
+
+      if (p0[1] <= p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        let npz = p0[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])   
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        let npz = p1[2];
+        for (let j = 0; j < deltaY; j++) {
+            novaAresta.push([Math.round(npx), Math.round(npy), npz])  
+            npx += taxaXIncremento;
+            npz += taxaZIncremento;
+            npy += 1; 
+        }
+      }
+      novasArestas.push(novaAresta);      
+    }
+
+    return novasArestas;
+  };
+  createScanlinesFace(arestasCompletaSRT) {
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
+    }
+    let lenI = arestasCompletaSRT.length;
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
+    }
+    return vetScanLinesFace;
+  };
+};
+class faceClassGourad{
+  constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+
+    this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
+    this.distanciaPintor = face.distanciaPintor;
+    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
+    this.iluminacaoPontos = this.calculaIluminacaoPontos(iluminacaoKa, 
+                                                          iluminacaoKd, 
+                                                          iluminacaoKs, 
+                                                          iluminacaoN,
+                                                          this.vetorNormalMedio,
+                                                          face.pontos,
+                                                          face.vetObservacao);
+  
+    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,iluminacaoKd, iluminacaoKs, iluminacaoN,face.centroide,face.vetorNormalUnitario,face.vetObservacao); // [ [p1, iluP1], [p2, iluP2], [p3, iluP3], [p4, iluP4] ]
+    this.pontosSrtIluminados = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
+    this.arestasSrtIluminada = this.calculaArestasSRT(this.pontosSrtIluminados);
+    this.arestasCompletaSRTiluminada = this.createArestaCompleta(this.arestasSrtIluminada); //NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRTiluminada);
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRTiluminada);
+  };
+
+  calculaIluminacaoPontos(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN,vetorNormalMedio, pontos, vetObservacao) {
+    let iluminacaoPontos = [];
+    for (let i = 0; i < pontos.length; i++) {
+      let ponto = pontos[i];
+      let vetorNormal = vetorNormalMedio[i];
+      let iluminacaoPonto = calcularIluTotal(iluminacaoKa,     // [iluP1, iluP2, iluP3, iluP4]
+                                              iluminacaoKd, 
+                                              iluminacaoKs, 
+                                              iluminacaoN,
+                                              ponto, // Gourad, NO PONTO !
+                                              vetorNormal,
+                                              vetObservacao);      
+      iluminacaoPontos.push(iluminacaoPonto); 
+    }
+    return iluminacaoPontos;
   }
-  calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN) {
-
-    if (tipoSombreamento == 'Nenhum') {
-      return 255;
-    };
-
-    let iluTotal = iluAmbiente*iluminacaoKa;
-
-    if (iluTotal>=255){
-      return 255;
+  pontos2Srt(pontos) {
+    let pontosSRT = addFatH(pontos);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    let pontosIluminadosSRT = [pontosSRT, this.iluminacaoPontos];
+    pontosIluminadosSRT = recorte2DGourad(pontosIluminadosSRT) ;
+    return pontosIluminadosSRT;
+  };
+  calculaArestasSRT(pontosSrtIluminados) {
+    let arestasSrtIluminada = [];
+    let len = pontosSrtIluminados[0].length;
+    for (let i = 0; i < len; i++) {
+      let p0 = pontosSrtIluminados[0][i];
+      let p0ilu = pontosSrtIluminados[1][i];
+      let p1 = pontosSrtIluminados[0][(i + 1) % len];
+      let p1ilu = pontosSrtIluminados[1][(i + 1) % len];
+      arestasSrtIluminada.push([[p0, p1], [p0ilu, p1ilu]]);
     }
+    return arestasSrtIluminada;
+  };
+  createArestaCompleta(arestasSrtIluminada) {
 
-    let vetorLuz = [xLampada - this.centroide[0],
-                    yLampada - this.centroide[1],
-                    zLampada - this.centroide[2]];
+    let lenI = arestasSrtIluminada.length;
+    let novasArestas = [];
+    
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let aresta = arestasSrtIluminada[i][0];
+      let arestaIlu = arestasSrtIluminada[i][1];
 
-    let vetorLuzUnitario = vetorUnitario(vetorLuz);
+      let p0 = aresta[0];
+      let p0Ilu = arestaIlu[0];
+      let p1 = aresta[1];
+      let p1Ilu = arestaIlu[1];
 
-    let escalarNL = produtoEscalar(this.vetorNormalUnitario,vetorLuzUnitario)
-    let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
-    if (iluDifusa < 0) {
-      return iluTotal;
+      if (p0[1] <= p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
+        let deltaIlu = p1Ilu - p0Ilu;
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let taxIluIncremento = deltaIlu / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        let npz = p0[2];
+        let npIlu = p0Ilu; 
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          npIlu += taxIluIncremento;
+        }
+
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
+        let deltaIlu = p0Ilu - p1Ilu;
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let taxIluIncremento = deltaIlu / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        let npz = p1[2];
+        let npIlu = p1Ilu;
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])    
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          npIlu += taxIluIncremento;
+        }
+      }
+      novasArestas.push(novaAresta);      
     }
-    iluTotal += iluDifusa;
-
-    // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
-    //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
-    let vetorR = [2*escalarNL*this.vetorNormalUnitario[0] - vetorLuzUnitario[0],
-                  2*escalarNL*this.vetorNormalUnitario[1] - vetorLuzUnitario[1],
-                  2*escalarNL*this.vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
-    let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(this.vetObservacao)) ** iluminacaoN);
-    if (iluEspecular < 0) {
-      return iluTotal;
+    return novasArestas;
+  };
+  createScanlinesFace(arestasCompletaSRT) {
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
     }
-    iluTotal += iluEspecular;
-    return iluTotal
-  }
-}
+    let lenI = arestasCompletaSRT.length;
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
+    }
+    return vetScanLinesFace;
+  };
+};
+class ZBuffer{
+  constructor(u,v) {
+    this.zBuffer = this.createZBuffer(u,v);
+  };
+  createZBuffer(u,v) {
+    let zBuffer = [];
+    for (let i = 0; i < u; i++) {
+      zBuffer.push([]);
+      for (let j = 0; j < v; j++) {
+        zBuffer[i].push(-Infinity);
+      }
+    }
+    return zBuffer;
+  };
+  getZBuffer(x,y) {
+    return this.zBuffer[x][y];
+  };
+  updateZBuffer(x,y,z) {
+    this.zBuffer[x][y] = z;
+  };
+};
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
-  var visao = 'axonometrica';
-  var vetMalha = []
-  
-  /// camera 
-  var xMin = document.getElementById('xMinSRU').value || -20;
-  var xMax = document.getElementById('xMaxSRU').value || 20;
-  var yMin = document.getElementById('yMinSRU').value || -15;
-  var yMax = document.getElementById('yMaxSRU').value || 15;
-  var uMin = 0;
-  var uMax = 1099;
-  var vMin = 0;
-  var vMax = 699;
-  var dp = 40;
-  var viewUp = [0, 1, 0];
-  
-  var xVrp = document.getElementById('xVrp').value || 0;
-  var yVrp = document.getElementById('yVrp').value || 0;
-  var zVrp = document.getElementById('zVrp').value || 0;
-  
-  var vetVrp = [xVrp,yVrp,zVrp];
-  
-  var xP = document.getElementById('xP').value || 0;
-  var yP = document.getElementById('yP').value || 0;
-  var zP = document.getElementById('zP').value || 0;
-  
-  var vetP = [xP,yP,zP];
-  var fatH = 1;
-  
-  //Tamanho dos pontos de controle
-  var lenPontosControle = document.getElementById('tamPC').value || 4;
-  
-  //Index do ponto de controle selecionado
-  var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
-                      parseInt(document.getElementById('indexJPC').value) || 0]; 
+var visao = document.getElementById('visao').value || 'axonometrica';
+var vetMalha = []
 
-  var nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;
-    
-  //eixo
-  var eixoBool = true;
-  var eixoPCverde = true;
-  //ILUMINACAO
+/// camera 
+var xMin = document.getElementById('xMinSRU').value || -20;
+var xMax = document.getElementById('xMaxSRU').value || 20;
+var yMin = document.getElementById('yMinSRU').value || -15;
+var yMax = document.getElementById('yMaxSRU').value || 15;
 
-  var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
-  var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
-  var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
-  var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
-  var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+/*
+var uMin = 0;
+var uMax = 1099;
+var vMin = 0;
+var vMax = 699;
+*/
+var uMin = parseInt(document.getElementById('uMinW').value) || 0;
+var uMax = parseInt(document.getElementById('uMaxW').value) || 1299;
+var vMin = parseInt(document.getElementById('vMinW').value) || 0;
+var vMax = parseInt(document.getElementById('vMaxW').value) || 699;
+
+var dp = 40;
+var viewUp = [0, 1, 0];
+
+var uMinViewport = document.getElementById('uMin').value || 0;
+var uMaxViewport = document.getElementById('uMax').value || 1299;
+var vMinViewport = document.getElementById('vMin').value || 0;
+var vMaxViewport = document.getElementById('vMax').value || 699;
+
+var xVrp = document.getElementById('xVrp').value || 0;
+var yVrp = document.getElementById('yVrp').value || 0;
+var zVrp = document.getElementById('zVrp').value || 0;
+
+var vetVrp = [xVrp,yVrp,zVrp];
+
+var xP = document.getElementById('xP').value || 0;
+var yP = document.getElementById('yP').value || 0;
+var zP = document.getElementById('zP').value || 0;
+
+var vetP = [xP,yP,zP];
+var fatH = 1;
+
+//Tamanho dos pontos de controle
+var lenPontosControle = document.getElementById('tamPC').value || 4;
+
+//Index do ponto de controle selecionado
+var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,  
+                    parseInt(document.getElementById('indexJPC').value) || 0]; 
+
+
+var nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
+var nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
+  
+//eixo
+var eixoBool = true;
+var eixoPCverde = true;
+//ILUMINACAO
+
+var iluAmbiente = parseInt(document.getElementById('iluAmbiente').value) || 0;
+var iluLampada = parseInt(document.getElementById('iluLampada').value) || 0;
+var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
+var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
+var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
 } ////////////////////////////////////////////////
   
@@ -518,6 +831,25 @@ function removeFatH(vetor) {
 }/////////////////////////////////////////////////////////////////////
 
 {//////// FUNCOES MATEMATICAS ////////////////////////////////////////////////
+
+function getMinMax(arestas) {
+  let yMin = Infinity;
+  let yMax = -Infinity;
+  for (let i = 0; i < arestas.length; i++) { // PERCORRE AS ARESTAS
+    let aresta = arestas[i];
+    for (let j = 0; j < aresta.length; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+      let ytestado = aresta[j][1];
+      if (ytestado < yMin) {
+        yMin = ytestado;
+      }
+      if (ytestado > yMax) {
+        yMax = ytestado;
+      }
+    }
+  }
+  return [yMin, yMax];
+} 
+
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
@@ -569,23 +901,63 @@ function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
 }
 
+// VETOR o OU s
+function calculoVetObservacaoUnitario(centroide) {
+  let vetObservacao = [vetVrp[0] - centroide[0], 
+                       vetVrp[1] - centroide[1], 
+                       vetVrp[2] - centroide[2]];
+  return vetorUnitario(vetObservacao);
+}
+
+function calculaVetorNormal(pontos) {
+
+  let vetP2P3 = [pontos[2][0] - pontos[1][0],
+                  pontos[2][1] - pontos[1][1],
+                  pontos[2][2] - pontos[1][2]];
+                  
+  let vetP2P1 = [pontos[0][0] - pontos[1][0], 
+                  pontos[0][1] - pontos[1][1], 
+                  pontos[0][2] - pontos[1][2]];
+  //let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+  let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+  return vetorNormal;    
+}
+
+function calculaVetorNormalInverso(pontos) {
+
+  let vetP2P3 = [pontos[2][0] - pontos[1][0],
+                  pontos[2][1] - pontos[1][1],
+                  pontos[2][2] - pontos[1][2]];
+                  
+  let vetP2P1 = [pontos[0][0] - pontos[1][0], 
+                  pontos[0][1] - pontos[1][1], 
+                  pontos[0][2] - pontos[1][2]];
+  let vetorNormal = produtoVetorial(vetP2P3, vetP2P1);
+  //let vetorNormal = produtoVetorial(vetP2P1, vetP2P3);
+  return vetorNormal;    
+}
+
 }/////////////////////////////////////////////////////////////////////
+
+
 
 {//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
 function renderiza() {
+  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   printEixo3d();
+  drawViewport();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     drawGridBspline(malha);
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
-}
-  
-}
+  }
+  drawPCselecionado();
+};
 function drawLine(x1, y1, x2, y2, color = 'black') {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -594,7 +966,7 @@ function drawLine(x1, y1, x2, y2, color = 'black') {
   ctx.lineTo(x2, y2); // Desenha até o ponto final
   ctx.strokeStyle = color; // Define a cor da linha
   ctx.stroke(); // Renderiza a linha
-}
+};
 function printEixo3d(){
   let eixoXSRU = [[0, 0, 0, 1], [10, 0, 0, 1]];
   let eixoYSRU = [[0, 0, 0, 1], [0, 10, 0, 1]];
@@ -616,21 +988,30 @@ function printEixo3d(){
     ctx.fillText('Y', eixoYSRT[1][0], eixoYSRT[1][1]);
     ctx.fillText('Z', eixoZSRT[1][0], eixoZSRT[1][1]);
   } 
-}
-
-
-
-
+};
+function drawViewport() { 
+  var canvas = document.getElementById('viewport');
+  var context = canvas.getContext('2d');
+  context.beginPath();
+  context.rect(uMinViewport, vMinViewport, uMaxViewport - uMinViewport, vMaxViewport - vMinViewport);
+  context.strokeStyle = 'black';
+  context.lineWidth = 0.5;
+  context.stroke();
+};
 function getFaces(grid) {
-  let faces = [];
-  for (let i = 0; i < grid.length - 1; i++) {
-      for (let j = 0; j < grid[i].length - 1; j++) {
-          let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
-          faces.push(face);
-      }
-  }
-  return faces;
-}
+  let lenI = grid.length - 1;
+  let lenJ = grid[0].length - 1;
+  let matrizFaces = [];
+  for (let i = 0; i < lenI; i++) {
+    let faces = [];
+    for (let j = 0; j < lenJ; j++) {
+      let face = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]];
+      faces.push(new faceClass(face));
+    }
+    matrizFaces.push(faces);
+  }  
+  return matrizFaces;
+};
 function drawMalha(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
       for (let j = 0; j < gridControle[i].length - 1; j++) {
@@ -642,7 +1023,7 @@ function drawMalha(gridControle) {
           drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
       }
   }
-}
+};
 function paintFace(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -650,68 +1031,176 @@ function paintFace(scanLines, color) {
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
-    let pontosX = scanLines[i][1];
-    let lenPontosX = pontosX.length;
-    let x0 = pontosX[0];
-    let x1 = pontosX[lenPontosX - 1];
-    if (x0 == x1) {
-      ctx.fillRect(x0, pontoY, 1, 1);
-    } else {
-      for (let x = x0+1; x < x1; x++) {
-        ctx.fillRect(x, pontoY, 1, 1);
-      }
-    }
-  }
-}
-
+    let vetPontos = scanLines[i][1];
+    let lenPontos = vetPontos.length;
+    let p0 = vetPontos[0];
+    let p1 = vetPontos[lenPontos - 1];
+    let x0 = p0[0];
+    let x1 = p1[0];
+    let z0 = p0[2];
+    let z1 = p1[2];
+    let taxaZ = (z1 - z0) / (x1 - x0);
+    let pontoZ = z0;
+    if (x0 != x1) {   
+      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
+        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+          ctx.fillStyle = color;
+          ctx.fillRect(pontoX, pontoY, 1, 1);
+          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+        };
+        pontoZ += taxaZ;    
+      };
+    };
+  };
+};
+function paintFaceGouraud(scanLines) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let scanline = scanLines[i];
+    let pontoY = scanline[0];
+    let pontos = scanline[1];
+    let lenPontos = pontos.length;
+    let p0 = pontos[0];
+    let p1 = pontos[lenPontos - 1];
+    let x0 = p0[0];
+    let x1 = p1[0];
+    let z0 = p0[2];
+    let z1 = p1[2];
+    let taxaZ = (z1 - z0) / (x1 - x0);
+    let pontoZ = z0;
+    let cor0 = p0[3];
+    let cor1 = p1[3];
+    let taxaCor = (cor1 - cor0) / (x1 - x0);
+    let cor = cor0;
+    if (x0 != x1) {
+      for (let pontoX = x0; pontoX < x1; pontoX++) {
+        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+          ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
+          ctx.fillRect(pontoX, pontoY, 1, 1);
+          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+        };
+        cor += taxaCor;
+        pontoZ += taxaZ;
+      };
+    };
+  };
+};
 function paintAresta(scanLines, color) {
+
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
     let pontoY = scanLines[i][0];
-    let pontosX = scanLines[i][1];
-    let lenPontosX = pontosX.length;
-    for (let j = 0; j < lenPontosX; j++) {
-      ctx.fillRect(pontosX[j], pontoY, 1, 1);
-    }
-  }
-}
-
+    let pontos = scanLines[i][1];
+    let lenPontos = pontos.length;
+    for (let j = 0; j < lenPontos; j++) {
+      let pontoX = pontos[j][0];
+      let pontoZ = pontos[j][2];
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+      };
+    };
+  };
+};
+function paintArestaGouraud(scanLines) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let pontoY = scanLines[i][0];
+    let pontos = scanLines[i][1];
+    let lenPontos = pontos.length;
+    for (let j = 0; j < lenPontos; j++) {
+      let pontoX = pontos[j][0];
+      let pontoZ = pontos[j][2];
+      let corIlu = pontos[j][3];
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        let cor = `rgb(${corIlu},${corIlu},${corIlu})`;
+        ctx.fillStyle = cor;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+      };
+    };
+  };
+};
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
-  for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
-    let face = faces[i];
-    let iluTotal = Math.round(face.iluminacaoTotal);
-    let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
-  
-    if (boolArestasVerdeVermelha) {
-      if (face.boolVisibilidadeNormal) {
-        paintAresta(face.scanLinesFace, 'green');
+
+
+  if (tipoSombreamento === 'Nenhum') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      let cor = 'white';
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        };
       } else {
-        paintAresta(face.scanLinesFace, 'red');
-      } 
-    } else {
-      paintAresta(face.scanLinesFace, cor);
-    }
+        paintAresta(face.scanLinesFace, cor);
+      };
+      if (boolPintarFaces) {
+        paintFace(face.scanLinesFace, cor);
+      };
+    };
+  };
 
-    if (boolPintarFaces) {
-      paintFace(face.scanLinesFace, cor);
-    }
-  }  
+  if (tipoSombreamento === 'Constante') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      let iluTotal = Math.round(face.iluminacaoTotal);
+      let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+  
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        };
+      } else {
+        paintAresta(face.scanLinesFace, cor);
+      };
+        
+      if (boolPintarFaces) {
+        paintFace(face.scanLinesFace, cor);
+      };
+    };
+  };
 
-
-
-}
+  if (tipoSombreamento === 'Gouraud') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        } 
+      } else{
+        paintArestaGouraud(face.scanLinesFace);
+      };
+      if (boolPintarFaces) {
+        paintFaceGouraud(face.scanLinesFace);
+      };
+      
+    };
+  };
+};
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
     for (let j = 0; j < gridControle[i].length; j++) {
         drawCircle(gridControle[i][j][0], gridControle[i][j][1], lenPontosControle, 'red');
     }
   }
-}
+};
 function drawCircle(x, y, radius, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -720,21 +1209,245 @@ function drawCircle(x, y, radius, color) {
   ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
   ctx.fillStyle = color;
   ctx.fill();
-}
+};
 function drawPCselecionado() {
   if (eixoPCverde) {
     let i = indicePCsele[0];
     let j = indicePCsele[1];
     gridObjeto = selectedMalha.gridControleSRT;
-    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'green');
+    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
   }
-}
+};
+function recorte2D(pontos) {
+
+  function testeDentroEsquerda(p) {
+      return p[0] >= uMinViewport;
+  }
+  function testeDentroDireita(p) {
+      return p[0] <= uMaxViewport;
+  }
+  function testeDentroAbaixo(p) {
+      return p[1] <= vMaxViewport;
+  }
+  function testeDentroAcima(p) {
+      return p[1] >= vMinViewport;
+  }
+
+  function intersecao(p1, p2, limite, eixo) {
+    let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+    let x2 = p2[0], y2 = p2[1], z2 = p2[2];
+
+    if (eixo === "x") {
+        let x = limite;
+        let y = y1 + (y2 - y1) * (limite - x1) / (x2 - x1);
+        let z = z1 + (z2 - z1) * (limite - x1) / (x2 - x1);
+        return [x, y, z];
+    } else if (eixo === "y") {
+        let y = limite;
+        let x = x1 + (x2 - x1) * (limite - y1) / (y2 - y1);
+        let z = z1 + (z2 - z1) * (limite - y1) / (y2 - y1);
+        return [x, y, z];
+    } 
+  }
+
+  function recorteContraBorda(pontos, testeDentro, limite, eixo) {
+      let novosPontos = [];
+
+      for (let i = 0; i < pontos.length; i++) {
+          let p0 = pontos[i];
+          let p1 = pontos[(i + 1) % pontos.length]; // Fechando o polígono
+
+          let dentro0 = testeDentro(p0);
+          let dentro1 = testeDentro(p1);
+
+          // dentro dentro -> adiciona p1
+          if (dentro0 && dentro1) {
+              novosPontos.push(p1);
+          } 
+          // dentro fora -> adiciona p1'
+          else if (dentro0 && !dentro1) {
+              novosPontos.push(intersecao(p0, p1, limite, eixo));
+          } 
+          // fora dentro -> adiciona p0' e p1
+          else if (!dentro0 && dentro1) {
+              novosPontos.push(intersecao(p0, p1, limite, eixo));
+              novosPontos.push(p1);
+          }
+      }
+      return novosPontos;
+  }
+
+  let recortado = pontos;
+  recortado = recorteContraBorda(recortado, testeDentroEsquerda, uMinViewport, "x");
+  recortado = recorteContraBorda(recortado, testeDentroDireita, uMaxViewport, "x");
+  recortado = recorteContraBorda(recortado, testeDentroAbaixo, vMaxViewport, "y");
+  recortado = recorteContraBorda(recortado, testeDentroAcima, vMinViewport, "y");
+  
+
+  return recortado;
+};
+function recorte2DGourad(pontosIluminados) {
+  let pontos = pontosIluminados[0];
+  let iluminacao = pontosIluminados[1];
+  function testeDentroEsquerda(p) {
+      return p[0] >= uMinViewport;
+  }
+  function testeDentroDireita(p) {
+      return p[0] <= uMaxViewport;
+  }
+  function testeDentroAbaixo(p) {
+      return p[1] <= vMaxViewport;
+  }
+  function testeDentroAcima(p) {
+      return p[1] >= vMinViewport;
+  }
+
+  function intersecao(p1, p2, i1, i2, limite, eixo) {
+    let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+    let x2 = p2[0], y2 = p2[1], z2 = p2[2];
+    
+    let fator = eixo === "x" ? (limite - x1) / (x2 - x1) : (limite - y1) / (y2 - y1);
+    let x = eixo === "x" ? limite : x1 + (x2 - x1) * fator;
+    let y = eixo === "y" ? limite : y1 + (y2 - y1) * fator;
+    let z = z1 + (z2 - z1) * fator;
+    let novaIlum = i1 + (i2 - i1) * fator;
+
+    return [[x, y, z], novaIlum];
+  }
+
+  function recorteContraBorda(pontos, iluminacao, testeDentro, limite, eixo) {
+      let novosPontos = [];
+      let novaIluminacao = [];
+
+      for (let i = 0; i < pontos.length; i++) {
+          let p0 = pontos[i];
+          let p1 = pontos[(i + 1) % pontos.length];
+          let i0 = iluminacao[i];
+          let i1 = iluminacao[(i + 1) % iluminacao.length];
+
+          let dentro0 = testeDentro(p0);
+          let dentro1 = testeDentro(p1);
+
+          if (dentro0 && dentro1) {
+              novosPontos.push(p1);
+              novaIluminacao.push(i1);
+          } else if (dentro0 && !dentro1) {
+              let [pInt, iInt] = intersecao(p0, p1, i0, i1, limite, eixo);
+              novosPontos.push(pInt);
+              novaIluminacao.push(iInt);
+          } else if (!dentro0 && dentro1) {
+              let [pInt, iInt] = intersecao(p0, p1, i0, i1, limite, eixo);
+              novosPontos.push(pInt);
+              novaIluminacao.push(iInt);
+              novosPontos.push(p1);
+              novaIluminacao.push(i1);
+          }
+      }
+      return [novosPontos, novaIluminacao];
+  }
+
+  let resultado = [pontos, iluminacao];
+  resultado = recorteContraBorda(...resultado, testeDentroEsquerda, uMinViewport, "x");
+  resultado = recorteContraBorda(...resultado, testeDentroDireita, uMaxViewport, "x");
+  resultado = recorteContraBorda(...resultado, testeDentroAbaixo, vMaxViewport, "y");
+  resultado = recorteContraBorda(...resultado, testeDentroAcima, vMinViewport, "y");
+
+  return resultado;
+};
 
 
 
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
+
+function obterVizinhos(i, j, matrizFaces) {
+  let vizinhos = [];
+  let linhas = matrizFaces.length;
+  let colunas = matrizFaces[i].length;
+  // Verifica o vizinho à esquerda
+  if (j > 0) {
+    vizinhos.push(matrizFaces[i][j - 1]);
+  };
+  
+  // Verifica o vizinho à direita
+  if (j < colunas - 1) {
+    vizinhos.push(matrizFaces[i][j + 1]);
+  };
+  
+  // Verifica o vizinho acima
+  if (i > 0) {
+    vizinhos.push(matrizFaces[i - 1][j]);
+  };
+  
+  // Verifica o vizinho abaixo
+  if (i < linhas - 1) {
+    vizinhos.push(matrizFaces[i + 1][j]);
+  };
+
+  // Verifica o vizinho diagonal superior esquerda
+  if (i > 0 && j > 0) {
+    vizinhos.push(matrizFaces[i - 1][j - 1]);
+  };
+  
+  // Verifica o vizinho diagonal superior direita
+  if (i > 0 && j < colunas - 1) {
+    vizinhos.push(matrizFaces[i - 1][j + 1]);
+  };
+  
+  // Verifica o vizinho diagonal inferior esquerda
+  if (i < linhas - 1 && j > 0) {
+    vizinhos.push(matrizFaces[i + 1][j - 1]);
+  };
+
+  // Verifica o vizinho diagonal inferior direita
+  if (i < linhas - 1 && j < colunas - 1) {
+    vizinhos.push(matrizFaces[i + 1][j + 1]);
+  };
+  return vizinhos;
+}
+
+
+// ILUMINAÇÃO
+function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN, centroide, vetorNormalUnitario, vetorS) {
+  
+  let iluTotal = iluAmbiente*iluminacaoKa;
+
+  if (iluTotal>=255){
+    return 255;
+  };
+
+  let vetorLuz = [xLampada - centroide[0],
+                  yLampada - centroide[1],
+                  zLampada - centroide[2]];
+
+  let vetorLuzUnitario = vetorUnitario(vetorLuz);
+
+  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
+
+  let escalarNL = produtoEscalar(vetorNormalUnitario,vetorLuzUnitario)
+  let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
+  
+  if (iluDifusa <= 0) {
+    return iluTotal;
+  }
+  iluTotal += iluDifusa;
+
+  // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
+
+  //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
+
+  let vetorR = [2*escalarNL*vetorNormalUnitario[0] - vetorLuzUnitario[0],
+                2*escalarNL*vetorNormalUnitario[1] - vetorLuzUnitario[1],
+                2*escalarNL*vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
+  let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(vetorS)) ** iluminacaoN);
+  if (iluEspecular <= 0) {
+    return iluTotal;
+  }
+  iluTotal += iluEspecular;
+  return iluTotal
+};
+// BSPLINES
 function closedBspline(pontosDeControle) {
   let n = pontosDeControle.length;
   let pontosDeControleFechado = [
@@ -745,9 +1458,20 @@ function closedBspline(pontosDeControle) {
       pontosDeControle[1]
   ];
   return pontosDeControleFechado;
-}
+};
 
-function calculateBspline(pontosDeControle) {
+function transporUmaMatriz(matriz) {
+  let matrizTransposta = [];
+  for (let i = 0; i < matriz[0].length; i++) {
+    matrizTransposta[i] = [];
+    for (let j = 0; j < matriz.length; j++) {
+      matrizTransposta[i][j] = matriz[j][i];
+    }
+  }
+  return matrizTransposta;
+};
+
+function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
   if (document.getElementById('clamped').checked) {
@@ -760,7 +1484,6 @@ function calculateBspline(pontosDeControle) {
   //pontosDeControle = closedBspline(pontosDeControle);
 
   let pontosDaCurva = [];
-
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
       let [xA, xB, xC, xD] = [
           pontosDeControle[i - 1][0], 
@@ -797,47 +1520,46 @@ function calculateBspline(pontosDeControle) {
       let b0 = (yA + 4 * yB + yC) / 6;
       let c0 = (zA + 4 * zB + zC) / 6;
       
-      
-
-      for (let j = 0; j < nSegmentos; j++) {
+      if (i==1){
+        for (let j = 0; j <= nSegmentos; j++) {
           let t = j / nSegmentos;
           let x = ((a3 * t + a2) * t + a1) * t + a0;
           let y = ((b3 * t + b2) * t + b1) * t + b0;
           let z = ((c3 * t + c2) * t + c1) * t + c0;
+  
           pontosDaCurva.push([x, y, z]);
+        }
+      } else {
+        for (let j = 1; j <= nSegmentos; j++) {
+          let t = j / nSegmentos;
+          let x = ((a3 * t + a2) * t + a1) * t + a0;
+          let y = ((b3 * t + b2) * t + b1) * t + b0;
+          let z = ((c3 * t + c2) * t + c1) * t + c0;
+  
+          pontosDaCurva.push([x, y, z]);
+        }
       }
-  }
-  return pontosDaCurva;
-}
 
+  }
+
+  return pontosDaCurva;
+};
 function createGridBspline(gridSRUPontosControle){
   let gridBspline = [];
-  let auxPontosDeControle = [];
   let lengthI = gridSRUPontosControle.length;
-  let lengthJ = gridSRUPontosControle[0].length;
-  //PARA N
   // PEGAR OS INDICES PARA LINHAS
   for (let i = 0; i < lengthI; i++) {
-      auxPontosDeControle = [];
-      for (let j = 0; j < lengthJ; j++) {
-          auxPontosDeControle.push(gridSRUPontosControle[i][j]);
-      } 
-      gridBspline.push(calculateBspline(auxPontosDeControle));
+    gridBspline.push(calculateBspline(gridSRUPontosControle[i], nSegmentosU));
   }
+  gridBspline = transporUmaMatriz(gridBspline);
   lengthI = gridBspline.length;
-  lengthJ = gridBspline[0].length;
-
   let gridBsplineFinal = [];
-  for (let j = 0; j < lengthJ; j++) {
-      auxPontosDeControle = [];
-      for (let i = 0; i < lengthI; i++) {
-          auxPontosDeControle.push(gridBspline[i][j]);
-      } 
-      gridBsplineFinal.push(calculateBspline(auxPontosDeControle));
+  for (let i = 0; i < lengthI; i++) {
+    gridBsplineFinal.push(calculateBspline(gridBspline[i], nSegmentosV));
   }
   return gridBsplineFinal;
-}
-
+};
+// GRID PONTOS DE CONTROLE
 function matrizPontosControle(pontos, m, n) {
   function calculoTaxaPontos(p0, p1, x) {
       let taxaX = (p1[0] - p0[0]) / (x - 1);
@@ -878,8 +1600,10 @@ function matrizPontosControle(pontos, m, n) {
       matrizPontosControleControle.push(ponto);
   }
   return matrizPontosControleControle;
-}
+};
 
+
+// ATUALIZAR PONTOS CONTROLE E PROGRAMA
 function atualizarPCSelecionado(click){
   let matriz = selectedMalha.gridControleSRT;
   let menorDistancia = Infinity;
@@ -898,25 +1622,21 @@ function atualizarPCSelecionado(click){
   }
   let pontoMaisPertoSRU = selectedMalha.gridControleSRU[indicePCsele[0]][indicePCsele[1]];
   return pontoMaisPertoSRU;
-}
-
+};
 function updateProgramaTotal() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     malha.updateReset();
   }
   renderiza();
-  drawPCselecionado();
-}
-
+};
 function updatePrograma() {  
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
     malha.update();
   }
   renderiza();
-  drawPCselecionado();
-}
+};
 
 }/////////////////////////////////////////////////////////////////////
 
@@ -1039,7 +1759,6 @@ function pontoSRUtoSRT(pontos) {
       let pontoSRT = projPersp(pontoSRU);
       novosPontosSRT.push(pontoSRT);
     }
-    novosPontosSRT = removeFatH(novosPontosSRT);
     return novosPontosSRT;
 
   } else if (visao == 'axonometrica') {
@@ -1084,18 +1803,20 @@ let ponto4 = [1,0,3, fatH];
 
 ///// teste 
 
-let m = 4
-let n = 4
+let m = 4;
+let n = 4;
 
 var vetMalha = [];
 
 let ponto1 = [0,15,0];
-let ponto2 = [0,10,0];
-let ponto3 = [10,10,0];
+let ponto2 = [0,-15,0];
+let ponto3 = [10,-15,0];
 let ponto4 = [10,15,0];
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
+
 malha1 = new malha(pontosMalha, m, n, 1111);
 vetMalha.push(malha1);
+
 
 ponto1 = [0,0,0];
 ponto2 = [0,0,10];
@@ -1115,9 +1836,11 @@ var tipoSombreamento = document.getElementById('tipoSombreamento').value;
 var boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
 var boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
+var zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
+
 /// ATUALIZAÇAO /////////////////
 
-
+//inicializaPrograma();
 updateProgramaTotal();
 
 {////////////////////////////////////////// HTML //////////////////////////////////////////
@@ -1142,8 +1865,9 @@ function onFieldChange() {
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
   eixoBool = document.getElementById('eixo3d').checked;
   eixoPCverde = document.getElementById('pcVerde').checked;
-  lenPontosControle = document.getElementById('tamPC').value || 4;
-  nSegmentos = parseInt(document.getElementById('numSegmentos').value) || 1;  
+  lenPontosControle = document.getElementById('tamPC').value || 4; 
+  nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
+  nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
   selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
@@ -1162,6 +1886,11 @@ function onFieldChange() {
   tipoSombreamento = document.getElementById('tipoSombreamento').value;
   boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
   boolPintarFaces = document.getElementById('boolPintarFaces').checked;
+
+  uMinViewport = parseInt(document.getElementById('uMin').value) || 0;
+  uMaxViewport = parseInt(document.getElementById('uMax').value) || 0;
+  vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
+  vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
 
   updatePrograma();
 }
@@ -1186,6 +1915,12 @@ function onFieldChangeReset(){
   xMax = parseInt(document.getElementById('xMaxSRU').value) || 0;
   yMin = parseInt(document.getElementById('yMinSRU').value) || 0;
   yMax = parseInt(document.getElementById('yMaxSRU').value) || 0;
+
+  uMin = parseInt(document.getElementById('uMinW').value) || 0;
+  uMax = parseInt(document.getElementById('uMaxW').value) || 0;
+  vMin = parseInt(document.getElementById('vMinW').value) || 0;
+  vMax = parseInt(document.getElementById('vMaxW').value) || 0;
+
   updateProgramaTotal();
 }
 
@@ -1205,6 +1940,16 @@ document.getElementById('xMinSRU').addEventListener('input', onFieldChangeReset)
 document.getElementById('xMaxSRU').addEventListener('input', onFieldChangeReset);
 document.getElementById('yMinSRU').addEventListener('input', onFieldChangeReset);
 document.getElementById('yMaxSRU').addEventListener('input', onFieldChangeReset);
+
+document.getElementById('uMinW').addEventListener('input', onFieldChangeReset);
+document.getElementById('uMaxW').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMinW').addEventListener('input', onFieldChangeReset);
+document.getElementById('vMaxW').addEventListener('input', onFieldChangeReset);
+
+document.getElementById('uMin').addEventListener('input', onFieldChange);
+document.getElementById('uMax').addEventListener('input', onFieldChange);
+document.getElementById('vMin').addEventListener('input', onFieldChange);
+document.getElementById('vMax').addEventListener('input', onFieldChange);
 
 document.getElementById('visao').addEventListener('input', onFieldChange);
 document.getElementById('xVrp').addEventListener('input', onFieldChange);
@@ -1233,7 +1978,8 @@ document.getElementById('indexJPC').addEventListener('input', onFieldChange);
 document.getElementById('xPC').addEventListener('input', onFieldChangePCselecionado);
 document.getElementById('yPC').addEventListener('input', onFieldChangePCselecionado);
 document.getElementById('zPC').addEventListener('input', onFieldChangePCselecionado);
-document.getElementById('numSegmentos').addEventListener('input', onFieldChange);
+document.getElementById('nSegmentosU').addEventListener('input', onFieldChange);
+document.getElementById('nSegmentosV').addEventListener('input', onFieldChange);
 
 //RESETA MALHA
 document.getElementById('p1X').addEventListener('input', onFieldChangeReset);

@@ -814,9 +814,6 @@ var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
-
-var zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
-
 } ////////////////////////////////////////////////
   
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
@@ -942,8 +939,11 @@ function calculaVetorNormalInverso(pontos) {
 
 }/////////////////////////////////////////////////////////////////////
 
+
+
 {//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
 function renderiza() {
+  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1041,17 +1041,17 @@ function paintFace(scanLines, color) {
     let z1 = p1[2];
     let taxaZ = (z1 - z0) / (x1 - x0);
     let pontoZ = z0;
-    if (x0 == x1) {
-      //ctx.fillRect(x0, pontoY, 1, 1);
-    } else {      
+    if (x0 != x1) {   
       for (let pontoX = x0+1; pontoX < x1; pontoX++) {
-
+        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+          ctx.fillStyle = color;
           ctx.fillRect(pontoX, pontoY, 1, 1);
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-
-      }
-    }
-  }
+        };
+        pontoZ += taxaZ;    
+      };
+    };
+  };
 };
 function paintFaceGouraud(scanLines) {
   var canvas = document.getElementById('viewport');
@@ -1067,23 +1067,29 @@ function paintFaceGouraud(scanLines) {
     let p1 = pontos[lenPontos - 1];
     let x0 = p0[0];
     let x1 = p1[0];
+    let z0 = p0[2];
+    let z1 = p1[2];
+    let taxaZ = (z1 - z0) / (x1 - x0);
+    let pontoZ = z0;
     let cor0 = p0[3];
     let cor1 = p1[3];
     let taxaCor = (cor1 - cor0) / (x1 - x0);
     let cor = cor0;
-    if (x0 == x1) {
-      ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
-      ctx.fillRect(x0, pontoY, 1, 1);
-    } else {
-      for (let x = x0+1; x < x1; x++) {
-        ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
-        ctx.fillRect(x, pontoY, 1, 1);
+    if (x0 != x1) {
+      for (let pontoX = x0; pontoX < x1; pontoX++) {
+        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+          ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
+          ctx.fillRect(pontoX, pontoY, 1, 1);
+          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+        };
         cor += taxaCor;
-      }
-    }
-  }
+        pontoZ += taxaZ;
+      };
+    };
+  };
 };
 function paintAresta(scanLines, color) {
+
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
@@ -1095,7 +1101,10 @@ function paintAresta(scanLines, color) {
     for (let j = 0; j < lenPontos; j++) {
       let pontoX = pontos[j][0];
       let pontoZ = pontos[j][2];
-      ctx.fillRect(pontoX, pontoY, 1, 1);
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+      };
     };
   };
 };
@@ -1108,17 +1117,22 @@ function paintArestaGouraud(scanLines) {
     let pontos = scanLines[i][1];
     let lenPontos = pontos.length;
     for (let j = 0; j < lenPontos; j++) {
-      let cor = `rgb(${pontos[j][3]},${pontos[j][3]},${pontos[j][3]})`;
-      ctx.fillStyle = cor;
-      ctx.fillRect(pontos[j][0], pontoY, 1, 1);
-    }
-  }
+      let pontoX = pontos[j][0];
+      let pontoZ = pontos[j][2];
+      let corIlu = pontos[j][3];
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        let cor = `rgb(${corIlu},${corIlu},${corIlu})`;
+        ctx.fillStyle = cor;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+      };
+    };
+  };
 };
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
-  console.log(faces);
-  
+
 
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1822,6 +1836,8 @@ var tipoSombreamento = document.getElementById('tipoSombreamento').value;
 var boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
 var boolPintarFaces = document.getElementById('boolPintarFaces').checked;
 
+var zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
+
 /// ATUALIZAÇAO /////////////////
 
 //inicializaPrograma();
@@ -1876,7 +1892,6 @@ function onFieldChange() {
   vMinViewport = parseInt(document.getElementById('vMin').value) || 0;
   vMaxViewport = parseInt(document.getElementById('vMax').value) || 0;
 
-  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
   updatePrograma();
 }
 
@@ -1905,8 +1920,6 @@ function onFieldChangeReset(){
   uMax = parseInt(document.getElementById('uMaxW').value) || 0;
   vMin = parseInt(document.getElementById('vMinW').value) || 0;
   vMax = parseInt(document.getElementById('vMaxW').value) || 0;
-  
-  zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
 
   updateProgramaTotal();
 }
