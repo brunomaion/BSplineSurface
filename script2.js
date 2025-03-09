@@ -28,7 +28,7 @@ class malha {
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.visibilidadeGridControle = false;
-    this.visibilidadePC = true;
+    this.visibilidadePC = false;
   };
 
   debugPrint() {  
@@ -728,11 +728,12 @@ class faceClassGourad{
     return vetScanLinesFace;
   };
 };
-class ZBuffer{
-  constructor(u,v) {
-    this.zBuffer = this.createZBuffer(u,v);
-  };
-  createZBuffer(u,v) {
+class ZBuffer {
+  constructor(u, v) {
+    this.zBuffer = this.createZBuffer(u, v);
+  }
+
+  createZBuffer(u, v) {
     let zBuffer = [];
     for (let i = 0; i < u; i++) {
       zBuffer.push([]);
@@ -741,14 +742,22 @@ class ZBuffer{
       }
     }
     return zBuffer;
-  };
-  getZBuffer(x,y) {
-    return this.zBuffer[x][y];
-  };
-  updateZBuffer(x,y,z) {
-    this.zBuffer[x][y] = z;
-  };
-};
+  }
+
+  getZBuffer(x, y) {
+    if (x >= 0 && x < this.zBuffer.length && y >= 0 && y < this.zBuffer[0].length) {
+      return this.zBuffer[x][y];
+    } else {
+      return -Infinity; // Retorna um valor padrão se os índices estiverem fora dos limites
+    }
+  }
+
+  updateZBuffer(x, y, z) {
+    if (x >= 0 && x < this.zBuffer.length && y >= 0 && y < this.zBuffer[0].length) {
+      this.zBuffer[x][y] = z;
+    }
+  }
+}
 
 {//////// VARIRAVEIS GLOBAIS ////////////////
 var visao = document.getElementById('visao').value || 'axonometrica';
@@ -2116,3 +2125,60 @@ document.getElementById('viewport').addEventListener('click', function(event) {
 
 
 }/////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////// ADD MALHA /////////////
+var modal = document.getElementById("modalAdicionarMalha");
+var btn = document.getElementById("adicionarMalha");
+var span = document.getElementsByClassName("close")[0];
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+span.onclick = function() {
+  modal.style.display = "none";
+}
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+function updateMalhaSelector() {
+  const selectMalha = document.getElementById("malhaSelecionada");
+  selectMalha.innerHTML = "";
+  vetMalha.forEach((malha, index) => {
+    let option = document.createElement("option");
+    option.value = index;
+    option.textContent = `Malha ${index + 1}`;
+    selectMalha.appendChild(option);
+  });
+  selectMalha.selectedIndex = vetMalha.length - 1;
+  selectedMalha = vetMalha[vetMalha.length - 1];
+  atualizarInputsMalha(selectedMalha);
+}
+document.getElementById('salvarMalha').addEventListener('click', function() {
+  const p1 = [
+    parseFloat(document.getElementById('p1xAdd').value),
+    parseFloat(document.getElementById('p1yAdd').value),
+    parseFloat(document.getElementById('p1zAdd').value)
+  ];
+  const p2 = [
+    parseFloat(document.getElementById('p2xAdd').value),
+    parseFloat(document.getElementById('p2yAdd').value),
+    parseFloat(document.getElementById('p2zAdd').value)
+  ];
+  const p3 = [
+    parseFloat(document.getElementById('p3xAdd').value),
+    parseFloat(document.getElementById('p3yAdd').value),
+    parseFloat(document.getElementById('p3zAdd').value)
+  ];
+  const p4 = [
+    parseFloat(document.getElementById('p4xAdd').value),
+    parseFloat(document.getElementById('p4yAdd').value),
+    parseFloat(document.getElementById('p4zAdd').value)
+  ];
+  const novaMalha = new malha([p1, p2, p3, p4]);
+  vetMalha.push(novaMalha);
+  modal.style.display = "none";
+  updateMalhaSelector();
+  updatePrograma();
+});
