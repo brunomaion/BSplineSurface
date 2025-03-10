@@ -318,6 +318,52 @@ class malha {
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
       return newVetFacesObj;
     };
+
+    if (tipoSombreamento == 'Phong') {
+      let matrizFaces = getFaces(grid);
+      let newVetFacesObj = []
+      // FOR PARA CADA FACE testar os pontos e criar nova face
+
+      
+      for (let i = 0; i < matrizFaces.length; i++) {
+        for (let j = 0; j < matrizFaces[i].length; j++) {
+          let faceTestada = matrizFaces[i][j];
+          let vetFacesVizinhas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
+          vetFacesVizinhas.push(faceTestada); //Propia Face
+
+          let vetorNormalMedio = []
+          //Testar pontos
+          let pontosFace = faceTestada.pontos;
+          for (let k = 0; k < pontosFace.length; k++) {
+            let pontoTestado = pontosFace[k];
+            let facesCompatilhadas = [];
+
+            for (let l = 0; l < vetFacesVizinhas.length; l++) {
+              
+              let faceVizinha = vetFacesVizinhas[l];
+              let pontosFaceCompartilhada = faceVizinha.pontos;
+               //AS Q TEM O MESMO PONTO
+              
+              for (let m = 0; m < pontosFaceCompartilhada.length; m++) {
+                let pontoFaceVizinha = pontosFaceCompartilhada[m];
+                if (pontoTestado == pontoFaceVizinha) {
+                  facesCompatilhadas.push(faceVizinha);
+                };
+              };
+            };
+
+            vetorNormalMedio.push(calculaVetorMedioFaces(facesCompatilhadas));            
+
+          };
+
+          let face = new faceClassPhong(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+          newVetFacesObj.push(face);
+        };
+      };
+      newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
+      return newVetFacesObj;
+    };
+
   };
 };
 class faceClass{
@@ -725,6 +771,152 @@ class faceClassGourad{
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }
+    return vetScanLinesFace;
+  };
+};
+class faceClassPhong{
+  constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+
+    this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
+    this.distanciaPintor = face.distanciaPintor;
+    this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
+    this.pontosSrt = this.pontos2Srt(face.pontos, this.vetorNormalMedio) //armazenar as arestas ponto inicial e final
+    this.arestasSrt = this.calculaArestasSRT(this.pontosSrt);
+    this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSrt); //NO SRT
+    [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRT);
+    this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRT);
+  };
+  pontos2Srt(pontos, vetoresNormaisPonto) {
+    let pontosSRT = addFatH(pontos);
+    pontosSRT = pontoSRUtoSRT(pontosSRT);
+    pontosSRT = removeFatH(pontosSRT);
+    let pontosSRTvetores = recorte2DPhong(pontosSRT, vetoresNormaisPonto) ;
+    return pontosSRTvetores;
+  };
+  calculaArestasSRT(pontosSRTvetores) {
+    let arestasSrt = [];
+    let len = pontosSRTvetores[0].length;
+    for (let i = 0; i < len; i++) {
+      let p0 = pontosSRTvetores[0][i];
+      let p0normal = pontosSRTvetores[1][i];
+      let p1 = pontosSRTvetores[0][(i + 1) % len];
+      let p1normal = pontosSRTvetores[1][(i + 1) % len];
+      arestasSrt.push([[p0, p1], [p0normal, p1normal]]);
+    }
+    console.log('arestasSrt', arestasSrt);
+    return arestasSrt;
+  };
+  createArestaCompleta(arestasSrt) {
+
+    let lenI = arestasSrt.length;
+    let novasArestas = [];
+    
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let novaAresta = [];
+      let aresta = arestasSrt[i][0];
+      let vetNormal = arestasSrt[i][1];
+
+      let p0 = aresta[0];
+      let p0normal = vetNormal[0];
+      let p1 = aresta[1];
+      let p1normal = vetNormal[1];
+
+      if (p0[1] <= p1[1]) {
+        let deltaX = p1[0] - p0[0];
+        let deltaY = p1[1] - p0[1];
+        let deltaZ = p1[2] - p0[2];
+        let deltaI = p1normal[0] - p0normal[0];
+        let deltaJ = p1normal[1] - p0normal[1];
+        let deltaK = p1normal[2] - p0normal[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let taxaIIncremento = deltaI / deltaY;
+        let taxaJIncremento = deltaJ / deltaY;
+        let taxaKIncremento = deltaK / deltaY;
+        let npx = p0[0];
+        let npy = p0[1];
+        let npz = p0[2];
+        let nI = p0normal[0];
+        let nJ = p0normal[1];
+        let nK = p0normal[2];
+        let nVetNormal = [nI, nJ, nK];
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, nVetNormal])  
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          nI += taxaIIncremento;
+          nJ += taxaJIncremento;
+          nK += taxaKIncremento;
+          nVetNormal = [nI, nJ, nK];
+        }
+
+      } else {
+        let deltaX = p0[0] - p1[0];
+        let deltaY = p0[1] - p1[1];
+        let deltaZ = p0[2] - p1[2];
+        let deltaI = p0normal[0] - p1normal[0];
+        let deltaJ = p0normal[1] - p1normal[1];
+        let deltaK = p0normal[2] - p1normal[2];
+        let taxaXIncremento = deltaX / deltaY;
+        let taxaZIncremento = deltaZ / deltaY;
+        let taxaIIncremento = deltaI / deltaY;
+        let taxaJIncremento = deltaJ / deltaY;
+        let taxaKIncremento = deltaK / deltaY;
+        let npx = p1[0];
+        let npy = p1[1];
+        let npz = p1[2];
+        let nI = p1normal[0];
+        let nJ = p1normal[1];
+        let nK = p1normal[2];
+        let nVetNormal = [nI, nJ, nK];
+        for (let j = 0; j < deltaY; j++) {
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, nVetNormal])    
+          npx += taxaXIncremento;
+          npz += taxaZIncremento;
+          npy += 1; 
+          nI += taxaIIncremento;
+          nJ += taxaJIncremento;
+          nK += taxaKIncremento;
+          nVetNormal = [nI, nJ, nK];
+        }
+      }
+      novasArestas.push(novaAresta);      
+    }    
+    return novasArestas;
+  };
+  createScanlinesFace(arestasCompletaSRT) {
+    // INICIALIZAR SCANLINES [Y, [X...]]
+    let vetScanLinesFace = [];
+    let aux = this.yMin
+    for (let i = this.yMin; i <= this.yMax; i++) {
+      vetScanLinesFace.push([aux, []]);
+      aux++;
+    }
+    let lenI = arestasCompletaSRT.length;
+    // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
+    for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
+      let aresta = arestasCompletaSRT[i];
+      let lenJ = aresta.length;
+      for (let j = 0; j < lenJ; j++) { // PERCORRE OS PONTOS DA ARESTA P0 E P1
+        let lenK = vetScanLinesFace.length;
+        let pontoAresta = aresta[j];        
+        for (let k = 0; k < lenK; k++) {
+          if (pontoAresta[1] == vetScanLinesFace[k][0]) {
+            vetScanLinesFace[k][1].push(pontoAresta);
+          }
+        }
+      }
+    }
+    // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
+      scanline[1] = vetPontos;
+    }
+    console.log(vetScanLinesFace);
+    
     return vetScanLinesFace;
   };
 };
@@ -1356,6 +1548,76 @@ function recorte2DGourad(pontosIluminados) {
   }
 
   let resultado = [pontos, iluminacao];
+  resultado = recorteContraBorda(...resultado, testeDentroEsquerda, uMinViewport, "x");
+  resultado = recorteContraBorda(...resultado, testeDentroDireita, uMaxViewport, "x");
+  resultado = recorteContraBorda(...resultado, testeDentroAbaixo, vMaxViewport, "y");
+  resultado = recorteContraBorda(...resultado, testeDentroAcima, vMinViewport, "y");
+
+  return resultado;
+};
+function recorte2DPhong(pontos, vetMedios) {
+  function testeDentroEsquerda(p) {
+          return p[0] >= uMinViewport;
+  }
+  function testeDentroDireita(p) {
+          return p[0] <= uMaxViewport;
+  }
+  function testeDentroAbaixo(p) {
+          return p[1] <= vMaxViewport;
+  }
+  function testeDentroAcima(p) {
+          return p[1] >= vMinViewport;
+  }
+
+  function intersecao(p1, p2, n1, n2, limite, eixo) {
+      let x1 = p1[0], y1 = p1[1], z1 = p1[2];
+      let x2 = p2[0], y2 = p2[1], z2 = p2[2];
+      
+      let fator = eixo === "x" ? (limite - x1) / (x2 - x1) : (limite - y1) / (y2 - y1);
+      let x = eixo === "x" ? limite : x1 + (x2 - x1) * fator;
+      let y = eixo === "y" ? limite : y1 + (y2 - y1) * fator;
+      let z = z1 + (z2 - z1) * fator;
+      let novaNormal = [
+          n1[0] + (n2[0] - n1[0]) * fator,
+          n1[1] + (n2[1] - n1[1]) * fator,
+          n1[2] + (n2[2] - n1[2]) * fator
+      ];
+
+      return [[x, y, z], novaNormal];
+  }
+
+  function recorteContraBorda(pontos, vetMedios, testeDentro, limite, eixo) {
+          let novosPontos = [];
+          let novasNormais = [];
+
+          for (let i = 0; i < pontos.length; i++) {
+                  let p0 = pontos[i];
+                  let p1 = pontos[(i + 1) % pontos.length];
+                  let n0 = vetMedios[i];
+                  let n1 = vetMedios[(i + 1) % vetMedios.length];
+
+                  let dentro0 = testeDentro(p0);
+                  let dentro1 = testeDentro(p1);
+
+                  if (dentro0 && dentro1) {
+                          novosPontos.push(p1);
+                          novasNormais.push(n1);
+                  } else if (dentro0 && !dentro1) {
+                          let [pInt, nInt] = intersecao(p0, p1, n0, n1, limite, eixo);
+                          novosPontos.push(pInt);
+                          novasNormais.push(nInt);
+                  } else if (!dentro0 && dentro1) {
+                          let [pInt, nInt] = intersecao(p0, p1, n0, n1, limite, eixo);
+                          novosPontos.push(pInt);
+                          novasNormais.push(nInt);
+                          novosPontos.push(p1);
+                          novasNormais.push(n1);
+                  }
+          }
+          return [novosPontos, novasNormais];
+  }
+
+  let resultado = [pontos, vetMedios];
   resultado = recorteContraBorda(...resultado, testeDentroEsquerda, uMinViewport, "x");
   resultado = recorteContraBorda(...resultado, testeDentroDireita, uMaxViewport, "x");
   resultado = recorteContraBorda(...resultado, testeDentroAbaixo, vMaxViewport, "y");
