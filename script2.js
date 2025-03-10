@@ -33,7 +33,6 @@ class malha {
   };
 
   debugPrint() {  
-    console.log('Update' );
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -316,7 +315,7 @@ class malha {
       return newVetFacesObj;
     };
 
-    if (tipoSombreamento == 'Phong' || tipoSombreamento == 'Fast Phong') {
+    if (tipoSombreamento == 'Fast Phong') {
       let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
       // FOR PARA CADA FACE testar os pontos e criar nova face
@@ -514,8 +513,7 @@ class faceClassConstante{
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
     this.iluminacaoTotal = calcularIluTotal(propIlu,
                                             face.centroide,
-                                            face.vetorNormalUnitario,
-                                            face.vetObservacao);
+                                            face.vetorNormalUnitario);
     this.pontosSRT = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSRT = this.calculaArestasSRT();
     this.arestasCompletaSRT = this.createArestaCompleta(this.arestasSRT);//NO SRT
@@ -641,9 +639,8 @@ class faceClassGourad{
       let ponto = pontos[i];
       let vetorNormal = vetorNormalMedio[i];
       let iluminacaoPonto = calcularIluTotal(propIlu,
-                                              ponto, // Gourad, NO PONTO !
-                                              vetorNormal,
-                                              vetObservacao);      
+                                              ponto, // Gourad, NO VERTICE!
+                                              vetorNormal);      
       iluminacaoPontos.push(iluminacaoPonto); 
     }
     return iluminacaoPontos;
@@ -868,10 +865,10 @@ class faceClassPhong{
           nVetNormal[1] += taxaJIncremento;
           nVetNormal[2] += taxaKIncremento;
           nVetNormal = vetorUnitario(nVetNormal);
-        }
-      }
+        };
+      };
       novasArestas.push(novaAresta);      
-    }    
+    };
     return novasArestas;
   };
   createScanlinesFace(arestasCompletaSRT) {
@@ -881,7 +878,7 @@ class faceClassPhong{
     for (let i = this.yMin; i <= this.yMax; i++) {
       vetScanLinesFace.push([aux, []]);
       aux++;
-    }
+    };
     let lenI = arestasCompletaSRT.length;
     // ADD Xs em SCANLINES [Y, [X1, X2, ... Xn]]
     for (let i = 0; i < lenI; i++) { // PERCORRE AS ARESTAS
@@ -893,17 +890,17 @@ class faceClassPhong{
         for (let k = 0; k < lenK; k++) {
           if (pontoAresta[1] == vetScanLinesFace[k][0]) {
             vetScanLinesFace[k][1].push(pontoAresta);
-          }
-        }
-      }
-    }
+          };
+        };
+      };
+    };
     // ORDENAR VETOR Xs EM SCANLINES [Y, [[p1...pn]]]
     for (let i = 0; i < vetScanLinesFace.length; i++) {
       let scanline = vetScanLinesFace[i];
       let vetPontos = scanline[1];
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
-    }
+    };
     return vetScanLinesFace;
   };
 };
@@ -1009,12 +1006,11 @@ var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 function addFatH(vetor) {
   let novoVetor = vetor.map((ponto) => [...ponto, this.fatH]);
   return novoVetor;
-}
-
+};
 function removeFatH(vetor) {
   let novoVetor = vetor.map((ponto) => ponto.slice(0, -1));
   return novoVetor;
-}
+};
 
 }/////////////////////////////////////////////////////////////////////
 
@@ -1036,20 +1032,17 @@ function getMinMax(arestas) {
     }
   }
   return [yMin, yMax];
-} 
-
+} ;
 function vetorUnitario(vetor) {
   let magnitude = Math.sqrt(vetor.reduce((sum, val) => sum + val * val, 0));
   return vetor.map(val => val / magnitude);
-}
-
+};
 function produtoEscalar(vetorA, vetorB) {
   if (vetorA.length !== vetorB.length) {
     throw new Error("Os vetores devem ter o mesmo tamanho");
   }
   return vetorA.reduce((sum, val, index) => sum + val * vetorB[index], 0);
-}
-
+};
 function produtoVetorial(vetorA, vetorB) {
   if (vetorA.length !== 3 || vetorB.length !== 3) {
     throw new Error("Os vetores devem ter tamanho 3");
@@ -1059,8 +1052,7 @@ function produtoVetorial(vetorA, vetorB) {
     vetorA[2] * vetorB[0] - vetorA[0] * vetorB[2],
     vetorA[0] * vetorB[1] - vetorA[1] * vetorB[0]
   ];
-}
-
+};
 function matriz44(a, b) {
   let result = [];
   for (let i = 0; i < 4; i++) {
@@ -1073,8 +1065,7 @@ function matriz44(a, b) {
     }
   }
   return result;
-}
-
+};
 function matriz44x41(matrix4x4, ponto) {
   let listaResultado = Array(4).fill(0);
   for (let i = 0; i < 4; i++) {
@@ -1083,11 +1074,10 @@ function matriz44x41(matrix4x4, ponto) {
       }
   }
   return listaResultado; 
-}
-
+};
 function fatorHomogeneo(vetor) {
   return novoVetor = [vetor[0]/vetor[3], vetor[1]/vetor[3], vetor[2], vetor[3]];
-}
+};
 
 // VETOR o OU s
 function calculoVetObservacaoUnitario(centroide) {
@@ -1126,8 +1116,6 @@ function calculaVetorNormalInverso(pontos) {
 }
 
 }/////////////////////////////////////////////////////////////////////
-
-
 
 {//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
 function renderiza() {
@@ -1325,52 +1313,6 @@ function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
     }
   }
 }
-function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = color;
-  let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline; i++) {
-    let scanline = scanLines[i];
-
-    let pontoY = scanline[0];
-    let pontos = scanline[1];
-    let lenPontos = pontos.length;
-    let p0 = pontos[0];
-    let x0 = p0[0];
-    let z0 = p0[2];
-    let p1 = pontos[lenPontos - 1];
-    let x1 = p1[0];
-    let z1 = p1[2];
-    let vetNormalPonto0 = p0[3];
-    let vetNormalPonto1 = p1[3];
-    let deltaX = x1 - x0;
-    if (deltaX === 0) deltaX = 1e-6;
-    
-    let taxaIIncremento = (vetNormalPonto1[0] - vetNormalPonto0[0]) / (deltaX);
-    let taxaJIncremento = (vetNormalPonto1[1] - vetNormalPonto0[1]) / deltaX;
-    let taxaKIncremento = (vetNormalPonto1[2] - vetNormalPonto0[2]) / deltaX;
-    
-    let taxaZ = (z1 - z0) / deltaX;
-    let pontoZ = z0;
-    let vetNormalPonto = vetNormalPonto0;
-    if (x0 != x1) {
-      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
-        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu);
-          ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
-          ctx.fillRect(pontoX, pontoY, 1, 1);
-          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        };
-        pontoZ += taxaZ;
-        vetNormalPonto[0] += taxaIIncremento;
-        vetNormalPonto[1] += taxaJIncremento;
-        vetNormalPonto[2] += taxaKIncremento;
-        vetNormalPonto = vetorUnitario(vetNormalPonto);
-      };
-    };
-  };
-};
 function paintAresta(scanLines, color) {
 
   var canvas = document.getElementById('viewport');
@@ -1434,32 +1376,9 @@ function paintArestaFastPhong(scanLines, vetorLuz, vetH, propIlu) {
     };
   };
 };
-function paintArestaPhong(scanLines, vetorLuz, vetorS, propIlu) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline; i++) {
-    let pontoY = scanLines[i][0];
-    let pontos = scanLines[i][1];
-    let lenPontos = pontos.length;
-    for (let j = 0; j < lenPontos; j++) {
-      let pontoX = pontos[j][0];
-      let pontoZ = pontos[j][2];
-      let vetNormalPonto = pontos[j][3];
-      let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu)
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-        let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
-        ctx.fillStyle = cor;
-        ctx.fillRect(pontoX, pontoY, 1, 1);
-        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-      };
-    };
-  };
-};
 function drawGridBspline(malha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
-
 
   if (tipoSombreamento === 'Nenhum') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
@@ -1530,10 +1449,10 @@ function drawGridBspline(malha) {
                     zLampada - centroide[2]];
       vetorLuz = vetorUnitario(vetorLuz);
       let vetorS = face.vetObservacao;
-      let vetH = [((vetorLuz[0] + vetorS[0])/ Math.max(0,(vetorLuz[0] + vetorS[0]))),
-                  ((vetorLuz[1] + vetorS[1])/ Math.max(0,(vetorLuz[1] + vetorS[1]))),
-                  ((vetorLuz[2] + vetorS[2])/ Math.max(0,(vetorLuz[2] + vetorS[2])))];
-      
+
+      let vetH = [vetorLuz[0] + vetorS[0],
+                  vetorLuz[1] + vetorS[1],
+                  vetorLuz[2] + vetorS[2]];
       vetH = vetorUnitario(vetH);
       
       let propIlu = face.propIlu;
@@ -1550,32 +1469,6 @@ function drawGridBspline(malha) {
       if (boolPintarFaces) {
         paintFaceFastPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
       };
-    };
-  };
-
-  if (tipoSombreamento === 'Phong') {
-    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
-      let face = faces[i];
-      let centroide = face.centroide;
-      let vetorLuz = [xLampada - centroide[0],
-                    yLampada - centroide[1], 
-                    zLampada - centroide[2]];
-      vetorLuz = vetorUnitario(vetorLuz);
-      let vetorS = face.vetObservacao;      
-      let propIlu = face.propIlu;
-      if (boolArestasVerdeVermelha) {
-        if (face.boolVisibilidadeNormal) {
-          paintAresta(face.scanLinesFace, 'green');
-        } else {
-          paintAresta(face.scanLinesFace, 'red');
-        } 
-      } else{
-        paintArestaPhong(face.scanLinesFace, vetorLuz, vetorS, propIlu);
-      };
-      if (boolPintarFaces) {
-        paintFacePhong(face.scanLinesFace, vetorLuz, vetorS, propIlu);
-      };
-      
     };
   };
 
@@ -1860,9 +1753,8 @@ function obterVizinhos(i, j, matrizFaces) {
   return vizinhos;
 }
 
-
 // ILUMINAÇÃO
-function calcularIluTotal(propIlu, centroide, vetorNormalUnitario, vetorS) {
+function calcularIluTotal(propIlu, centroide_vertice, vetNormal) {
   let ka = propIlu[0];
   let kd = propIlu[1];
   let ks = propIlu[2];
@@ -1872,13 +1764,18 @@ function calcularIluTotal(propIlu, centroide, vetorNormalUnitario, vetorS) {
   if (iluTotal>=255){
           return 255;
   };
-  let vetorLuz = [xLampada - centroide[0],
-                  yLampada - centroide[1],
-                  zLampada - centroide[2]];
-  
-  let vetorLuzUnitario = vetorUnitario(vetorLuz);
+
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
-  let escalarNL = produtoEscalar(vetorNormalUnitario,vetorLuzUnitario)
+  let vetorLuz = [xLampada - centroide_vertice[0],
+                  yLampada - centroide_vertice[1],
+                  zLampada - centroide_vertice[2]];
+  let vetorS = [vetVrp[0] - centroide_vertice[0],
+                vetVrp[1] - centroide_vertice[1],
+                vetVrp[2] - centroide_vertice[2]];
+  vetorS = vetorUnitario(vetorS);
+  vetorLuz = vetorUnitario(vetorLuz);
+
+  let escalarNL = produtoEscalar(vetNormal,vetorLuz)
   let iluDifusa = iluLampada * kd * escalarNL;
   if (iluDifusa <= 0) {
           return iluTotal;
@@ -1886,11 +1783,12 @@ function calcularIluTotal(propIlu, centroide, vetorNormalUnitario, vetorS) {
   iluTotal += iluDifusa;
   // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
   //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
-  let vetorR = [2*escalarNL*vetorNormalUnitario[0] - vetorLuzUnitario[0],
-                  2*escalarNL*vetorNormalUnitario[1] - vetorLuzUnitario[1],
-                  2*escalarNL*vetorNormalUnitario[2] - vetorLuzUnitario[2]];  
+  let vetorR = [2*escalarNL*vetNormal[0] - vetorLuz[0],
+                  2*escalarNL*vetNormal[1] - vetorLuz[1],
+                  2*escalarNL*vetNormal[2] - vetorLuz[2]];  
+  let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorS);
   vetR = vetorUnitario(vetorR);  
-  let iluEspecular = iluLampada * ks * (produtoEscalar(vetorR, vetorUnitario(vetorS)) ** iluN);
+  let iluEspecular = iluLampada * ks * (escalarRS ** iluN);
   if (iluEspecular <= 0) {
           return iluTotal;
   }
@@ -1914,30 +1812,6 @@ function calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
   iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** n));
-  return iluTotal
-};
-function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu) {
-  
-  let ka = propIlu[0];
-  let kd = propIlu[1];
-  let ks = propIlu[2];
-  let n = propIlu[3];
-
-  let iluTotal = iluAmbiente*ka;
-
-  if (iluTotal>=255){
-    return 255;
-  };
-  
-  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
-  let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
-
-  
-  let vetorR = [2*escalarNL*vetNormalPonto[0] - vetorLuz[0],
-                2*escalarNL*vetNormalPonto[1] - vetorLuz[1],
-                2*escalarNL*vetNormalPonto[2] - vetorLuz[2]];
-  let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorUnitario(vetorS));    
-  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarRS ** n));
   return iluTotal
 };
 // BSPLINES
