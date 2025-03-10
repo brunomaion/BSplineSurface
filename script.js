@@ -27,7 +27,6 @@ class malha {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
-    this.visibilidadeGridControle = false;
     this.visibilidadePC = true;
   };
 

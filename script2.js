@@ -27,7 +27,7 @@ class malha {
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
-    this.visibilidadeGridControle = false;
+    //this.visibilidadeGridControle = false;
     this.visibilidadePC = false;
   };
 
@@ -1821,6 +1821,12 @@ let ponto1 = [0,15,0];
 let ponto2 = [0,-15,0];
 let ponto3 = [10,-15,0];
 let ponto4 = [10,15,0];
+
+ponto1 = [0,10,0];
+ponto2 = [0,0,0];
+ponto3 = [10, 0, 0];
+ponto4 = [10, 10, 0];
+
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
 malha1 = new malha(pontosMalha, m, n, 1111);
@@ -1877,7 +1883,7 @@ function onFieldChange() {
   lenPontosControle = document.getElementById('tamPC').value || 4; 
   nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
   nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
-  selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
+  //selectedMalha.visibilidadeGridControle = document.getElementById('visibilidadeGridControle').checked;
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
 
@@ -1978,7 +1984,7 @@ document.getElementById('translZ').addEventListener('input', onFieldChange);
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('tamPC').addEventListener('input', onFieldChange);
 document.getElementById('pcVerde').addEventListener('input', onFieldChange);
-document.getElementById('visibilidadeGridControle').addEventListener('input', onFieldChange);
+//document.getElementById('visibilidadeGridControle').addEventListener('input', onFieldChange);
 document.getElementById('visibilidadePC').addEventListener('input', onFieldChange);
 document.getElementById('tipoSombreamento').addEventListener('input', onFieldChange);
 
@@ -2029,7 +2035,7 @@ const rotZInput = document.getElementById("zRot");
 const translXInput = document.getElementById("translX");
 const translYInput = document.getElementById("translY");
 const translZInput = document.getElementById("translZ");
-const visibilidadeGridControleInput = document.getElementById("visibilidadeGridControle");
+//const visibilidadeGridControleInput = document.getElementById("visibilidadeGridControle");
 const visibilidadePCInput = document.getElementById("visibilidadePC");
 const p1InputX = document.getElementById("p1X");
 const p1InputY = document.getElementById("p1Y");
@@ -2065,7 +2071,7 @@ function atualizarInputsMalha(malha) {
   translXInput.value = malha.translX;
   translYInput.value = malha.translY;
   translZInput.value = malha.translZ;
-  visibilidadeGridControleInput.checked = malha.visibilidadeGridControle;
+  //visibilidadeGridControleInput.checked = malha.visibilidadeGridControle;
   visibilidadePCInput.checked = malha.visibilidadePC;
   p1InputX.value = malha.p1[0];
   p1InputY.value = malha.p1[1];
@@ -2124,9 +2130,6 @@ document.getElementById('viewport').addEventListener('click', function(event) {
 });
 
 
-}/////////////////////////////////////////////////////////////////////////////////////////
-
-
 ///////////// ADD MALHA /////////////
 var modal = document.getElementById("modalAdicionarMalha");
 var btn = document.getElementById("adicionarMalha");
@@ -2151,10 +2154,49 @@ function updateMalhaSelector() {
     option.textContent = `Malha ${index + 1}`;
     selectMalha.appendChild(option);
   });
-  selectMalha.selectedIndex = vetMalha.length - 1;
-  selectedMalha = vetMalha[vetMalha.length - 1];
-  atualizarInputsMalha(selectedMalha);
+  if (vetMalha.length > 0) {
+    selectMalha.selectedIndex = vetMalha.length - 1;
+    selectedMalha = vetMalha[vetMalha.length - 1];
+    atualizarInputsMalha(selectedMalha);
+  } else {
+    selectedMalha = null;
+    // Limpar os inputs se não houver malhas
+    atualizarInputsMalha({
+      scl: '',
+      rotX: '',
+      rotY: '',
+      rotZ: '',
+      translX: '',
+      translY: '',
+      translZ: '',
+      visibilidadePC: false,
+      p1: ['', '', ''],
+      p2: ['', '', ''],
+      p3: ['', '', ''],
+      p4: ['', '', ''],
+      mMalha: '',
+      nMalha: '',
+      ka: '',
+      kd: '',
+      ks: '',
+      nIluminacao: ''
+    });
+  }
 }
+// Adicionar evento ao botão "Excluir Malha"
+document.getElementById('excluirMalha').addEventListener('click', function() {
+  const selectMalha = document.getElementById("malhaSelecionada");
+  const selectedIndex = selectMalha.selectedIndex;
+  if (selectedIndex >= 0) {
+    vetMalha.splice(selectedIndex, 1);
+    updateMalhaSelector();
+    updatePrograma();
+  }
+});
+
+// Atualizar o seletor de malhas ao carregar a página
+updateMalhaSelector();
+
 document.getElementById('salvarMalha').addEventListener('click', function() {
   const p1 = [
     parseFloat(document.getElementById('p1xAdd').value),
@@ -2182,3 +2224,8 @@ document.getElementById('salvarMalha').addEventListener('click', function() {
   updateMalhaSelector();
   updatePrograma();
 });
+
+
+}/////////////////////////////////////////////////////////////////////////////////////////
+
+
