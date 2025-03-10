@@ -1,5 +1,8 @@
 ## Duvidas
 
+
+Gouraud e phong uso centroide?
+
 É IMPOSSIVEL TROCAR? 
 AS SCANLINES DEVE SER FEITAS POR FACE OU POR VIEWPORT?
 
