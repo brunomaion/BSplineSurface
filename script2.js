@@ -18,6 +18,7 @@ class malha {
     this.kd = 0.5;
     this.ks = 0.5;
     this.nIluminacao = 10;
+    this.propIlu = [this.ka, this.kd, this.ks, this.nIluminacao];
 
     this.mMalha = 4;
     this.nMalha = 4;
@@ -261,11 +262,7 @@ class malha {
       //CONSTROI AS FACES SRT 
       for (let i = 0; i < vetFaces.length; i++) {
         for (let j = 0; j < vetFaces[i].length; j++) {
-          let objFace = new faceClassConstante(vetFaces[i][j], 
-                                                [this.ka,
-                                                this.kd,
-                                                this.ks,
-                                                this.nIluminacao]);
+          let objFace = new faceClassConstante(vetFaces[i][j], this.propIlu);
           newVetFacesObj.push(objFace);
         };
       };
@@ -311,7 +308,7 @@ class malha {
 
           };
 
-          let face = new faceClassGourad(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+          let face = new faceClassGourad(faceTestada, vetorNormalMedio, this.propIlu);
           newVetFacesObj.push(face);
         };
       };
@@ -319,7 +316,7 @@ class malha {
       return newVetFacesObj;
     };
 
-    if (tipoSombreamento == 'Phong') {
+    if (tipoSombreamento == 'Phong' || tipoSombreamento == 'Fast Phong') {
       let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
       // FOR PARA CADA FACE testar os pontos e criar nova face
@@ -356,7 +353,7 @@ class malha {
 
           };
 
-          let face = new faceClassPhong(faceTestada, vetorNormalMedio, [this.ka, this.kd, this.ks, this.nIluminacao]);
+          let face = new faceClassPhong(faceTestada, vetorNormalMedio, this.propIlu);
           newVetFacesObj.push(face);
         };
       };
@@ -511,14 +508,11 @@ class faceClassCor{
   };
 };
 class faceClassConstante{
-  constructor(face, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+  constructor(face, propIlu) {  
 
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
-    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,
-                                            iluminacaoKd, 
-                                            iluminacaoKs, 
-                                            iluminacaoN,
+    this.iluminacaoTotal = calcularIluTotal(propIlu,
                                             face.centroide,
                                             face.vetorNormalUnitario,
                                             face.vetObservacao);
@@ -625,20 +619,15 @@ class faceClassConstante{
   };
 };
 class faceClassGourad{
-  constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+  constructor(face, vetorNormalMedio, propIlu) {  
 
     this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
-    this.iluminacaoPontos = this.calculaIluminacaoPontos(iluminacaoKa, 
-                                                          iluminacaoKd, 
-                                                          iluminacaoKs, 
-                                                          iluminacaoN,
+    this.iluminacaoPontos = this.calculaIluminacaoPontos(propIlu,
                                                           this.vetorNormalMedio,
                                                           face.pontos,
                                                           face.vetObservacao);
-  
-    this.iluminacaoTotal = calcularIluTotal(iluminacaoKa,iluminacaoKd, iluminacaoKs, iluminacaoN,face.centroide,face.vetorNormalUnitario,face.vetObservacao); // [ [p1, iluP1], [p2, iluP2], [p3, iluP3], [p4, iluP4] ]
     this.pontosSrtIluminados = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
     this.arestasSrtIluminada = this.calculaArestasSRT(this.pontosSrtIluminados);
     this.arestasCompletaSRTiluminada = this.createArestaCompleta(this.arestasSrtIluminada); //NO SRT
@@ -646,15 +635,12 @@ class faceClassGourad{
     this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRTiluminada);
   };
 
-  calculaIluminacaoPontos(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN,vetorNormalMedio, pontos, vetObservacao) {
+  calculaIluminacaoPontos(propIlu, vetorNormalMedio, pontos, vetObservacao) {
     let iluminacaoPontos = [];
     for (let i = 0; i < pontos.length; i++) {
       let ponto = pontos[i];
       let vetorNormal = vetorNormalMedio[i];
-      let iluminacaoPonto = calcularIluTotal(iluminacaoKa,     // [iluP1, iluP2, iluP3, iluP4]
-                                              iluminacaoKd, 
-                                              iluminacaoKs, 
-                                              iluminacaoN,
+      let iluminacaoPonto = calcularIluTotal(propIlu,
                                               ponto, // Gourad, NO PONTO !
                                               vetorNormal,
                                               vetObservacao);      
@@ -775,9 +761,9 @@ class faceClassGourad{
   };
 };
 class faceClassPhong{
-  constructor(face, vetorNormalMedio, [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]) {  
+  constructor(face, vetorNormalMedio, propIlu) {  
     this.centroide = face.centroide;
-    this.propIlu = [iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN]
+    this.propIlu = propIlu;
     this.vetorNormalUnitario  = face.vetorNormalUnitario;
     this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
     this.vetObservacao = face.vetObservacao;
@@ -848,10 +834,10 @@ class faceClassPhong{
           npx += taxaXIncremento;
           npz += taxaZIncremento;
           npy += 1; 
-          nI += taxaIIncremento;
-          nJ += taxaJIncremento;
-          nK += taxaKIncremento;
-          nVetNormal = [nI, nJ, nK];
+          nVetNormal[0] += taxaIIncremento;
+          nVetNormal[1] += taxaJIncremento;
+          nVetNormal[2] += taxaKIncremento;
+          nVetNormal = vetorUnitario(nVetNormal);
         }
 
       } else {
@@ -878,10 +864,10 @@ class faceClassPhong{
           npx += taxaXIncremento;
           npz += taxaZIncremento;
           npy += 1; 
-          nI += taxaIIncremento;
-          nJ += taxaJIncremento;
-          nK += taxaKIncremento;
-          nVetNormal = [nI, nJ, nK];
+          nVetNormal[0] += taxaIIncremento;
+          nVetNormal[1] += taxaJIncremento;
+          nVetNormal[2] += taxaKIncremento;
+          nVetNormal = vetorUnitario(nVetNormal);
         }
       }
       novasArestas.push(novaAresta);      
@@ -1242,6 +1228,7 @@ function paintFace(scanLines, color) {
     let z0 = p0[2];
     let z1 = p1[2];
     let deltaX = x1 - x0;
+    if (deltaX === 0) deltaX = 1e-6;
     let taxaZ = (z1 - z0) / deltaX;
     let pontoZ = z0;
     if (x0 != x1) {   
@@ -1273,6 +1260,7 @@ function paintFaceGouraud(scanLines) {
     let z0 = p0[2];
     let z1 = p1[2];
     let deltaX = x1 - x0;
+    if (deltaX === 0) deltaX = 1e-6;
     let taxaZ = (z1 - z0) / deltaX;
     let pontoZ = z0;
     let cor0 = p0[3];
@@ -1292,7 +1280,7 @@ function paintFaceGouraud(scanLines) {
     };
   };
 };
-function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
+function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
@@ -1311,8 +1299,9 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     let z1 = p1[2];
     let vetNormalPonto = p0[3];
     let vetNormalPonto0 = p0[3];
-    let vetNormalPonto1 = p0[3];
+    let vetNormalPonto1 = p1[3];
     let deltaX = x1 - x0;
+    if (deltaX === 0) deltaX = 1e-6;
     let taxaIIncremento = (vetNormalPonto1[0] - vetNormalPonto0[0]) / deltaX;
     let taxaJIncremento = (vetNormalPonto1[1] - vetNormalPonto0[1]) / deltaX;
     let taxaKIncremento = (vetNormalPonto1[2] - vetNormalPonto0[2]) / deltaX;
@@ -1324,7 +1313,7 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     if (x0 != x1) {
       for (let pontoX = x0+1; pontoX < x1; pontoX++) {
         if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
+          let iluTotal = calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
           ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
           ctx.fillRect(pontoX, pontoY, 1, 1);
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
@@ -1333,6 +1322,56 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
         vetNormalPonto[0] += taxaIIncremento;
         vetNormalPonto[1] += taxaJIncremento;
         vetNormalPonto[2] += taxaKIncremento;
+        vetNormalPonto = vetorUnitario(vetNormalPonto);
+      };
+    };
+  };
+};
+function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let scanline = scanLines[i];
+
+    let pontoY = scanline[0];
+    let pontos = scanline[1];
+    let lenPontos = pontos.length;
+    let p0 = pontos[0];
+    let x0 = p0[0];
+    let z0 = p0[2];
+    let p1 = pontos[lenPontos - 1];
+    let x1 = p1[0];
+    let z1 = p1[2];
+    let vetNormalPonto = p0[3];
+    let vetNormalPonto0 = p0[3];
+    let vetNormalPonto1 = p1[3];
+    let deltaX = x1 - x0;
+    if (deltaX === 0) deltaX = 1e-6;
+    
+    let taxaIIncremento = (vetNormalPonto1[0] - vetNormalPonto0[0]) / (deltaX);
+    let taxaJIncremento = (vetNormalPonto1[1] - vetNormalPonto0[1]) / deltaX;
+    let taxaKIncremento = (vetNormalPonto1[2] - vetNormalPonto0[2]) / deltaX;
+    
+    let taxaZ = (z1 - z0) / deltaX;
+    let pontoZ = z0;
+
+    if (x0 != x1) {
+      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
+        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+          let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu);
+          ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+          ctx.fillRect(pontoX, pontoY, 1, 1);
+          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+        };
+        pontoZ += taxaZ;
+
+        
+        vetNormalPonto[0] += taxaIIncremento;
+        vetNormalPonto[1] += taxaJIncremento;
+        vetNormalPonto[2] += taxaKIncremento;
+        vetNormalPonto = vetorUnitario(vetNormalPonto);
       };
     };
   };
@@ -1378,7 +1417,7 @@ function paintArestaGouraud(scanLines) {
     };
   };
 };
-function paintArestaPhong(scanLines, vetorLuz, vetH, propIlu) {
+function paintArestaFastPhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
@@ -1390,7 +1429,29 @@ function paintArestaPhong(scanLines, vetorLuz, vetH, propIlu) {
       let pontoX = pontos[j][0];
       let pontoZ = pontos[j][2];
       let vetNormalPonto = pontos[j][3];
-      let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
+      let iluPonto = calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
+        ctx.fillStyle = cor;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
+      };
+    };
+  };
+};
+function paintArestaPhong(scanLines, vetorLuz, vetorS, propIlu) {
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+  let lenScanline = scanLines.length;
+  for (let i = 0; i < lenScanline; i++) {
+    let pontoY = scanLines[i][0];
+    let pontos = scanLines[i][1];
+    let lenPontos = pontos.length;
+    for (let j = 0; j < lenPontos; j++) {
+      let pontoX = pontos[j][0];
+      let pontoZ = pontos[j][2];
+      let vetNormalPonto = pontos[j][3];
+      let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu)
       if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
         let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
         ctx.fillStyle = cor;
@@ -1465,23 +1526,20 @@ function drawGridBspline(malha) {
     };
   };
 
-  if (tipoSombreamento === 'Phong') {
+  if (tipoSombreamento === 'Fast Phong') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
-      let vetorNormalDaFace = face.vetorNormalUnitario;
       let centroide = face.centroide;
       let vetorLuz = [xLampada - centroide[0],
                     yLampada - centroide[1], 
                     zLampada - centroide[2]];
       vetorLuz = vetorUnitario(vetorLuz);
-      let escalarNL = produtoEscalar(vetorNormalDaFace, vetorLuz);
-      let vetorR = [2*escalarNL*vetorNormalDaFace[0] - vetorLuz[0],
-      2*escalarNL*vetorNormalDaFace[1] - vetorLuz[1],
-      2*escalarNL*vetorNormalDaFace[2] - vetorLuz[2]];
       let vetorS = face.vetObservacao;
-      let vetH = [((vetorLuz[0] + vetorS[0])/(vetorLuz[0] + vetorS[0])),
-                  ((vetorLuz[1] + vetorS[1])/(vetorLuz[1] + vetorS[1])),
-                  ((vetorLuz[2] + vetorS[2])/(vetorLuz[2] + vetorS[2]))];
+      let vetH = [((vetorLuz[0] + vetorS[0])/ Math.max(0,(vetorLuz[0] + vetorS[0]))),
+                  ((vetorLuz[1] + vetorS[1])/ Math.max(0,(vetorLuz[1] + vetorS[1]))),
+                  ((vetorLuz[2] + vetorS[2])/ Math.max(0,(vetorLuz[2] + vetorS[2])))];
+      
+      vetH = vetorUnitario(vetH);
       
       let propIlu = face.propIlu;
 
@@ -1492,14 +1550,40 @@ function drawGridBspline(malha) {
           paintAresta(face.scanLinesFace, 'red');
         } 
       } else{
-        paintArestaPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+        paintArestaFastPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
       };
       if (boolPintarFaces) {
-        paintFacePhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+        paintFaceFastPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+      };
+    };
+  };
+
+  if (tipoSombreamento === 'Phong') {
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];
+      let centroide = face.centroide;
+      let vetorLuz = [xLampada - centroide[0],
+                    yLampada - centroide[1], 
+                    zLampada - centroide[2]];
+      vetorLuz = vetorUnitario(vetorLuz);
+      let vetorS = face.vetObservacao;      
+      let propIlu = face.propIlu;
+      if (boolArestasVerdeVermelha) {
+        if (face.boolVisibilidadeNormal) {
+          paintAresta(face.scanLinesFace, 'green');
+        } else {
+          paintAresta(face.scanLinesFace, 'red');
+        } 
+      } else{
+        paintArestaPhong(face.scanLinesFace, vetorLuz, vetorS, propIlu);
+      };
+      if (boolPintarFaces) {
+        paintFacePhong(face.scanLinesFace, vetorLuz, vetorS, propIlu);
       };
       
     };
   };
+
 };
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
@@ -1731,9 +1815,6 @@ function recorte2DPhong(pontos, vetMedios) {
 
   return resultado;
 };
-
-
-
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
@@ -1786,37 +1867,42 @@ function obterVizinhos(i, j, matrizFaces) {
 
 
 // ILUMINAÇÃO
-function calcularIluTotal(iluminacaoKa, iluminacaoKd, iluminacaoKs, iluminacaoN, centroide, vetorNormalUnitario, vetorS) {
+function calcularIluTotal(propIlu, centroide, vetorNormalUnitario, vetorS) {
+  let ka = propIlu[0];
+  let kd = propIlu[1];
+  let ks = propIlu[2];
+  let iluN = propIlu[3];
   
-  let iluTotal = iluAmbiente*iluminacaoKa;
+  let iluTotal = iluAmbiente*ka;
   if (iluTotal>=255){
-    return 255;
+          return 255;
   };
   let vetorLuz = [xLampada - centroide[0],
                   yLampada - centroide[1],
                   zLampada - centroide[2]];
-
+  
   let vetorLuzUnitario = vetorUnitario(vetorLuz);
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let escalarNL = produtoEscalar(vetorNormalUnitario,vetorLuzUnitario)
-  let iluDifusa = iluLampada * iluminacaoKd * escalarNL;
+  let iluDifusa = iluLampada * kd * escalarNL;
   if (iluDifusa <= 0) {
-    return iluTotal;
+          return iluTotal;
   }
   iluTotal += iluDifusa;
   // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
   //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
   let vetorR = [2*escalarNL*vetorNormalUnitario[0] - vetorLuzUnitario[0],
-                2*escalarNL*vetorNormalUnitario[1] - vetorLuzUnitario[1],
-                2*escalarNL*vetorNormalUnitario[2] - vetorLuzUnitario[2]];    
-  let iluEspecular = iluLampada * iluminacaoKs * (produtoEscalar(vetorR, vetorUnitario(vetorS)) ** iluminacaoN);
+                  2*escalarNL*vetorNormalUnitario[1] - vetorLuzUnitario[1],
+                  2*escalarNL*vetorNormalUnitario[2] - vetorLuzUnitario[2]];  
+  vetR = vetorUnitario(vetorR);  
+  let iluEspecular = iluLampada * ks * (produtoEscalar(vetorR, vetorUnitario(vetorS)) ** iluN);
   if (iluEspecular <= 0) {
-    return iluTotal;
+          return iluTotal;
   }
   iluTotal += iluEspecular;
   return iluTotal
 };
-function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
+function calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   
   let ka = propIlu[0];
   let kd = propIlu[1];
@@ -1828,12 +1914,53 @@ function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   if (iluTotal>=255){
     return 255;
   };
-
+  
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
-  iluTotal += iluLampada * (kd * escalarNL + ks * (escalarNH ** n));
+  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** n));
   return iluTotal
+};
+function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu) {
+  
+  let ka = propIlu[0];
+  let kd = propIlu[1];
+  let ks = propIlu[2];
+  let n = propIlu[3];
+
+  let iluTotal = iluAmbiente*ka;
+
+  if (iluTotal>=255){
+    return 255;
+  };
+  
+
+  
+
+  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
+  let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
+
+  
+  let vetorR = [2*escalarNL*vetNormalPonto[0] - vetorLuz[0],
+                2*escalarNL*vetNormalPonto[1] - vetorLuz[1],
+                2*escalarNL*vetNormalPonto[2] - vetorLuz[2]];
+
+
+  let escalarRS = produtoEscalar(vetorR, vetorUnitario(vetorS));    
+  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarRS ** n));
+  return iluTotal
+};
+// BSPLINES
+function closedBspline(pontosDeControle) {
+  let n = pontosDeControle.length;
+  let pontosDeControleFechado = [
+      pontosDeControle[n - 2],
+      pontosDeControle[n - 1],
+      ...pontosDeControle,
+      pontosDeControle[0],
+      pontosDeControle[1]
+  ];
+  return pontosDeControleFechado;
 };
 // BSPLINES
 function closedBspline(pontosDeControle) {
@@ -2272,10 +2399,11 @@ function onFieldChange() {
   yLampada = parseInt(document.getElementById('yLampada').value) || 0;
   zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
-  selectedMalha.ka = parseFloat(document.getElementById('ka').value) || 0;
-  selectedMalha.kd = parseFloat(document.getElementById('kd').value) || 0;
-  selectedMalha.ks = parseFloat(document.getElementById('ks').value) || 0;
-  selectedMalha.nIluminacao = parseFloat(document.getElementById('nIluminacao').value) || 0;
+  let kaNovo = parseFloat(document.getElementById('ka').value) || 0;
+  let kdNovo = parseFloat(document.getElementById('kd').value) || 0;
+  let ksNovo = parseFloat(document.getElementById('ks').value) || 0;
+  let nIluminacaoNovo = parseFloat(document.getElementById('nIluminacao').value) || 0;
+  selectedMalha.propIlu = [kaNovo, kdNovo, ksNovo, nIluminacaoNovo];
 
   tipoSombreamento = document.getElementById('tipoSombreamento').value;
   boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
