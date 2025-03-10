@@ -1283,7 +1283,6 @@ function paintFaceGouraud(scanLines) {
 function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
-  ctx.fillStyle = color;
   let lenScanline = scanLines.length;
   for (let i = 0; i < lenScanline; i++) {
     let scanline = scanLines[i];
@@ -1297,7 +1296,6 @@ function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
     let p1 = pontos[lenPontos - 1];
     let x1 = p1[0];
     let z1 = p1[2];
-    let vetNormalPonto = p0[3];
     let vetNormalPonto0 = p0[3];
     let vetNormalPonto1 = p1[3];
     let deltaX = x1 - x0;
@@ -1308,25 +1306,25 @@ function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
 
     let taxaZ = (z1 - z0) / deltaX;
     let pontoZ = z0;
-
+    let vetNormalPonto = vetNormalPonto0;
 
     if (x0 != x1) {
-      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
+      for (let pontoX = x0 + 1; pontoX < x1; pontoX++) {
         if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
           let iluTotal = calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
           ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
           ctx.fillRect(pontoX, pontoY, 1, 1);
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        };
+        }
         pontoZ += taxaZ;
         vetNormalPonto[0] += taxaIIncremento;
         vetNormalPonto[1] += taxaJIncremento;
         vetNormalPonto[2] += taxaKIncremento;
         vetNormalPonto = vetorUnitario(vetNormalPonto);
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1344,7 +1342,6 @@ function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
     let p1 = pontos[lenPontos - 1];
     let x1 = p1[0];
     let z1 = p1[2];
-    let vetNormalPonto = p0[3];
     let vetNormalPonto0 = p0[3];
     let vetNormalPonto1 = p1[3];
     let deltaX = x1 - x0;
@@ -1356,7 +1353,7 @@ function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
     
     let taxaZ = (z1 - z0) / deltaX;
     let pontoZ = z0;
-
+    let vetNormalPonto = vetNormalPonto0;
     if (x0 != x1) {
       for (let pontoX = x0+1; pontoX < x1; pontoX++) {
         if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
@@ -1366,8 +1363,6 @@ function paintFacePhong(scanLines, vetorLuz, vetorS, propIlu) {
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
         };
         pontoZ += taxaZ;
-
-        
         vetNormalPonto[0] += taxaIIncremento;
         vetNormalPonto[1] += taxaJIncremento;
         vetNormalPonto[2] += taxaKIncremento;
@@ -1914,7 +1909,7 @@ function calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   if (iluTotal>=255){
     return 255;
   };
-  
+
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
@@ -1934,9 +1929,6 @@ function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu) {
     return 255;
   };
   
-
-  
-
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
 
@@ -1944,9 +1936,7 @@ function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetorS, propIlu) {
   let vetorR = [2*escalarNL*vetNormalPonto[0] - vetorLuz[0],
                 2*escalarNL*vetNormalPonto[1] - vetorLuz[1],
                 2*escalarNL*vetNormalPonto[2] - vetorLuz[2]];
-
-
-  let escalarRS = produtoEscalar(vetorR, vetorUnitario(vetorS));    
+  let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorUnitario(vetorS));    
   iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarRS ** n));
   return iluTotal
 };
@@ -1962,19 +1952,6 @@ function closedBspline(pontosDeControle) {
   ];
   return pontosDeControleFechado;
 };
-// BSPLINES
-function closedBspline(pontosDeControle) {
-  let n = pontosDeControle.length;
-  let pontosDeControleFechado = [
-      pontosDeControle[n - 2],
-      pontosDeControle[n - 1],
-      ...pontosDeControle,
-      pontosDeControle[0],
-      pontosDeControle[1]
-  ];
-  return pontosDeControleFechado;
-};
-
 function transporUmaMatriz(matriz) {
   let matrizTransposta = [];
   for (let i = 0; i < matriz[0].length; i++) {
@@ -1985,7 +1962,6 @@ function transporUmaMatriz(matriz) {
   }
   return matrizTransposta;
 };
-
 function calculateBspline(pontosDeControle, nSegmentos) {
   //pontosDeControle = clampingBspline(pontosDeControle);
   /*
