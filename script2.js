@@ -23,7 +23,9 @@ class malha {
     this.mMalha = 4;
     this.nMalha = 4;
 
+    
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
+    this.centroideMalha = [];
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
@@ -43,10 +45,21 @@ class malha {
     this.gridControleSRUtransf = this.pipelineTransformacao(this.gridControleSRU);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRUtransf);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRUtransf);
+    this.centroideMalha = this.getCentroideMalha(this.gridBsplineSRU);
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.debugPrint();
   };
 
+  getCentroideMalha(grid) {
+    let p00 = grid[0][0];
+    let p01 = grid[0][grid[0].length - 1];
+    let p10 = grid[grid.length - 1][0];
+    let p11 = grid[grid.length - 1][grid[0].length - 1];
+    let x = (p00[0] + p01[0] + p10[0] + p11[0]) / 4;
+    let y = (p00[1] + p01[1] + p10[1] + p11[1]) / 4;
+    let z = (p00[2] + p01[2] + p10[2] + p11[2]) / 4;
+    return [x, y, z];
+  };
   escala(pontos) {
     let matrizS = [
       [this.scl, 0, 0, 0],
@@ -315,7 +328,7 @@ class malha {
       return newVetFacesObj;
     };
 
-    if (tipoSombreamento == 'Fast Phong') {
+    if (tipoSombreamento == 'Phong') {
       let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
       // FOR PARA CADA FACE testar os pontos e criar nova face
@@ -365,23 +378,12 @@ class malha {
 class faceClass{
   constructor(pontos) {
     this.pontos = pontos; // [p1, p2, p3, p4] - pN = [x, y, z]
-    this.centroide = this.calculaCentroide();
+    this.centroide = calculaCentroide(this.pontos);
     this.distanciaPintor = this.calculaDistanciaPintor();
     this.vetorNormalDaFace = calculaVetorNormal(this.pontos);
     this.vetorNormalUnitario = vetorUnitario(this.vetorNormalDaFace);
     this.vetObservacao = calculoVetObservacaoUnitario(this.centroide);
     this.boolVisibilidadeNormal = this.calculaVisibilidadeNormal();
-  };
-  calculaCentroide() {
-    let somaX = 0;
-    let somaY = 0;
-    let somaZ = 0;
-    for (let i = 0; i < this.pontos.length; i++) {
-      somaX += this.pontos[i][0];
-      somaY += this.pontos[i][1];
-      somaZ += this.pontos[i][2];
-    }
-    return [somaX / 4, somaY / 4, somaZ / 4];
   };
   calculaDistanciaPintor() {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
@@ -1080,6 +1082,18 @@ function fatorHomogeneo(vetor) {
 };
 
 // VETOR o OU s
+function calculaCentroide(pontos) {
+  let somaX = 0;
+  let somaY = 0;
+  let somaZ = 0;
+  for (let i = 0; i < pontos.length; i++) {
+    somaX += pontos[i][0];
+    somaY += pontos[i][1];
+    somaZ += pontos[i][2];
+  }
+  return [somaX / 4, somaY / 4, somaZ / 4];
+};
+
 function calculoVetObservacaoUnitario(centroide) {
   let vetObservacao = [vetVrp[0] - centroide[0], 
                        vetVrp[1] - centroide[1], 
@@ -1127,7 +1141,7 @@ function renderiza() {
   drawViewport();
   for (let i = 0; i < vetMalha.length; i++) {
     let malha = vetMalha[i];
-    drawGridBspline(malha);
+    drawGridBspline(malha, malha.centroideMalha);
     if (malha.visibilidadePC) {
       drawPontosControle(malha.gridControleSRT);
     }
@@ -1268,7 +1282,7 @@ function paintFaceGouraud(scanLines) {
     };
   };
 };
-function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
+function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
@@ -1299,7 +1313,7 @@ function paintFaceFastPhong(scanLines, vetorLuz, vetH, propIlu) {
     if (x0 != x1) {
       for (let pontoX = x0 + 1; pontoX < x1; pontoX++) {
         if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          let iluTotal = calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
+          let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
           ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
           ctx.fillRect(pontoX, pontoY, 1, 1);
           zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
@@ -1354,7 +1368,7 @@ function paintArestaGouraud(scanLines) {
     };
   };
 };
-function paintArestaFastPhong(scanLines, vetorLuz, vetH, propIlu) {
+function paintArestaPhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
@@ -1366,7 +1380,7 @@ function paintArestaFastPhong(scanLines, vetorLuz, vetH, propIlu) {
       let pontoX = pontos[j][0];
       let pontoZ = pontos[j][2];
       let vetNormalPonto = pontos[j][3];
-      let iluPonto = calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
+      let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
       if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
         let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
         ctx.fillStyle = cor;
@@ -1376,7 +1390,7 @@ function paintArestaFastPhong(scanLines, vetorLuz, vetH, propIlu) {
     };
   };
 };
-function drawGridBspline(malha) {
+function drawGridBspline(malha, centroideMalha) {
   let faces = malha.facesBsplineSRU;
   let facesLenght = faces.length;
 
@@ -1384,6 +1398,9 @@ function drawGridBspline(malha) {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
       let cor = 'white';
+      if (boolPintarFaces) {
+        paintFace(face.scanLinesFace, cor);
+      };
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
           paintAresta(face.scanLinesFace, 'green');
@@ -1393,9 +1410,6 @@ function drawGridBspline(malha) {
       } else {
         paintAresta(face.scanLinesFace, cor);
       };
-      if (boolPintarFaces) {
-        paintFace(face.scanLinesFace, cor);
-      };
     };
   };
 
@@ -1404,7 +1418,11 @@ function drawGridBspline(malha) {
       let face = faces[i];
       let iluTotal = Math.round(face.iluminacaoTotal);
       let cor = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
-  
+      
+      if (boolPintarFaces) {
+        paintFace(face.scanLinesFace, cor);
+      };
+
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
           paintAresta(face.scanLinesFace, 'green');
@@ -1415,9 +1433,7 @@ function drawGridBspline(malha) {
         paintAresta(face.scanLinesFace, cor);
       };
         
-      if (boolPintarFaces) {
-        paintFace(face.scanLinesFace, cor);
-      };
+
     };
   };
 
@@ -1440,22 +1456,27 @@ function drawGridBspline(malha) {
     };
   };
 
-  if (tipoSombreamento === 'Fast Phong') {
-    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
-      let face = faces[i];
-      let centroide = face.centroide;
-      let vetorLuz = [xLampada - centroide[0],
-                    yLampada - centroide[1], 
-                    zLampada - centroide[2]];
-      vetorLuz = vetorUnitario(vetorLuz);
-      let vetorS = face.vetObservacao;
+  if (tipoSombreamento === 'Phong') {
+    
+    let vetorLuz = [xLampada - centroideMalha[0],
+                    yLampada - centroideMalha[1], 
+                    zLampada - centroideMalha[2]];
+    vetorLuz = vetorUnitario(vetorLuz);
+    let vetorS = [vetVrp[0] - centroideMalha[0],
+                  vetVrp[1] - centroideMalha[1],
+                  vetVrp[2] - centroideMalha[2]];
+    vetorS = vetorUnitario(vetorS);
+    let vetH = [vetorLuz[0] + vetorS[0],
+                vetorLuz[1] + vetorS[1],
+                vetorLuz[2] + vetorS[2]];
+    vetH = vetorUnitario(vetH);
 
-      let vetH = [vetorLuz[0] + vetorS[0],
-                  vetorLuz[1] + vetorS[1],
-                  vetorLuz[2] + vetorS[2]];
-      vetH = vetorUnitario(vetH);
-      
+    for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
+      let face = faces[i];  
       let propIlu = face.propIlu;
+      if (boolPintarFaces) {
+        paintFacePhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+      };
 
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
@@ -1464,10 +1485,7 @@ function drawGridBspline(malha) {
           paintAresta(face.scanLinesFace, 'red');
         } 
       } else{
-        paintArestaFastPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
-      };
-      if (boolPintarFaces) {
-        paintFaceFastPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+        paintArestaPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
       };
     };
   };
@@ -1795,7 +1813,7 @@ function calcularIluTotal(propIlu, centroide_vertice, vetNormal) {
   iluTotal += iluEspecular;
   return iluTotal
 };
-function calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
+function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   
   let ka = propIlu[0];
   let kd = propIlu[1];
@@ -1807,9 +1825,11 @@ function calcularIluTotalFastPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   if (iluTotal>=255){
     return 255;
   };
-
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
+  if (escalarNL <= 0) {
+    return iluTotal;
+  }
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
   iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** n));
   return iluTotal
