@@ -217,3 +217,33 @@ h3 {
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Estilizar o botão "Salvar Malha" */
+#salvarMalhaArquivo {
+  background-color: #4CAF50; /* Verde */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Estilizar o botão "Upload" */
+#uploadMalha {
+  background-color: #008CBA; /* Azul */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}

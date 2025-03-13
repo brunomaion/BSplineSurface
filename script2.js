@@ -26,6 +26,7 @@ class malha {
     
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
     this.centroideMalha = [];
+    this.recorte3d = this.recorte3D(this.centroideMalha);
     this.gridControleSRU = this.matrizPontosControle(this.pontosSRU, this.mMalha , this.nMalha);
     this.gridControleSRT = this.pipelineMatrizSruSrt(this.gridControleSRU);
     this.gridBsplineSRU = createGridBspline(this.gridControleSRU);
@@ -33,7 +34,11 @@ class malha {
     //this.visibilidadeGridControle = false;
     this.visibilidadePC = false;
   };
-
+  recorte3D(centroide) {
+    if (centroide[2] > 200 || centroide[2] < -200) {
+      this.pontos = [];
+    };
+  };
   debugPrint() {  
   };
   updateReset() {
@@ -385,6 +390,7 @@ class faceClass{
     this.vetObservacao = calculoVetObservacaoUnitario(this.centroide);
     this.boolVisibilidadeNormal = this.calculaVisibilidadeNormal();
   };
+
   calculaDistanciaPintor() {
     let distancia = Math.sqrt((vetVrp[0] - this.centroide[0]) ** 2 + (vetVrp[1] - this.centroide[1]) ** 2 + (vetVrp[2] - this.centroide[2]) ** 2);
     return distancia;
@@ -400,7 +406,7 @@ class faceClass{
     this.vetorNormalDaFace = vetNormalInverso;
     this.vetorNormalUnitario = vetorNormalUnitarioInverso;
     return false;
-  }
+  };
 };
 class faceClassCor{
   constructor(face) {
@@ -1133,6 +1139,9 @@ function calculaVetorNormalInverso(pontos) {
 
 {//////// FUNCOES DE DESENHO ////////////////////////////////////////////////
 function renderiza() {
+  console.log(vetMalha);
+  
+  
   zBuffer = new ZBuffer(uMaxViewport, vMaxViewport);
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1235,7 +1244,7 @@ function paintFace(scanLines, color) {
     let pontoZ = z0;
    
     for (let pontoX = x0; pontoX < x1; pontoX++) {
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
         ctx.fillStyle = color;
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
@@ -1271,7 +1280,7 @@ function paintFaceGouraud(scanLines) {
     let cor = cor0;
 
     for (let pontoX = x0; pontoX < x1; pontoX++) {
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
         ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
@@ -1312,7 +1321,7 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
 
 
     for (let pontoX = x0; pontoX < x1; pontoX++) {
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
         let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
         ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
         ctx.fillRect(pontoX, pontoY, 1, 1);
@@ -1340,7 +1349,7 @@ function paintAresta(scanLines, color) {
     for (let j = 0; j < lenPontos; j++) {
       let pontoX = pontos[j][0];
       let pontoZ = pontos[j][2];
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       };
@@ -1381,7 +1390,7 @@ function paintArestaPhong(scanLines, vetorLuz, vetH, propIlu) {
       let pontoZ = pontos[j][2];
       let vetNormalPonto = pontos[j][3];
       let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
         let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
         ctx.fillStyle = cor;
         ctx.fillRect(pontoX, pontoY, 1, 1);
@@ -1398,17 +1407,17 @@ function drawGridBspline(malha, centroideMalha) {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
       let cor = 'white';
+      
       if (boolPintarFaces) {
         paintFace(face.scanLinesFace, cor);
       };
+
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
           paintAresta(face.scanLinesFace, 'green');
         } else {
           paintAresta(face.scanLinesFace, 'red');
         };
-      } else {
-        //paintAresta(face.scanLinesFace, cor);
       };
     };
   };
@@ -2604,6 +2613,103 @@ document.getElementById('salvarMalha').addEventListener('click', function() {
 });
 
 
+
+
+
 }/////////////////////////////////////////////////////////////////////////////////////////
 
 
+// Adicionar o botão "Salvar Malha" no HTML
+// <button id="salvarMalhaArquivo">Salvar Malha</button>
+
+// Função para salvar a malha em um arquivo JSON
+function salvarMalhaEmArquivo(malha) {
+  const malhaData = {
+    p1: malha.p1,
+    p2: malha.p2,
+    p3: malha.p3,
+    p4: malha.p4,
+    scl: malha.scl,
+    rotX: malha.rotX,
+    rotY: malha.rotY,
+    rotZ: malha.rotZ,
+    translX: malha.translX,
+    translY: malha.translY,
+    translZ: malha.translZ,
+    ka: malha.ka,
+    kd: malha.kd,
+    ks: malha.ks,
+    nIluminacao: malha.nIluminacao,
+    mMalha: malha.mMalha,
+    nMalha: malha.nMalha,
+    visibilidadePC: malha.visibilidadePC
+  };
+
+  const blob = new Blob([JSON.stringify(malhaData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'malha.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Adicionar evento ao botão "Salvar Malha"
+document.getElementById('salvarMalhaArquivo').addEventListener('click', function() {
+  if (selectedMalha) {
+    salvarMalhaEmArquivo(selectedMalha);
+  } else {
+    alert('Nenhuma malha selecionada para salvar.');
+  }
+});
+
+// Função para carregar a malha de um arquivo JSON
+function carregarMalhaDeArquivo(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    alert('Nenhum arquivo selecionado.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const malhaData = JSON.parse(e.target.result);
+      const novaMalha = new malha([
+        malhaData.p1,
+        malhaData.p2,
+        malhaData.p3,
+        malhaData.p4
+      ]);
+      novaMalha.scl = malhaData.scl;
+      novaMalha.rotX = malhaData.rotX;
+      novaMalha.rotY = malhaData.rotY;
+      novaMalha.rotZ = malhaData.rotZ;
+      novaMalha.translX = malhaData.translX;
+      novaMalha.translY = malhaData.translY;
+      novaMalha.translZ = malhaData.translZ;
+      novaMalha.ka = malhaData.ka;
+      novaMalha.kd = malhaData.kd;
+      novaMalha.ks = malhaData.ks;
+      novaMalha.nIluminacao = malhaData.nIluminacao;
+      novaMalha.mMalha = malhaData.mMalha;
+      novaMalha.nMalha = malhaData.nMalha;
+      novaMalha.visibilidadePC = malhaData.visibilidadePC;
+
+      vetMalha.push(novaMalha);
+      updateMalhaSelector();
+      updatePrograma();
+    } catch (error) {
+      alert('Erro ao carregar o arquivo: ' + error.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Adicionar evento ao input de arquivo e ao botão "Carregar Malha"
+document.getElementById('carregarMalhaArquivo').addEventListener('change', carregarMalhaDeArquivo);
+document.getElementById('uploadMalha').addEventListener('click', function() {
+  document.getElementById('carregarMalhaArquivo').click();
+});

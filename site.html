@@ -13,6 +13,8 @@
     
     <button id="adicionarMalha">Adicionar Malha</button>
     <button id="excluirMalha">Excluir Malha</button>
+    <br>
+
 
     <div class="objeto">
 
@@ -154,10 +156,10 @@
 
       <label>Sombreamento:</label>
       <select id="tipoSombreamento" name="tipoSombreamento">
-        <option value="Nenhum">Nenhum</option>
+        <option value="Nenhum"selected>Nenhum</option>
         <option value="Constante">Constante</option>
         <option value="Gouraud">Gouraud</option>
-        <option value="Phong"selected>Phong</option>
+        <option value="Phong">Phong</option>
       </select>
 
       <br>
@@ -171,6 +173,10 @@
       <input type="checkbox" id="boolArestasVerdeVermelha" name="boolArestasVerdeVermelha" checked>
 
     </div>
+
+    <button id="salvarMalhaArquivo">Salvar Malha</button>
+    <input type="file" id="carregarMalhaArquivo" accept=".json" style="display: none;">
+    <button id="uploadMalha">Upload</button>
 
   </div>
 
