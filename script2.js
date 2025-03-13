@@ -1233,16 +1233,16 @@ function paintFace(scanLines, color) {
     if (deltaX === 0) deltaX = 1e-6;
     let taxaZ = (z1 - z0) / deltaX;
     let pontoZ = z0;
-    if (x0 != x1) {   
-      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
-        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          ctx.fillStyle = color;
-          ctx.fillRect(pontoX, pontoY, 1, 1);
-          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        };
-        pontoZ += taxaZ;    
+   
+    for (let pontoX = x0; pontoX < x1; pontoX++) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        ctx.fillStyle = color;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       };
+      pontoZ += taxaZ;    
     };
+
   };
 };
 function paintFaceGouraud(scanLines) {
@@ -1269,17 +1269,17 @@ function paintFaceGouraud(scanLines) {
     let cor1 = p1[3];
     let taxaCor = (cor1 - cor0) / deltaX;
     let cor = cor0;
-    if (x0 != x1) {
-      for (let pontoX = x0+1; pontoX < x1; pontoX++) {
-        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
-          ctx.fillRect(pontoX, pontoY, 1, 1);
-          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        };
-        cor += taxaCor;
-        pontoZ += taxaZ;
+
+    for (let pontoX = x0; pontoX < x1; pontoX++) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       };
+      cor += taxaCor;
+      pontoZ += taxaZ;
     };
+
   };
 };
 function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
@@ -1310,21 +1310,21 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     let pontoZ = z0;
     let vetNormalPonto = vetNormalPonto0;
 
-    if (x0 != x1) {
-      for (let pontoX = x0 + 1; pontoX < x1; pontoX++) {
-        if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-          let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
-          ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
-          ctx.fillRect(pontoX, pontoY, 1, 1);
-          zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-        }
-        pontoZ += taxaZ;
-        vetNormalPonto[0] += taxaIIncremento;
-        vetNormalPonto[1] += taxaJIncremento;
-        vetNormalPonto[2] += taxaKIncremento;
-        vetNormalPonto = vetorUnitario(vetNormalPonto);
+
+    for (let pontoX = x0; pontoX < x1; pontoX++) {
+      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
+        let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
+        ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+        ctx.fillRect(pontoX, pontoY, 1, 1);
+        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       }
+      pontoZ += taxaZ;
+      vetNormalPonto[0] += taxaIIncremento;
+      vetNormalPonto[1] += taxaJIncremento;
+      vetNormalPonto[2] += taxaKIncremento;
+      vetNormalPonto = vetorUnitario(vetNormalPonto);
     }
+  
   }
 }
 function paintAresta(scanLines, color) {
@@ -1408,7 +1408,7 @@ function drawGridBspline(malha, centroideMalha) {
           paintAresta(face.scanLinesFace, 'red');
         };
       } else {
-        paintAresta(face.scanLinesFace, cor);
+        //paintAresta(face.scanLinesFace, cor);
       };
     };
   };
@@ -1430,7 +1430,7 @@ function drawGridBspline(malha, centroideMalha) {
           paintAresta(face.scanLinesFace, 'red');
         };
       } else {
-        paintAresta(face.scanLinesFace, cor);
+        //paintAresta(face.scanLinesFace, cor);
       };
         
 
@@ -1440,6 +1440,11 @@ function drawGridBspline(malha, centroideMalha) {
   if (tipoSombreamento === 'Gouraud') {
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];
+      
+      if (boolPintarFaces) {
+        paintFaceGouraud(face.scanLinesFace);
+      };
+      
       if (boolArestasVerdeVermelha) {
         if (face.boolVisibilidadeNormal) {
           paintAresta(face.scanLinesFace, 'green');
@@ -1447,12 +1452,8 @@ function drawGridBspline(malha, centroideMalha) {
           paintAresta(face.scanLinesFace, 'red');
         } 
       } else{
-        paintArestaGouraud(face.scanLinesFace);
+        //paintArestaGouraud(face.scanLinesFace);
       };
-      if (boolPintarFaces) {
-        paintFaceGouraud(face.scanLinesFace);
-      };
-      
     };
   };
 
@@ -1484,8 +1485,8 @@ function drawGridBspline(malha, centroideMalha) {
         } else {
           paintAresta(face.scanLinesFace, 'red');
         } 
-      } else{
-        paintArestaPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+      } else {
+        //paintArestaPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
       };
     };
   };
