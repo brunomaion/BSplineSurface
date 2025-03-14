@@ -632,8 +632,7 @@ class faceClassConstante{
     return vetScanLinesFace;
   };
   getIluminacaoRGB(propIlu, centroide, vetorNormal) {
-    console.log(propIlu);
-    
+
     let kaR = propIlu[0][0];
     let kaG = propIlu[0][1];
     let kaB = propIlu[0][2];
@@ -644,11 +643,17 @@ class faceClassConstante{
     let ksG = propIlu[2][1];
     let ksB = propIlu[2][2];
     let n = propIlu[3];
+
+    if(!rgbBool){
+      let iluTotalR = calcularIluTotal([kaR, kdR, ksR, n], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
+      let iluminacaoRGB = [iluTotalR, iluTotalR, iluTotalR];
+      return iluminacaoRGB;
+    };
+
     let iluTotalR = calcularIluTotal([kaR, kdR, ksR, n], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
     let iluTotalG = calcularIluTotal([kaG, kdG, ksG, n], centroide, vetorNormal, iluAmbienteG, iluLampadaG);
     let iluTotalB = calcularIluTotal([kaB, kdB, ksB, n], centroide, vetorNormal, iluAmbienteB, iluLampadaB);
     let iluminacaoRGB = [iluTotalR, iluTotalG, iluTotalB];
-    console.log(iluminacaoRGB);
     
     return iluminacaoRGB;
   };
@@ -1025,9 +1030,11 @@ var indicePCsele = [parseInt(document.getElementById('indexIPC').value) || 0,
 var nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
 var nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
   
-//eixo
+//BOOLs
 var eixoBool = true;
 var eixoPCverde = true;
+var rgbBool = true;
+
 //ILUMINACAO
 
 var iluAmbienteR = parseInt(document.getElementById('iluAmbienteR').value) || 0;
@@ -1042,6 +1049,8 @@ var iluLampadaB = parseInt(document.getElementById('iluLampadaB').value) || 0;
 var xLampada = parseInt(document.getElementById('iluLampadaR').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+
+
 
 } ////////////////////////////////////////////////
   
@@ -1329,6 +1338,18 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
+
+  let kaR = propIlu[0][0];
+  let kaG = propIlu[0][1];
+  let kaB = propIlu[0][2];
+  let kdR = propIlu[1][0];
+  let kdG = propIlu[1][1];
+  let kdB = propIlu[1][2];
+  let ksR = propIlu[2][0];
+  let ksG = propIlu[2][1];
+  let ksB = propIlu[2][2];
+  let n = propIlu[3];
+
   for (let i = 0; i < lenScanline; i++) {
     let scanline = scanLines[i];
 
@@ -1354,10 +1375,19 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     let vetNormalPonto = vetNormalPonto0;
 
 
+
     for (let pontoX = x0; pontoX < x1; pontoX++) {
       if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
-        let iluTotal = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu);
-        ctx.fillStyle = `rgb(${iluTotal},${iluTotal},${iluTotal})`;
+
+        if (rgbBool) {
+          let iluTotalR = calcularIluTotalPhong([kaR, kdR, ksR, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
+          let iluTotalG = calcularIluTotalPhong([kaG, kdG, ksG, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteG, iluLampadaG);
+          let iluTotalB = calcularIluTotalPhong([kaB, kdB, ksB, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteB, iluLampadaB);
+          ctx.fillStyle = `rgb(${iluTotalR},${iluTotalG},${iluTotalB})`;
+        } else {
+          let iluTotalR = calcularIluTotalPhong([kaR, kdR, ksR, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
+          ctx.fillStyle = `rgb(${iluTotalR},${iluTotalR},${iluTotalR})`
+        };
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       }
@@ -1367,9 +1397,9 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
       vetNormalPonto[2] += taxaKIncremento;
       vetNormalPonto = vetorUnitario(vetNormalPonto);
     }
-  
   }
-}
+};
+
 function paintAresta(scanLines, color) {
 
   var canvas = document.getElementById('viewport');
@@ -1461,9 +1491,7 @@ function drawGridBspline(malha, centroideMalha) {
       let face = faces[i];
       let iluminacaoRGB = face.iluminacaoRGB;
       let cor = `rgb(${iluminacaoRGB[0]},${iluminacaoRGB[1]},${iluminacaoRGB[2]})`;
-      console.log(cor);
-      
-      
+
       if (boolPintarFaces) {
         paintFace(face.scanLinesFace, cor);
       };
@@ -1855,15 +1883,8 @@ function calcularIluTotal([ka, kd, ks, iluN], centroide_vertice, vetNormal, iluA
   iluTotal += iluEspecular;
   return iluTotal
 };
-function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
-  
-  let ka = propIlu[0];
-  let kd = propIlu[1];
-  let ks = propIlu[2];
-  let n = propIlu[3];
-
+function calcularIluTotalPhong([ka, kd, ks, iluN], vetNormalPonto, vetorLuz, vetH, iluAmbiente, iluLampada) {
   let iluTotal = iluAmbiente*ka;
-
   if (iluTotal>=255){
     return 255;
   };
@@ -1872,8 +1893,9 @@ function calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu) {
   if (escalarNL <= 0) {
     return iluTotal;
   }
+
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
-  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** n));
+  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** iluN));
   return iluTotal
 };
 // BSPLINES
@@ -2296,8 +2318,12 @@ function onFieldChange() {
   selectedMalha.translX = parseFloat(document.getElementById('translX').value) || 0;
   selectedMalha.translY = parseFloat(document.getElementById('translY').value) || 0;
   selectedMalha.translZ = parseFloat(document.getElementById('translZ').value) || 0;
+  
+  //BOOLS
   eixoBool = document.getElementById('eixo3d').checked;
   eixoPCverde = document.getElementById('pcVerde').checked;
+  rgbBool = document.getElementById('rgbBool').checked;
+
   lenPontosControle = document.getElementById('tamPC').value || 4; 
   nSegmentosU = parseInt(document.getElementById('nSegmentosU').value) || 1;
   nSegmentosV = parseInt(document.getElementById('nSegmentosV').value) || 1;
@@ -2418,7 +2444,7 @@ document.getElementById('scl').addEventListener('input', onFieldChange);
 document.getElementById('translX').addEventListener('input', onFieldChange);
 document.getElementById('translY').addEventListener('input', onFieldChange);
 document.getElementById('translZ').addEventListener('input', onFieldChange);
-document.getElementById('eixo3d').addEventListener('input', onFieldChange);
+
 document.getElementById('tamPC').addEventListener('input', onFieldChange);
 document.getElementById('pcVerde').addEventListener('input', onFieldChange);
 //document.getElementById('visibilidadeGridControle').addEventListener('input', onFieldChange);
@@ -2474,8 +2500,10 @@ document.getElementById('ksB').addEventListener('input', onFieldChange);
 
 document.getElementById('nIluminacao').addEventListener('input', onFieldChange);
 
+document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('boolArestasVerdeVermelha').addEventListener('input', onFieldChange);
 document.getElementById('boolPintarFaces').addEventListener('input', onFieldChange);
+document.getElementById('rgbBool').addEventListener('input', onFieldChange);
 
 
 const selectMalha = document.getElementById("malhaSelecionada");
@@ -2715,10 +2743,7 @@ function salvarMalhaEmArquivo(malha) {
     translX: malha.translX,
     translY: malha.translY,
     translZ: malha.translZ,
-    ka: malha.ka,
-    kd: malha.kd,
-    ks: malha.ks,
-    nIluminacao: malha.nIluminacao,
+    propIlu: malha.propIlu,
     mMalha: malha.mMalha,
     nMalha: malha.nMalha,
     visibilidadePC: malha.visibilidadePC
