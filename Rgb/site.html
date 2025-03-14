@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CG2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="sidebarLeft">
+
+    
+    <button id="adicionarMalha">Adicionar Malha</button>
+    <button id="excluirMalha">Excluir Malha</button>
+    <br>
+
+
+    <div class="objeto">
+
+      <label for="malhaSelecionada">Malha: </label>
+      <select id="malhaSelecionada" name="malhaSelecionada">
+        <!-- As opções serão adicionadas dinamicamente via JavaScript -->
+      </select>
+    </div>
+
+    <div class="tipoBspline"> 
+      <label>B-Splines:</label><br>
+      <select id="tipoBspline" name="tipoBspline">
+        <option value="bsplineOpen">Normal</option>
+        <option value="bsplineClamped">Clamped</option>
+        <option value="bsplineClosed">Closed</option>
+      </select>
+    </div>
+
+    <div class="classReset"> 
+      <label style="text-align: center; display: block;">GRID INICIAL</label>
+      
+      <div id="pontosMalha">
+        <label>P. extremos da Malha: (X, Y, Z)</label><br>
+      
+        <label>P1:</label>
+        <input type="number" id="p1X" name="p1X" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p1Y" name="p1Y" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p1Z" name="p1Z" value="0" step="0.25" maxlength="3" size="4"><br>
+      
+        <label>P2:</label>
+        <input type="number" id="p2X" name="p2X" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p2Y" name="p2Y" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p2Z" name="p2Z" value="0" step="0.25" maxlength="3" size="4"><br>
+      
+        <label>P3:</label>
+        <input type="number" id="p3X" name="p3X" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p3Y" name="p3Y" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p3Z" name="p3Z" value="0" step="0.25" maxlength="3" size="4"><br>
+      
+        <label>P4:</label>
+        <input type="number" id="p4X" name="p4X" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p4Y" name="p4Y" value="0" step="0.25" maxlength="3" size="4">
+        <input type="number" id="p4Z" name="p4Z" value="0" step="0.25" maxlength="3" size="4">
+      </div>
+
+      <div class="pontosControleClass">
+
+        <label for="mPontos">M (4 &le; m &le; 100): </label>
+        <input type="number" id="mPontos" name="mPontos" min="4" max="100" value="4"><br>
+        <label for="nPontos">N (4 &le; n &le; 100): </label>
+        <input type="number" id="nPontos" name="nPontos" min="4" max="100" value="4">
+      </div>
+
+
+    </div>
+
+    <div class="numeroSegmentos">
+      <label for="numSegmentos">Número de Segmentos: </label><br>
+      <label for="nSegmentosU">u:</label>
+      <input type="number" id="nSegmentosU" name="nSegmentosU" min="1" max="100" value="1">
+      <label for="nSegmentosV">v:</label>
+      <input type="number" id="nSegmentosV" name="nSegmentosV" min="1" max="100" value="1">
+    </div>
+
+
+
+
+    <div class="pontosControleEditar">
+      <label style="text-align: center; display: block;">PONTOS DE CONTROLE</label>
+
+      <div class="tamanhoPC">
+        <label for="tamanhoPC">Tamanho P. Controle:</label>
+        <input type="number" id="tamPC" name="tamPC" value="2" min="0" max="10" maxlength="3" size="4">
+      </div>
+
+
+      <label for="boolPC">Visibilidade Pontos de Controle:</label>
+      <input type="checkbox" id="visibilidadePC" name="visibilidadePC">
+      <br>
+      <label for="pcVerde">P.C. Selecionado (Verde):</label>
+      <input type="checkbox" id="pcVerde" name="pcVerde" checked>
+      <br>
+  
+      <label for="pontosControleEditar">P. Controle selecionado:</label><br>
+      <label> ! Clique próximo do ponto ! </label><br>
+      <label for="indexIPC">I:</label>
+      <input type="number" id="indexIPC" name="indexIPC" value="0" min="0" max="100" size="4" readonly disabled>
+      <label for="indexJPC">J:</label>
+      <input type="number" id="indexJPC" name="indexJPC" value="0" min="0" max="100" size="4" readonly disabled>
+      
+      <br>
+
+      <label for="xPC">X: </label>
+      <input type="number" id="xPC" name="xPC" value="0" step="0.1" maxlength="3" size="4">
+      <label for="yPC">Y: </label>
+      <input type="number" id="yPC" name="yPC" value="0" step="0.1" maxlength="3" size="4">
+      <label for="zPC">Z: </label>
+      <input type="number" id="zPC" name="zPC" value="0" step="0.1" maxlength="3" size="4">
+    </div>
+    
+
+
+    <div class="iluminacaoClass">
+      <label style="text-align: center; display: block;">ILUMINAÇÃO</label>
+
+      <div class="iluminacaoAmbienteClass">
+        <label>Ilu. Ambiente: </label>
+        <br>
+        <label>R:</label>
+        <input type="number" id="iluAmbienteR" name="iluAmbienteR" value="120" step="1" maxlength="3" size="4">
+        <label>G:</label>
+        <input type="number" id="iluAmbienteG" name="iluAmbienteG" value="120" step="1" maxlength="3" size="4">
+        <label>B:</label>
+        <input type="number" id="iluAmbienteB" name="iluAmbienteB" value="120" step="1" maxlength="3" size="4">
+        <br>
+        <label>Lâmpada </label>
+        <br>
+        <label>R:</label>
+        <input type="number" id="iluLampadaR" name="iluLampadaR" value="150" step="1" maxlength="3" size="4">
+        <label>G:</label>
+        <input type="number" id="iluLampadaG" name="iluLampadaG" value="150" step="1" maxlength="3" size="4">
+        <label>B:</label>
+        <input type="number" id="iluLampadaB" name="iluLampadaB" value="150" step="1" maxlength="3" size="4">
+        <br>
+        <label>Posição Lâmpada </label>
+        <br>
+        <label>X: </label>
+        <input type="number" id="xLampada" name="xLampada" value="5" step="1" maxlength="3" size="4">
+        <label>Y: </label>
+        <input type="number" id="yLampada" name="yLampada" value="20" step="1" maxlength="3" size="4">
+        <label>Z: </label>
+        <input type="number" id="zLampada" name="zLampada" value="5" step="1" maxlength="3" size="4">
+      
+      </div>
+
+      <div class="iluminacaoObjeto">
+        <label>Ilu. Objeto:</label><br>
+        <label>Ka:</label>
+        <input type="number" id="kaR" name="kaR" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="kaG" name="kaG" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="kaB" name="kaB" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <br>
+        <label>Kd:</label>
+        <input type="number" id="kdR" name="kdR" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="kdG" name="kdG" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="kdB" name="kdB" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <br>
+        <label>Ks:</label>
+        <input type="number" id="ksR" name="ksR" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="ksG" name="ksG" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <input type="number" id="ksB" name="ksB" value="0.5" step="0.1" min="0" max="1" maxlength="3" size="4">
+        <br>
+        <label>n:</label>
+        <input type="number" id="nIluminacao" name="nIluminacao" value="10" step="0.1" maxlength="3" size="4">
+      </div>
+
+    </div>
+
+    <div class="propriedadesRender">
+      <label style="text-align: center; display: block;">RENDERIZAÇÃO</label>
+
+      <label>Sombreamento:</label>
+      <select id="tipoSombreamento" name="tipoSombreamento">
+        <option value="Nenhum">Nenhum</option>
+        <option value="Constante"selected>Constante</option>
+        <option value="Gouraud">Gouraud</option>
+        <option value="Phong">Phong</option>
+      </select>
+
+      <br>
+
+      <label for="boolPintarFaces">Pintar faces:</label>
+      <input type="checkbox" id="boolPintarFaces" name="boolPintarFaces" checked>
+
+      <br>
+
+      <label for="boolArestasVerdeVermelha">Arestas Verde/Vermelha:</label>
+      <input type="checkbox" id="boolArestasVerdeVermelha" name="boolArestasVerdeVermelha" checked>
+
+    </div>
+
+    <button id="salvarMalhaArquivo">Salvar Malha</button>
+    <input type="file" id="carregarMalhaArquivo" accept=".json" style="display: none;">
+    <button id="uploadMalha">Upload</button>
+
+  </div>
+
+  <div class="sidebarRight">
+
+    <div class="selectSRU" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">SRU</label>
+      <label for="xMinSRU">xMin:</label>
+      <input type="number" id="xMinSRU" name="xMinSRU" value="-20" step="1" maxlength="3" size="4">
+      <label for="xMaxSRU">xMax:</label>
+      <input type="number" id="xMaxSRU" name="xMaxSRU" value="20" step="1" maxlength="3" size="4">
+      <br>
+      <label for="yMinSRU">yMin:</label>
+      <input type="number" id="yMinSRU" name="yMinSRU" value="-15" step="1" maxlength="3" size="4">
+      <label for="yMaxSRU">yMax:</label>
+      <input type="number" id="yMaxSRU" name="yMaxSRU" value="15" step="1" maxlength="3" size="4">
+      </select>
+    </div>
+
+    <div class="selectWindow" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">WINDOW</label>
+      <label for="uMinW">uMinW:</label>
+      <input type="number" id="uMinW" name="uMinW" value="0" step="10" maxlength="3" size="4">
+      
+      <label for="vMinW">vMinW:</label>
+      <input type="number" id="vMinW" name="vMinW" value="0" step="10" maxlength="3" size="4">
+      
+      <br>
+      <label for="uMaxW">uMaxW:</label>
+      <input type="number" id="uMaxW" name="uMaxW" value="1099" step="10" maxlength="3" size="4">
+      
+      <label for="vMaxW">vMaxW:</label>
+      <input type="number" id="vMaxW" name="vMaxW" value="699" step="10" maxlength="3" size="4">
+      </select>
+    </div>
+
+    <div class="selectViewport" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">VIEWPORT</label>
+      <label for="uMin">uMin:</label>
+      <input type="number" id="uMin" name="uMin" value="0" step="10" maxlength="3" size="4">
+      
+      <label for="vMin">vMin:</label>
+      <input type="number" id="vMin" name="vMin" value="0" step="10" maxlength="3" size="4">
+      
+      <br>
+      <label for="uMax">uMax:</label>
+      <input type="number" id="uMax" name="uMax" value="1099" step="10" maxlength="3" size="4">
+      
+      <label for="vMax">vMax:</label>
+      <input type="number" id="vMax" name="vMax" value="699" step="10" maxlength="3" size="4">
+      </select>
+    </div>
+
+    <div class="selectVisao" style="text-align: center;"> 
+      <label style="text-align: center; display: block;">VISÃO:</label>
+      <select id="visao" name="visao" style="width: 190px;">
+      <option value="axonometrica"selected>Axonométrica</option>
+      <option value="perspectiva">Perspectiva</option>
+      </select>
+    </div>
+
+    <div class="eixo">
+      <label for="eixo3d">Eixo 3D:</label>
+      <input type="checkbox" id="eixo3d" name="eixo3d" checked>
+    </div>
+
+    <div class="configCamera"> 
+
+      <label style="text-align: center; display: block;">CÂMERA</label>
+
+      <div id="vrpDiv">
+        <label>VRP:</label>
+        <label for="xVrp">X:</label>
+        <input type="number" id="xVrp" name="xVrp" value="25" maxlength="3" size="4">
+        <label for="yVrp">Y:</label>
+        <input type="number" id="yVrp" name="yVrp" value="25" maxlength="3" size="4">
+        <label for="zVrp">Z:</label>
+        <input type="number" id="zVrp" name="zVrp" value="25" maxlength="3" size="1">
+      </div>
+
+      <div id="pDiv">
+        <label>P:</label>
+        <label for="xP">X:</label>
+        <input type="number" id="xP" name="xP" value="0" maxlength="3" size="4">
+        <label for="yP">Y:</label>
+        <input type="number" id="yP" name="yP" value="0" maxlength="3" size="4">
+        <label for="zP">Z:</label>
+        <input type="number" id="zP" name="zP" value="0" maxlength="3" size="1">
+      </div>
+
+      <div id="dpDiv">
+        <label for="dpValue">dp:</label>
+        <input type="number" id="dpValue" name="dpValue" value="40" maxlength="3" size="1" style="margin-left: 10px;">
+      </div>
+    
+    </div>
+
+    <div class="configTransformacoes">
+      
+      <label style="text-align: center; display: block;">TRANSFORMAÇÕES</label>
+
+      <div id="escala">
+        <label>Escala:</label>
+        <input type="number" id="scl" name="scl" value="1" step="0.1" maxlength="3" size="4">
+      </div>
+
+      <div id="transl">
+        <label>Translação:</label><br>
+        <label for="xTrans">X:</label>
+        <input type="number" id="translX" name="translX" value="0" step="0.1" maxlength="3" size="4">
+        <label for="yTrans">Y:</label>
+        <input type="number" id="translY" name="translY" value="0" step="0.1" maxlength="3" size="4">
+        <label for="zTrans">Z:</label>
+        <input type="number" id="translZ" name="translZ" value="0" step="0.1" maxlength="3" size="4">
+      </div>
+
+      <div id="rotDiv">
+        <label>Rotacionar:</label><br>
+        <label for="xRot">X:</label>
+        <input type="number" id="xRot" name="xRot" value="0" step="5" maxlength="3" size="4">
+        <label for="yRot">Y:</label>
+        <input type="number" id="yRot" name="yRot" value="0" step="5" maxlength="3" size="4">
+        <label for="zRot">Z:</label>
+        <input type="number" id="zRot" name="zRot" value="0" step="5" maxlength="3" size="4">
+      </div>
+
+    </div>
+
+    <div id="malhasLista"></div>
+    <div id="propriedades"></div>
+
+  </div>  
+
+
+  <div id="modalAdicionarMalha" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Adicionar Malha</h2>
+      <div id="pontosMalha">
+        <label>P. extremos da Malha: (X, Y, Z)</label><br>
+      
+        <label>P1:</label>
+        <input type="number" id="p1xAdd" name="p1xAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p1yAdd" name="p1yAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p1zAdd" name="p1zAdd" value="0" step="0.5" maxlength="3" size="4"><br>
+            
+        <label>P2:</label>
+        <input type="number" id="p2xAdd" name="p2xAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p2yAdd" name="p2yAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p2zAdd" name="p2zAdd" value="0" step="0.5" maxlength="3" size="4"><br>
+            
+        <label>P3:</label>
+        <input type="number" id="p3xAdd" name="p3xAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p3yAdd" name="p3yAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p3zAdd" name="p3zAdd" value="0" step="0.5" maxlength="3" size="4"><br>
+            
+        <label>P4:</label>
+        <input type="number" id="p4xAdd" name="p4xAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p4yAdd" name="p4yAdd" value="0" step="0.5" maxlength="3" size="4">
+        <input type="number" id="p4zAdd" name="p4zAdd" value="0" step="0.5" maxlength="3" size="4">
+      </div>
+      <button id="salvarMalha">Salvar</button>
+    </div>
+  </div>
+
+  <div id="canvasContainer">
+    <canvas id="viewport" width="1100" height="700"></canvas>
+  </div>
+
+  
+
+
+  <script src="script2.js"></script>
+</body>
+</html>
+
+
