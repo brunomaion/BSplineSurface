@@ -1125,17 +1125,17 @@ var eixoPCverde = true;
 var rgbBool = true;
 
 //ILUMINACAO
+var colorHexAmbiente = document.getElementById('rgbAmbiente')?.value || '#000000';
+var iluAmbienteR = parseInt(colorHexAmbiente.substring(1, 3), 16);
+var iluAmbienteG = parseInt(colorHexAmbiente.substring(3, 5), 16);
+var iluAmbienteB = parseInt(colorHexAmbiente.substring(5, 7), 16);
 
-var iluAmbienteR = parseInt(document.getElementById('iluAmbienteR').value) || 0;
-var iluAmbienteG = parseInt(document.getElementById('iluAmbienteG').value) || 0;
-var iluAmbienteB = parseInt(document.getElementById('iluAmbienteB').value) || 0;
+var colorHexLampada = document.getElementById('rgbLampada')?.value || '#000000';
+var iluLampadaR = parseInt(colorHexLampada.substring(1, 3), 16);
+var iluLampadaG = parseInt(colorHexLampada.substring(3, 5), 16);
+var iluLampadaB = parseInt(colorHexLampada.substring(5, 7), 16);
 
-
-var iluLampadaR = parseInt(document.getElementById('iluLampadaR').value) || 0;
-var iluLampadaG = parseInt(document.getElementById('iluLampadaG').value) || 0;
-var iluLampadaB = parseInt(document.getElementById('iluLampadaB').value) || 0;
-
-var xLampada = parseInt(document.getElementById('iluLampadaR').value) || 0;
+var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
@@ -1441,6 +1441,8 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
 
+  
+
   let kaRobj = propIlu[0][0];
   let kaGobj = propIlu[0][1];
   let kaBobj = propIlu[0][2];
@@ -1452,6 +1454,7 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   let ksBobj = propIlu[2][2];
   let iluNobj = propIlu[3];
 
+  
   for (let i = 0; i < lenScanline; i++) {
     let scanline = scanLines[i];
 
@@ -1465,6 +1468,8 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     let x1 = p1[0];
     let z1 = p1[2];
     let vetNormalPonto0 = p0[3];
+    console.log(vetNormalPonto0);
+    
     let vetNormalPonto1 = p1[3];
     let deltaX = x1 - x0;
     if (deltaX === 0) deltaX = 1e-6;
@@ -1487,8 +1492,8 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
           let iluTotalB = calcularIluTotalPhong([kaBobj, kdBobj, ksBobj, iluNobj], vetNormalPonto, vetorLuz, vetH, iluAmbienteB, iluLampadaB);
           ctx.fillStyle = `rgb(${iluTotalR},${iluTotalG},${iluTotalB})`;
         } else {
-          let iluTotalR = calcularIluTotalPhong([kaR, kdR, ksR, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
-          ctx.fillStyle = `rgb(${iluTotalR},${iluTotalR},${iluTotalR})`
+          let iluTotalR = calcularIluTotalPhong([kaRobj, kdRobj, ksRobj, iluNobj], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
+          ctx.fillStyle = `rgb(${iluTotalR},${iluTotalR},${iluTotalR})`;
         };
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
@@ -1501,7 +1506,6 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     }
   }
 };
-
 function paintAresta(scanLines, color) {
 
   var canvas = document.getElementById('viewport');
@@ -1516,49 +1520,6 @@ function paintAresta(scanLines, color) {
       let pontoX = pontos[j][0];
       let pontoZ = pontos[j][2];
       if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
-        ctx.fillRect(pontoX, pontoY, 1, 1);
-        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-      };
-    };
-  };
-};
-function paintArestaGouraud(scanLines) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline; i++) {
-    let pontoY = scanLines[i][0];
-    let pontos = scanLines[i][1];
-    let lenPontos = pontos.length;
-    for (let j = 0; j < lenPontos; j++) {
-      let pontoX = pontos[j][0];
-      let pontoZ = pontos[j][2];
-      let corIlu = pontos[j][3];
-      if (zBuffer.getZBuffer(pontoX, pontoY) < pontoZ) {
-        let cor = `rgb(${corIlu},${corIlu},${corIlu})`;
-        ctx.fillStyle = cor;
-        ctx.fillRect(pontoX, pontoY, 1, 1);
-        zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
-      };
-    };
-  };
-};
-function paintArestaPhong(scanLines, vetorLuz, vetH, propIlu) {
-  var canvas = document.getElementById('viewport');
-  var ctx = canvas.getContext('2d');
-  let lenScanline = scanLines.length;
-  for (let i = 0; i < lenScanline; i++) {
-    let pontoY = scanLines[i][0];
-    let pontos = scanLines[i][1];
-    let lenPontos = pontos.length;
-    for (let j = 0; j < lenPontos; j++) {
-      let pontoX = pontos[j][0];
-      let pontoZ = pontos[j][2];
-      let vetNormalPonto = pontos[j][3];
-      let iluPonto = calcularIluTotalPhong(vetNormalPonto, vetorLuz, vetH, propIlu)
-      if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
-        let cor = `rgb(${iluPonto},${iluPonto},${iluPonto})`;
-        ctx.fillStyle = cor;
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       };
@@ -1604,11 +1565,7 @@ function drawGridBspline(malha, centroideMalha) {
         } else {
           paintAresta(face.scanLinesFace, 'red');
         };
-      } else {
-        //paintAresta(face.scanLinesFace, cor);
       };
-        
-
     };
   };
 
@@ -1626,8 +1583,6 @@ function drawGridBspline(malha, centroideMalha) {
         } else {
           paintAresta(face.scanLinesFace, 'red');
         } 
-      } else{
-        //paintArestaGouraud(face.scanLinesFace);
       };
     };
   };
@@ -1649,9 +1604,8 @@ function drawGridBspline(malha, centroideMalha) {
 
     for (let i = 0; i < facesLenght; i++) { // PERCORRE TODAS AS FACES
       let face = faces[i];  
-      let propIlu = face.propIlu;
       if (boolPintarFaces) {
-        paintFacePhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
+        paintFacePhong(face.scanLinesFace, vetorLuz, vetH, face.propIlu);
       };
 
       if (boolArestasVerdeVermelha) {
@@ -1660,9 +1614,7 @@ function drawGridBspline(malha, centroideMalha) {
         } else {
           paintAresta(face.scanLinesFace, 'red');
         } 
-      } else {
-        //paintArestaPhong(face.scanLinesFace, vetorLuz, vetH, propIlu);
-      };
+      }
     };
   };
 
@@ -1684,16 +1636,19 @@ function drawCircle(x, y, radius, color) {
   ctx.fill();
 };
 function drawPCselecionado() {
-  if (eixoPCverde) {
-    let i = indicePCsele[0];
-    let j = indicePCsele[1];
-    gridObjeto = selectedMalha.gridControleSRT;
-    try {
-      drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
+  try {
+    if (eixoPCverde) {
+      let i = indicePCsele[0];
+      let j = indicePCsele[1];
+      gridObjeto = selectedMalha.gridControleSRT;
+      try {
+        drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
+      } catch (error) {
+        console.log('Ponto de controle selecionado fora do grid');
+      }
     }
-    catch (error) {
-      console.log('Ponto de controle selecionado fora do grid');
-    };
+  } catch (error) {
+    console.log('Erro ao desenhar ponto de controle selecionado:', error);
   };
 };
 function recorte2D(pontos) {
@@ -1833,7 +1788,6 @@ function recorte2DGourad(pontosIluminados) {
 
   return resultado;
 };
-
 function recorte2DPhong(pontos, vetMedios) {
   function testeDentroEsquerda(p) {
           return p[0] >= uMinViewport;
@@ -1966,52 +1920,59 @@ function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vet
   let vetorLuz = [xLampada - centroide_vertice[0],
                   yLampada - centroide_vertice[1],
                   zLampada - centroide_vertice[2]];
-  let vetorS = [vetVrp[0] - centroide_vertice[0],
-                vetVrp[1] - centroide_vertice[1],
-                vetVrp[2] - centroide_vertice[2]];
-  vetorS = vetorUnitario(vetorS);
+
   vetorLuz = vetorUnitario(vetorLuz);
 
   let escalarNL = produtoEscalar(vetNormal,vetorLuz)
   let iluDifusa = iluLampada * kdObj * escalarNL;
-  if (iluDifusa <= 0) {
+  if (escalarNL <= 0) {
           return iluTotal;
   }
   iluTotal += iluDifusa;
   // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
+  let vetorS = [vetVrp[0] - centroide_vertice[0],
+                vetVrp[1] - centroide_vertice[1],
+                vetVrp[2] - centroide_vertice[2]];
+                vetorS = vetorUnitario(vetorS);
   //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
   let vetorR = [2*escalarNL*vetNormal[0] - vetorLuz[0],
                   2*escalarNL*vetNormal[1] - vetorLuz[1],
                   2*escalarNL*vetNormal[2] - vetorLuz[2]];  
+
+  // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
   let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorS);
-  vetR = vetorUnitario(vetorR);  
-  let iluEspecular = iluLampada * ksObj * (escalarRS ** iluNObj);
-  if (iluEspecular <= 0) {
-          return iluTotal;
+  if (escalarRS <= 0) {
+    return iluTotal;
   }
+  let iluEspecular = iluLampada * ksObj * (escalarRS ** iluNObj);
   iluTotal += iluEspecular;
   return iluTotal
 };
-function calcularIluTotalPhong([ka, kd, ks, iluN], vetNormalPonto, vetorLuz, vetH, iluAmbiente, iluLampada) {
-  let iluTotal = iluAmbiente*ka;
-  if (iluTotal>=255){
+function calcularIluTotalPhong([kaObj, kdObj, ksObj, iluNObj], vetNormalPonto, vetorLuz, vetorH, iluAmbiente, iluLampada) {
+  
+  // ILUMINAÇÃO AMBIENTE
+  let iluTotal = iluAmbiente * kaObj;
+  if (iluTotal >= 255) {
     return 255;
-  };
+  }
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
-  let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz);
-  if (escalarNL <= 0) {
+  let escalarNL = produtoEscalar(vetNormalPonto, vetorLuz);
+  let iluDifusa = iluLampada * kdObj * escalarNL;
+  if (iluDifusa <= 0) {
     return iluTotal;
   }
-  iluTotal += iluLampada * kd * escalarNL;
-  // Iluminação especular (Is = Il . Ks . (N . H)^n)
-  let escalarNH = produtoEscalar(vetNormalPonto, vetH);
-  let iluEspecular = iluLampada *  ks * (escalarNH ** iluN);
+  iluTotal += iluDifusa;
+
+  // Iluminação especular (Is = Il . Ks . (N^.H^)^n)
+  let escalarNH = produtoEscalar(vetNormalPonto, vetorH);
+  let iluEspecular = iluLampada * ksObj * (escalarNH ** iluNObj);
   if (iluEspecular <= 0) {
-    return iluTotal;
+    return iluTotal
   }
-  iluTotal += iluEspecular; 
-  return iluTotal
-};
+  iluTotal += iluEspecular;
+  return iluTotal;
+}
+
 // BSPLINES
 function closedBspline(pontosDeControle) {
   let n = pontosDeControle.length;
@@ -2383,7 +2344,7 @@ ponto4 = [10, 10, 0];
 
 let pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
-malha1 = new malha(pontosMalha, m, n, 1111);
+malha1 = new malha(pontosMalha);
 vetMalha.push(malha1);
 
 
@@ -2393,7 +2354,7 @@ ponto3 = [10, 0, 10];
 ponto4 = [10, 0, 0];
 pontosMalha = [ponto1, ponto2, ponto3, ponto4]
 
-malha2 = new malha(pontosMalha, m, n, 2222);
+malha2 = new malha(pontosMalha);
 vetMalha.push(malha2);
 
 
@@ -2445,14 +2406,15 @@ function onFieldChange() {
   selectedMalha.visibilidadePC = document.getElementById('visibilidadePC').checked;
 
 
-  iluAmbienteR = parseInt(document.getElementById('iluAmbienteR').value) || 0;
-  iluAmbienteG = parseInt(document.getElementById('iluAmbienteG').value) || 0;
-  iluAmbienteB = parseInt(document.getElementById('iluAmbienteB').value) || 0;
+  colorHexAmbiente = document.getElementById('rgbAmbiente')?.value || '#000000';
+  iluAmbienteR = parseInt(colorHexAmbiente.substring(1, 3), 16);
+  iluAmbienteG = parseInt(colorHexAmbiente.substring(3, 5), 16);
+  iluAmbienteB = parseInt(colorHexAmbiente.substring(5, 7), 16);
 
-  iluLampadaR = parseInt(document.getElementById('iluLampadaR').value) || 0;
-  iluLampadaG = parseInt(document.getElementById('iluLampadaG').value) || 0;
-  iluLampadaB = parseInt(document.getElementById('iluLampadaB').value) || 0;
-  
+  colorHexLampada = document.getElementById('rgbLampada')?.value || '#000000';
+  iluLampadaR = parseInt(colorHexLampada.substring(1, 3), 16);
+  iluLampadaG = parseInt(colorHexLampada.substring(3, 5), 16);
+  iluLampadaB = parseInt(colorHexLampada.substring(5, 7), 16);
   
   xLampada = parseInt(document.getElementById('xLampada').value) || 0;
   yLampada = parseInt(document.getElementById('yLampada').value) || 0;
@@ -2588,18 +2550,8 @@ document.getElementById('p4Z').addEventListener('input', onFieldChangeReset);
 document.getElementById('mPontos').addEventListener('input', onFieldChangeReset);
 document.getElementById('nPontos').addEventListener('input', onFieldChangeReset);
 
-document.getElementById('iluAmbienteR').addEventListener('input', onFieldChange);
-document.getElementById('iluAmbienteG').addEventListener('input', onFieldChange);
-document.getElementById('iluAmbienteB').addEventListener('input', onFieldChange);
-
-
-document.getElementById('iluLampadaR').addEventListener('input', onFieldChange);
-document.getElementById('iluLampadaG').addEventListener('input', onFieldChange);
-document.getElementById('iluLampadaB').addEventListener('input', onFieldChange);
-
-document.getElementById('xLampada').addEventListener('input', onFieldChange);
-document.getElementById('yLampada').addEventListener('input', onFieldChange);
-document.getElementById('zLampada').addEventListener('input', onFieldChange);
+document.getElementById('rgbAmbiente').addEventListener('input', onFieldChange);
+document.getElementById('rgbLampada').addEventListener('input', onFieldChange);
 
 document.getElementById('kaR').addEventListener('input', onFieldChange);
 document.getElementById('kaG').addEventListener('input', onFieldChange);
@@ -2833,14 +2785,10 @@ document.getElementById('salvarMalha').addEventListener('click', function() {
 
 
 
-
-
-}/////////////////////////////////////////////////////////////////////////////////////////
-
-
 // Adicionar o botão "Salvar Malha" no HTML
 // <button id="salvarMalhaArquivo">Salvar Malha</button>
 
+// Função para salvar a malha em um arquivo JSON
 // Função para salvar a malha em um arquivo JSON
 function salvarMalhaEmArquivo(malha) {
   const malhaData = {
@@ -2855,10 +2803,20 @@ function salvarMalhaEmArquivo(malha) {
     translX: malha.translX,
     translY: malha.translY,
     translZ: malha.translZ,
-    propIlu: malha.propIlu,
+    kaR: malha.kaR,
+    kaG: malha.kaG,
+    kaB: malha.kaB,
+    kdR: malha.kdR,
+    kdG: malha.kdG,
+    kdB: malha.kdB,
+    ksR: malha.ksR,
+    ksG: malha.ksG,
+    ksB: malha.ksB,
+    nIluminacao: malha.nIluminacao,
     mMalha: malha.mMalha,
     nMalha: malha.nMalha,
-    visibilidadePC: malha.visibilidadePC
+    visibilidadePC: malha.visibilidadePC,
+    pontosControleTransformados: malha.gridControleSRT
   };
 
   const blob = new Blob([JSON.stringify(malhaData, null, 2)], { type: 'application/json' });
@@ -2906,17 +2864,28 @@ function carregarMalhaDeArquivo(event) {
       novaMalha.translX = malhaData.translX;
       novaMalha.translY = malhaData.translY;
       novaMalha.translZ = malhaData.translZ;
-      novaMalha.ka = malhaData.ka;
-      novaMalha.kd = malhaData.kd;
-      novaMalha.ks = malhaData.ks;
+      novaMalha.kaR = malhaData.kaR;
+      novaMalha.kaG = malhaData.kaG;
+      novaMalha.kaB = malhaData.kaB;
+      novaMalha.kdR = malhaData.kdR;
+      novaMalha.kdG = malhaData.kdG;
+      novaMalha.kdB = malhaData.kdB;
+      novaMalha.ksR = malhaData.ksR;
+      novaMalha.ksG = malhaData.ksG;
+      novaMalha.ksB = malhaData.ksB;
       novaMalha.nIluminacao = malhaData.nIluminacao;
       novaMalha.mMalha = malhaData.mMalha;
       novaMalha.nMalha = malhaData.nMalha;
       novaMalha.visibilidadePC = malhaData.visibilidadePC;
+      novaMalha.gridControleSRT = malhaData.pontosControleTransformados;
+
+      // Atualizar a malha com as novas propriedades
+      novaMalha.update();
 
       vetMalha.push(novaMalha);
       updateMalhaSelector();
       updatePrograma();
+
     } catch (error) {
       alert('Erro ao carregar o arquivo: ' + error.message);
     }
@@ -2929,3 +2898,7 @@ document.getElementById('carregarMalhaArquivo').addEventListener('change', carre
 document.getElementById('uploadMalha').addEventListener('click', function() {
   document.getElementById('carregarMalhaArquivo').click();
 });
+
+
+
+}/////////////////////////////////////////////////////////////////////////////////////////
