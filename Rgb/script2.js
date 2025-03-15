@@ -252,16 +252,17 @@ class malha {
   };
   createEstruturaFaces(grid) {
 
-    function calculaVetorMedioFaces(vFacesNormal){ //FACES COMPARTILHADAS
+    function calculaVetorMedioFaces(vetoresNormaisFace){ //FACES COMPARTILHADAS
+      
       let somaX = 0;
       let somaY = 0;
       let somaZ = 0;
-      let len = vFacesNormal.length;
+      let len = vetoresNormaisFace.length;
       for (let i = 0; i < len; i++) {
-        let normalUniFace = vFacesNormal[i].vetorNormalUnitario;
-        somaX += normalUniFace[0];
-        somaY += normalUniFace[1];
-        somaZ += normalUniFace[2];
+        let normalFace = vetoresNormaisFace[i];
+        somaX += normalFace[0];
+        somaY += normalFace[1];
+        somaZ += normalFace[2];
       }
       let vetorNormalMedio = [somaX / len, somaY / len, somaZ / len];
       vetorNormalMedio = vetorUnitario(vetorNormalMedio);
@@ -302,40 +303,57 @@ class malha {
     if (tipoSombreamento == 'Gouraud') {
       let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
-      // FOR PARA CADA FACE testar os pontos e criar nova face
 
-      
+      //PEGAR VIZINHOS
       for (let i = 0; i < matrizFaces.length; i++) {
         for (let j = 0; j < matrizFaces[i].length; j++) {
           let faceTestada = matrizFaces[i][j];
           let vetFacesVizinhas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
-          vetFacesVizinhas.push(faceTestada); //Propia Face
-          console.log(vetFacesVizinhas);
 
-          let vetorNormalMedio = []
+          let vetorNormalMedioP1 = [];
+          let vetorNormalMedioP2 = [];
+          let vetorNormalMedioP3 = [];
+          let vetorNormalMedioP4 = [];
+          vetorNormalMedioP1.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP2.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP3.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP4.push(faceTestada.vetorNormalUnitario);
+
           //Testar pontos
           let pontosFace = faceTestada.pontos;
-          for (let k = 0; k < pontosFace.length; k++) {
-            let pontoTestado = pontosFace[k];
-            let facesCompatilhadas = [];
 
-            for (let l = 0; l < vetFacesVizinhas.length; l++) {
-              
-              let faceVizinha = vetFacesVizinhas[l];
-              let pontosFaceCompartilhada = faceVizinha.pontos;
-               //AS Q TEM O MESMO PONTO
-              
-              for (let m = 0; m < pontosFaceCompartilhada.length; m++) {
-                let pontoFaceVizinha = pontosFaceCompartilhada[m];
-                if (pontoTestado == pontoFaceVizinha) {
-                  facesCompatilhadas.push(faceVizinha);
-                };
-              };
-            };
+          
+          let p1 = pontosFace[0];
+          let p2 = pontosFace[1];
+          let p3 = pontosFace[2];
+          let p4 = pontosFace[3];
 
-            vetorNormalMedio.push(calculaVetorMedioFaces(facesCompatilhadas));            
+          for (let l = 0; l < vetFacesVizinhas.length; l++) {
+            let vertices = vetFacesVizinhas[l].pontos;
+            let p1V = vertices[0];
+            let p2V = vertices[1];
+            let p3V = vertices[2];
+            let p4V = vertices[3];
 
+            if (p1 === p1V || p1 === p2V || p1 === p3V || p1 === p4V) {
+              vetorNormalMedioP1.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p2 === p1V || p2 === p2V || p2 === p3V || p2 === p4V) {
+              vetorNormalMedioP2.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p3 === p1V || p3 === p2V || p3 === p3V || p3 === p4V) {
+              vetorNormalMedioP3.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p4 === p1V || p4 === p2V || p4 === p3V || p4 === p4V) {
+              vetorNormalMedioP4.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
           };
+          
+          vetorNormalMedioP1 = calculaVetorMedioFaces(vetorNormalMedioP1);
+          vetorNormalMedioP2 = calculaVetorMedioFaces(vetorNormalMedioP2);
+          vetorNormalMedioP3 = calculaVetorMedioFaces(vetorNormalMedioP3);
+          vetorNormalMedioP4 = calculaVetorMedioFaces(vetorNormalMedioP4);
+          let vetorNormalMedio = [vetorNormalMedioP1, vetorNormalMedioP2, vetorNormalMedioP3, vetorNormalMedioP4];
 
           let face = new faceClassGourad(faceTestada, vetorNormalMedio, this.propIlu);
           newVetFacesObj.push(face);
@@ -348,39 +366,56 @@ class malha {
     if (tipoSombreamento == 'Phong') {
       let matrizFaces = getFaces(grid);
       let newVetFacesObj = []
-      // FOR PARA CADA FACE testar os pontos e criar nova face
 
-      
+      //PEGAR VIZINHOS
       for (let i = 0; i < matrizFaces.length; i++) {
         for (let j = 0; j < matrizFaces[i].length; j++) {
           let faceTestada = matrizFaces[i][j];
           let vetFacesVizinhas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
-          vetFacesVizinhas.push(faceTestada); //Propia Face
 
-          let vetorNormalMedio = []
+          let vetorNormalMedioP1 = [];
+          let vetorNormalMedioP2 = [];
+          let vetorNormalMedioP3 = [];
+          let vetorNormalMedioP4 = [];
+          vetorNormalMedioP1.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP2.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP3.push(faceTestada.vetorNormalUnitario);
+          vetorNormalMedioP4.push(faceTestada.vetorNormalUnitario);
+
           //Testar pontos
           let pontosFace = faceTestada.pontos;
-          for (let k = 0; k < pontosFace.length; k++) {
-            let pontoTestado = pontosFace[k];
-            let facesCompatilhadas = [];
+          
+          let p1 = pontosFace[0];
+          let p2 = pontosFace[1];
+          let p3 = pontosFace[2];
+          let p4 = pontosFace[3];
 
-            for (let l = 0; l < vetFacesVizinhas.length; l++) {
-              
-              let faceVizinha = vetFacesVizinhas[l];
-              let pontosFaceCompartilhada = faceVizinha.pontos;
-               //AS Q TEM O MESMO PONTO
-              
-              for (let m = 0; m < pontosFaceCompartilhada.length; m++) {
-                let pontoFaceVizinha = pontosFaceCompartilhada[m];
-                if (pontoTestado == pontoFaceVizinha) {
-                  facesCompatilhadas.push(faceVizinha);
-                };
-              };
-            };
+          for (let l = 0; l < vetFacesVizinhas.length; l++) {
+            let vertices = vetFacesVizinhas[l].pontos;
+            let p1V = vertices[0];
+            let p2V = vertices[1];
+            let p3V = vertices[2];
+            let p4V = vertices[3];
 
-            vetorNormalMedio.push(calculaVetorMedioFaces(facesCompatilhadas));            
-
+            if (p1 === p1V || p1 === p2V || p1 === p3V || p1 === p4V) {
+              vetorNormalMedioP1.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p2 === p1V || p2 === p2V || p2 === p3V || p2 === p4V) {
+              vetorNormalMedioP2.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p3 === p1V || p3 === p2V || p3 === p3V || p3 === p4V) {
+              vetorNormalMedioP3.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
+            if (p4 === p1V || p4 === p2V || p4 === p3V || p4 === p4V) {
+              vetorNormalMedioP4.push(vetFacesVizinhas[l].vetorNormalUnitario);
+            }
           };
+          
+          vetorNormalMedioP1 = calculaVetorMedioFaces(vetorNormalMedioP1);
+          vetorNormalMedioP2 = calculaVetorMedioFaces(vetorNormalMedioP2);
+          vetorNormalMedioP3 = calculaVetorMedioFaces(vetorNormalMedioP3);
+          vetorNormalMedioP4 = calculaVetorMedioFaces(vetorNormalMedioP4);
+          let vetorNormalMedio = [vetorNormalMedioP1, vetorNormalMedioP2, vetorNormalMedioP3, vetorNormalMedioP4];
 
           let face = new faceClassPhong(faceTestada, vetorNormalMedio, this.propIlu);
           newVetFacesObj.push(face);
@@ -389,7 +424,6 @@ class malha {
       newVetFacesObj = newVetFacesObj.sort((a, b) => b.distanciaPintor - a.distanciaPintor);
       return newVetFacesObj;
     };
-
   };
 };
 class faceClass{
@@ -691,7 +725,7 @@ class faceClassGourad{
     let ksGobj = propIlu[2][1];
     let ksBobj = propIlu[2][2];
     let iluNobj = propIlu[3];
-  
+
     for (let i = 0; i < pontos.length; i++) {
       let ponto = pontos[i];
       let vetorNormal = vetorNormalMedio[i];
@@ -742,6 +776,7 @@ class faceClassGourad{
       let r0 = p0Ilu[0];
       let g0 = p0Ilu[1];
       let b0 = p0Ilu[2];
+
       let r1 = p1Ilu[0];
       let g1 = p1Ilu[1];
       let b1 = p1Ilu[2];
@@ -776,7 +811,7 @@ class faceClassGourad{
         let deltaY = p0[1] - p1[1];
         let taxaR = (r0 - r1) / deltaY;
         let taxaG = (g0 - g1) / deltaY;
-        let taxaB = (r0 - g1) / deltaY;
+        let taxaB = (b0 - b1) / deltaY;
         let taxaXIncremento = (p0[0] - p1[0]) / deltaY;
         let taxaZIncremento = (p0[2] - p1[2]) / deltaY;
         let npx = p1[0];
@@ -832,6 +867,24 @@ class faceClassGourad{
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }    
+
+
+    /*/DEBUGAR
+    for (let i = 0; i < vetScanLinesFace.length; i++) {
+      console.log(vetScanLinesFace);
+      
+      let scanline = vetScanLinesFace[i];
+      let vetPontos = scanline[1];
+      let p1 = vetPontos[0];
+      let p2 = vetPontos[vetPontos.length - 1];
+      if (p1[0] > p2[0]) {
+        console.log('ERRO');
+      }
+      if (p1[1] != scanline[0]) {
+        console.log('ERRO');
+      }
+    } */
+    
     return vetScanLinesFace;
   };
 };
@@ -1355,6 +1408,8 @@ function paintFaceGouraud(scanLines) {
     let pontoZ = z0;
     let cor0 = p0[3];
     let cor1 = p1[3];
+
+    
 
     let taxaR = (cor1[0] - cor0[0]) / deltaX;
     let taxaG = (cor1[1] - cor0[1]) / deltaX;
