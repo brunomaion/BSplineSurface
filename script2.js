@@ -1617,7 +1617,6 @@ function drawGridBspline(malha, centroideMalha) {
       }
     };
   };
-
 };
 function drawPontosControle(gridControle) {
   for (let i = 0; i < gridControle.length; i++) {
