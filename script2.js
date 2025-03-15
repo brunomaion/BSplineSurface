@@ -1468,7 +1468,6 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
     let x1 = p1[0];
     let z1 = p1[2];
     let vetNormalPonto0 = p0[3];
-    console.log(vetNormalPonto0);
     
     let vetNormalPonto1 = p1[3];
     let deltaX = x1 - x0;
