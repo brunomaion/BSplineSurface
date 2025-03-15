@@ -48,6 +48,8 @@ class malha {
     };
   };
   debugPrint() {  
+
+    
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -254,14 +256,15 @@ class malha {
       let somaX = 0;
       let somaY = 0;
       let somaZ = 0;
-      for (let i = 0; i < vFacesNormal.length; i++) {
+      let len = vFacesNormal.length;
+      for (let i = 0; i < len; i++) {
         let normalUniFace = vFacesNormal[i].vetorNormalUnitario;
         somaX += normalUniFace[0];
         somaY += normalUniFace[1];
         somaZ += normalUniFace[2];
       }
-      let vetorNormalMedio = [somaX / vFacesNormal.length, somaY / vFacesNormal.length, somaZ / vFacesNormal.length];
-
+      let vetorNormalMedio = [somaX / len, somaY / len, somaZ / len];
+      vetorNormalMedio = vetorUnitario(vetorNormalMedio);
       return vetorNormalMedio;
     }
 
@@ -307,6 +310,7 @@ class malha {
           let faceTestada = matrizFaces[i][j];
           let vetFacesVizinhas = obterVizinhos(i, j, matrizFaces); // Vetor dos vizinhos
           vetFacesVizinhas.push(faceTestada); //Propia Face
+          console.log(vetFacesVizinhas);
 
           let vetorNormalMedio = []
           //Testar pontos
@@ -633,26 +637,26 @@ class faceClassConstante{
   };
   getIluminacaoRGB(propIlu, centroide, vetorNormal) {
 
-    let kaR = propIlu[0][0];
-    let kaG = propIlu[0][1];
-    let kaB = propIlu[0][2];
-    let kdR = propIlu[1][0];
-    let kdG = propIlu[1][1];
-    let kdB = propIlu[1][2];
-    let ksR = propIlu[2][0];
-    let ksG = propIlu[2][1];
-    let ksB = propIlu[2][2];
-    let n = propIlu[3];
+    let kaRobj = propIlu[0][0];
+    let kaGobj = propIlu[0][1];
+    let kaBobj = propIlu[0][2];
+    let kdRobj = propIlu[1][0];
+    let kdGobj = propIlu[1][1];
+    let kdBobj = propIlu[1][2];
+    let ksRobj = propIlu[2][0];
+    let ksGobj = propIlu[2][1];
+    let ksBobj = propIlu[2][2];
+    let iluNobj = propIlu[3];
 
     if(!rgbBool){
-      let iluTotalR = calcularIluTotal([kaR, kdR, ksR, n], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
+      let iluTotalR = calcularIluTotal([kaRobj, kdRobj, ksRobj, iluNobj], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
       let iluminacaoRGB = [iluTotalR, iluTotalR, iluTotalR];
       return iluminacaoRGB;
     };
 
-    let iluTotalR = calcularIluTotal([kaR, kdR, ksR, n], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
-    let iluTotalG = calcularIluTotal([kaG, kdG, ksG, n], centroide, vetorNormal, iluAmbienteG, iluLampadaG);
-    let iluTotalB = calcularIluTotal([kaB, kdB, ksB, n], centroide, vetorNormal, iluAmbienteB, iluLampadaB);
+    let iluTotalR = calcularIluTotal([kaRobj, kdRobj, ksRobj, iluNobj], centroide, vetorNormal, iluAmbienteR, iluLampadaR);
+    let iluTotalG = calcularIluTotal([kaGobj, kdGobj, ksGobj, iluNobj], centroide, vetorNormal, iluAmbienteG, iluLampadaG);
+    let iluTotalB = calcularIluTotal([kaBobj, kdBobj, ksBobj, iluNobj], centroide, vetorNormal, iluAmbienteB, iluLampadaB);
     let iluminacaoRGB = [iluTotalR, iluTotalG, iluTotalB];
     
     return iluminacaoRGB;
@@ -660,38 +664,50 @@ class faceClassConstante{
 };
 class faceClassGourad{
   constructor(face, vetorNormalMedio, propIlu) {  
-
     this.vetorNormalMedio = vetorNormalMedio; // [vetNormalP1, vetNormalP2, vetNormalP3, vetNormalP4]
     this.distanciaPintor = face.distanciaPintor;
     this.boolVisibilidadeNormal = face.boolVisibilidadeNormal;    
     this.iluminacaoPontos = this.calculaIluminacaoPontos(propIlu,
                                                           this.vetorNormalMedio,
                                                           face.pontos,
-                                                          face.vetObservacao);
-    this.pontosSrtIluminados = this.pontos2Srt(face.pontos) //armazenar as arestas ponto inicial e final
+                                                          );
+    this.pontosSrtIluminados = this.pontos2Srt(face.pontos, this.iluminacaoPontos) //armazenar as arestas ponto inicial e final
     this.arestasSrtIluminada = this.calculaArestasSRT(this.pontosSrtIluminados);
     this.arestasCompletaSRTiluminada = this.createArestaCompleta(this.arestasSrtIluminada); //NO SRT
     [this.yMin, this.yMax] = getMinMax(this.arestasCompletaSRTiluminada);
     this.scanLinesFace = this.createScanlinesFace(this.arestasCompletaSRTiluminada);
   };
 
-  calculaIluminacaoPontos(propIlu, vetorNormalMedio, pontos, vetObservacao) {
+  calculaIluminacaoPontos(propIlu, vetorNormalMedio, pontos) {
     let iluminacaoPontos = [];
+
+    let kaRobj = propIlu[0][0];
+    let kaGobj = propIlu[0][1];
+    let kaBobj = propIlu[0][2];
+    let kdRobj = propIlu[1][0];
+    let kdGobj = propIlu[1][1];
+    let kdBobj = propIlu[1][2];
+    let ksRobj = propIlu[2][0];
+    let ksGobj = propIlu[2][1];
+    let ksBobj = propIlu[2][2];
+    let iluNobj = propIlu[3];
+  
     for (let i = 0; i < pontos.length; i++) {
       let ponto = pontos[i];
       let vetorNormal = vetorNormalMedio[i];
-      let iluminacaoPonto = calcularIluTotal(propIlu,
-                                              ponto, // Gourad, NO VERTICE!
-                                              vetorNormal);      
+      let iluminacaoPontoR = calcularIluTotal([kaRobj, kdRobj, ksRobj, iluNobj], ponto, vetorNormal, iluAmbienteR, iluLampadaR);
+      let iluminacaoPontoG = calcularIluTotal([kaGobj, kdGobj, ksGobj, iluNobj], ponto, vetorNormal, iluAmbienteG, iluLampadaG);
+      let iluminacaoPontoB = calcularIluTotal([kaBobj, kdBobj, ksBobj, iluNobj], ponto, vetorNormal, iluAmbienteB, iluLampadaB);
+      let iluminacaoPonto = [iluminacaoPontoR, iluminacaoPontoG, iluminacaoPontoB];     
       iluminacaoPontos.push(iluminacaoPonto); 
     }
     return iluminacaoPontos;
   }
-  pontos2Srt(pontos) {
+  pontos2Srt(pontos, iluminacaoPontos) {
     let pontosSRT = addFatH(pontos);
     pontosSRT = pontoSRUtoSRT(pontosSRT);
     pontosSRT = removeFatH(pontosSRT);
-    let pontosIluminadosSRT = [pontosSRT, this.iluminacaoPontos];
+    let pontosIluminadosSRT = [pontosSRT, iluminacaoPontos];
     pontosIluminadosSRT = recorte2DGourad(pontosIluminadosSRT) ;
     return pontosIluminadosSRT;
   };
@@ -705,6 +721,7 @@ class faceClassGourad{
       let p1ilu = pontosSrtIluminados[1][(i + 1) % len];
       arestasSrtIluminada.push([[p0, p1], [p0ilu, p1ilu]]);
     }
+
     return arestasSrtIluminada;
   };
   createArestaCompleta(arestasSrtIluminada) {
@@ -722,48 +739,67 @@ class faceClassGourad{
       let p1 = aresta[1];
       let p1Ilu = arestaIlu[1];
 
+      let r0 = p0Ilu[0];
+      let g0 = p0Ilu[1];
+      let b0 = p0Ilu[2];
+      let r1 = p1Ilu[0];
+      let g1 = p1Ilu[1];
+      let b1 = p1Ilu[2];
+
       if (p0[1] <= p1[1]) {
-        let deltaX = p1[0] - p0[0];
         let deltaY = p1[1] - p0[1];
-        let deltaZ = p1[2] - p0[2];
-        let deltaIlu = p1Ilu - p0Ilu;
-        let taxaXIncremento = deltaX / deltaY;
-        let taxaZIncremento = deltaZ / deltaY;
-        let taxIluIncremento = deltaIlu / deltaY;
+        let taxaXIncremento = (p1[0] - p0[0]) / deltaY;
+        let taxaZIncremento = (p1[2] - p0[2]) / deltaY;
+        let taxaR = (r1 - r0) / deltaY;
+        let taxaG = (g1 - g0) / deltaY;
+        let taxaB = (b1 - b0) / deltaY;
         let npx = p0[0];
         let npy = p0[1];
         let npz = p0[2];
-        let npIlu = p0Ilu; 
+        let npR = r0;
+        let npG = g0;
+        let npB = b0;
+        let npIlu = [npR, npG, npB]; 
         for (let j = 0; j < deltaY; j++) {
-          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])  
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, npIlu])  
           npx += taxaXIncremento;
           npz += taxaZIncremento;
           npy += 1; 
-          npIlu += taxIluIncremento;
+          npR += taxaR;
+          npG += taxaG;
+          npB += taxaB;
+          npIlu = [npR, npG, npB];
         }
 
       } else {
-        let deltaX = p0[0] - p1[0];
+
         let deltaY = p0[1] - p1[1];
-        let deltaZ = p0[2] - p1[2];
-        let deltaIlu = p0Ilu - p1Ilu;
-        let taxaXIncremento = deltaX / deltaY;
-        let taxaZIncremento = deltaZ / deltaY;
-        let taxIluIncremento = deltaIlu / deltaY;
+        let taxaR = (r0 - r1) / deltaY;
+        let taxaG = (g0 - g1) / deltaY;
+        let taxaB = (r0 - g1) / deltaY;
+        let taxaXIncremento = (p0[0] - p1[0]) / deltaY;
+        let taxaZIncremento = (p0[2] - p1[2]) / deltaY;
         let npx = p1[0];
         let npy = p1[1];
         let npz = p1[2];
-        let npIlu = p1Ilu;
+        let npR = r1;
+        let npG = g1;
+        let npB = b1;
+        let npIlu = [npR, npG, npB]; 
         for (let j = 0; j < deltaY; j++) {
-          novaAresta.push([Math.round(npx), Math.round(npy), npz, Math.round(npIlu)])    
+          novaAresta.push([Math.round(npx), Math.round(npy), npz, npIlu])    
           npx += taxaXIncremento;
           npz += taxaZIncremento;
           npy += 1; 
-          npIlu += taxIluIncremento;
+          npR += taxaR;
+          npG += taxaG;
+          npB += taxaB;
+          npIlu = [npR, npG, npB];
         }
       }
       novasArestas.push(novaAresta);      
     }
+
     return novasArestas;
   };
   createScanlinesFace(arestasCompletaSRT) {
@@ -795,7 +831,7 @@ class faceClassGourad{
       let vetPontos = scanline[1];
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
-    }
+    }    
     return vetScanLinesFace;
   };
 };
@@ -1319,19 +1355,30 @@ function paintFaceGouraud(scanLines) {
     let pontoZ = z0;
     let cor0 = p0[3];
     let cor1 = p1[3];
-    let taxaCor = (cor1 - cor0) / deltaX;
-    let cor = cor0;
+
+    let taxaR = (cor1[0] - cor0[0]) / deltaX;
+    let taxaG = (cor1[1] - cor0[1]) / deltaX;
+    let taxaB = (cor1[2] - cor0[2]) / deltaX;
+
+    let corR = cor0[0];
+    let corG = cor0[1];
+    let corB = cor0[2];
 
     for (let pontoX = x0; pontoX < x1; pontoX++) {
       if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
-        ctx.fillStyle = `rgb(${cor},${cor},${cor})`;
+        if (rgbBool) {
+          ctx.fillStyle = `rgb(${corR},${corG},${corB})`;
+        } else {
+          ctx.fillStyle = `rgb(${corR},${corR},${corR})`;
+        };
         ctx.fillRect(pontoX, pontoY, 1, 1);
         zBuffer.updateZBuffer(pontoX, pontoY, pontoZ);
       };
-      cor += taxaCor;
+      corR += taxaR;
+      corG += taxaG;
+      corB += taxaB;
       pontoZ += taxaZ;
     };
-
   };
 };
 function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
@@ -1339,16 +1386,16 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   var ctx = canvas.getContext('2d');
   let lenScanline = scanLines.length;
 
-  let kaR = propIlu[0][0];
-  let kaG = propIlu[0][1];
-  let kaB = propIlu[0][2];
-  let kdR = propIlu[1][0];
-  let kdG = propIlu[1][1];
-  let kdB = propIlu[1][2];
-  let ksR = propIlu[2][0];
-  let ksG = propIlu[2][1];
-  let ksB = propIlu[2][2];
-  let n = propIlu[3];
+  let kaRobj = propIlu[0][0];
+  let kaGobj = propIlu[0][1];
+  let kaBobj = propIlu[0][2];
+  let kdRobj = propIlu[1][0];
+  let kdGobj = propIlu[1][1];
+  let kdBobj = propIlu[1][2];
+  let ksRobj = propIlu[2][0];
+  let ksGobj = propIlu[2][1];
+  let ksBobj = propIlu[2][2];
+  let iluNobj = propIlu[3];
 
   for (let i = 0; i < lenScanline; i++) {
     let scanline = scanLines[i];
@@ -1380,9 +1427,9 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
       if (zBuffer.getZBuffer(pontoX, pontoY) <= pontoZ) {
 
         if (rgbBool) {
-          let iluTotalR = calcularIluTotalPhong([kaR, kdR, ksR, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
-          let iluTotalG = calcularIluTotalPhong([kaG, kdG, ksG, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteG, iluLampadaG);
-          let iluTotalB = calcularIluTotalPhong([kaB, kdB, ksB, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteB, iluLampadaB);
+          let iluTotalR = calcularIluTotalPhong([kaRobj, kdRobj, ksRobj, iluNobj], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
+          let iluTotalG = calcularIluTotalPhong([kaGobj, kdGobj, ksGobj, iluNobj], vetNormalPonto, vetorLuz, vetH, iluAmbienteG, iluLampadaG);
+          let iluTotalB = calcularIluTotalPhong([kaBobj, kdBobj, ksBobj, iluNobj], vetNormalPonto, vetorLuz, vetH, iluAmbienteB, iluLampadaB);
           ctx.fillStyle = `rgb(${iluTotalR},${iluTotalG},${iluTotalB})`;
         } else {
           let iluTotalR = calcularIluTotalPhong([kaR, kdR, ksR, n], vetNormalPonto, vetorLuz, vetH, iluAmbienteR, iluLampadaR);
@@ -1586,8 +1633,13 @@ function drawPCselecionado() {
     let i = indicePCsele[0];
     let j = indicePCsele[1];
     gridObjeto = selectedMalha.gridControleSRT;
-    drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
-  }
+    try {
+      drawCircle(gridObjeto[i][j][0], gridObjeto[i][j][1], lenPontosControle, 'rgb(145, 255, 0)');
+    }
+    catch (error) {
+      console.log('Ponto de controle selecionado fora do grid');
+    };
+  };
 };
 function recorte2D(pontos) {
 
@@ -1681,8 +1733,9 @@ function recorte2DGourad(pontosIluminados) {
     let x = eixo === "x" ? limite : x1 + (x2 - x1) * fator;
     let y = eixo === "y" ? limite : y1 + (y2 - y1) * fator;
     let z = z1 + (z2 - z1) * fator;
-    let novaIlum = i1 + (i2 - i1) * fator;
-
+    
+    let novaIlum = i1.map((val, idx) => val + (i2[idx] - val) * fator);
+    
     return [[x, y, z], novaIlum];
   }
 
@@ -1725,6 +1778,7 @@ function recorte2DGourad(pontosIluminados) {
 
   return resultado;
 };
+
 function recorte2DPhong(pontos, vetMedios) {
   function testeDentroEsquerda(p) {
           return p[0] >= uMinViewport;
@@ -1846,9 +1900,9 @@ function obterVizinhos(i, j, matrizFaces) {
 }
 
 // ILUMINAÇÃO
-function calcularIluTotal([ka, kd, ks, iluN], centroide_vertice, vetNormal, iluAmbiente, iluLampada) {
+function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vetNormal, iluAmbiente, iluLampada) {
 
-  let iluTotal = iluAmbiente*ka;
+  let iluTotal = iluAmbiente*kaObj;
   if (iluTotal>=255){
           return 255;
   };
@@ -1864,7 +1918,7 @@ function calcularIluTotal([ka, kd, ks, iluN], centroide_vertice, vetNormal, iluA
   vetorLuz = vetorUnitario(vetorLuz);
 
   let escalarNL = produtoEscalar(vetNormal,vetorLuz)
-  let iluDifusa = iluLampada * kd * escalarNL;
+  let iluDifusa = iluLampada * kdObj * escalarNL;
   if (iluDifusa <= 0) {
           return iluTotal;
   }
@@ -1876,7 +1930,7 @@ function calcularIluTotal([ka, kd, ks, iluN], centroide_vertice, vetNormal, iluA
                   2*escalarNL*vetNormal[2] - vetorLuz[2]];  
   let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorS);
   vetR = vetorUnitario(vetorR);  
-  let iluEspecular = iluLampada * ks * (escalarRS ** iluN);
+  let iluEspecular = iluLampada * ksObj * (escalarRS ** iluNObj);
   if (iluEspecular <= 0) {
           return iluTotal;
   }
@@ -1893,9 +1947,14 @@ function calcularIluTotalPhong([ka, kd, ks, iluN], vetNormalPonto, vetorLuz, vet
   if (escalarNL <= 0) {
     return iluTotal;
   }
-
+  iluTotal += iluLampada * kd * escalarNL;
+  // Iluminação especular (Is = Il . Ks . (N . H)^n)
   let escalarNH = produtoEscalar(vetNormalPonto, vetH);
-  iluTotal = iluTotal + iluLampada * (kd * escalarNL + ks * (escalarNH ** iluN));
+  let iluEspecular = iluLampada *  ks * (escalarNH ** iluN);
+  if (iluEspecular <= 0) {
+    return iluTotal;
+  }
+  iluTotal += iluEspecular; 
   return iluTotal
 };
 // BSPLINES
@@ -2344,22 +2403,21 @@ function onFieldChange() {
   yLampada = parseInt(document.getElementById('yLampada').value) || 0;
   zLampada = parseInt(document.getElementById('zLampada').value) || 0;
 
-  let kaR = parseFloat(document.getElementById('kaR').value) || 0;
-  let kaG = parseFloat(document.getElementById('kaG').value) || 0;
-  let kaB = parseFloat(document.getElementById('kaB').value) || 0;
-  let kdR = parseFloat(document.getElementById('kdR').value) || 0;
-  let kdG = parseFloat(document.getElementById('kdG').value) || 0;
-  let kdB = parseFloat(document.getElementById('kdB').value) || 0;
-  let ksR = parseFloat(document.getElementById('ksR').value) || 0;
-  let ksG = parseFloat(document.getElementById('ksG').value) || 0;
-  let ksB = parseFloat(document.getElementById('ksB').value) || 0;
-  let nIluminacaoNovo = parseFloat(document.getElementById('nIluminacao').value) || 0;
-  selectedMalha.propIlu = [
-    [kaR, kaG, kaB],
-    [kdR, kdG, kdB],
-    [ksR, ksG, ksB],
-    nIluminacaoNovo
-  ];
+  selectedMalha.kaR = parseFloat(document.getElementById('kaR').value) || 0;
+  selectedMalha.kaG = parseFloat(document.getElementById('kaG').value) || 0;
+  selectedMalha.kaB = parseFloat(document.getElementById('kaB').value) || 0;
+  selectedMalha.kdR = parseFloat(document.getElementById('kdR').value) || 0;
+  selectedMalha.kdG = parseFloat(document.getElementById('kdG').value) || 0;
+  selectedMalha.kdB = parseFloat(document.getElementById('kdB').value) || 0;
+  selectedMalha.ksR = parseFloat(document.getElementById('ksR').value) || 0;
+  selectedMalha.ksG = parseFloat(document.getElementById('ksG').value) || 0;
+  selectedMalha.ksB = parseFloat(document.getElementById('ksB').value) || 0;
+  selectedMalha.nIluminacao = parseInt(document.getElementById('nIluminacao').value) || 10;
+  selectedMalha.propIlu = [[selectedMalha.kaR, selectedMalha.kaG, selectedMalha.kaB], 
+                          [selectedMalha.kdR, selectedMalha.kdG, selectedMalha.kdB], 
+                          [selectedMalha.ksR, selectedMalha.ksG, selectedMalha.ksB], 
+                          selectedMalha.nIluminacao];
+
 
   tipoSombreamento = document.getElementById('tipoSombreamento').value;
   boolArestasVerdeVermelha = document.getElementById('boolArestasVerdeVermelha').checked;
@@ -2497,7 +2555,6 @@ document.getElementById('kdB').addEventListener('input', onFieldChange);
 document.getElementById('ksR').addEventListener('input', onFieldChange);
 document.getElementById('ksG').addEventListener('input', onFieldChange);
 document.getElementById('ksB').addEventListener('input', onFieldChange);
-
 document.getElementById('nIluminacao').addEventListener('input', onFieldChange);
 
 document.getElementById('eixo3d').addEventListener('input', onFieldChange);
