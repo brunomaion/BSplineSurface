@@ -1923,7 +1923,7 @@ function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vet
 
   let escalarNL = produtoEscalar(vetNormal,vetorLuz)
   let iluDifusa = iluLampada * kdObj * escalarNL;
-  if (escalarNL <= 0) {
+  if (escalarNL <= 0 || iluDifusa <= 0) {
           return iluTotal;
   }
   iluTotal += iluDifusa;
