@@ -49,7 +49,6 @@ class malha {
   };
   debugPrint() {  
 
-    
   };
   updateReset() {
     this.pontosSRU = [this.p1, this.p2, this.p3, this.p4];
@@ -64,7 +63,6 @@ class malha {
     this.facesBsplineSRU = this.createEstruturaFaces(this.gridBsplineSRU);
     this.debugPrint();
   };
-
   getCentroideMalha(grid) {
     let p00 = grid[0][0];
     let p01 = grid[0][grid[0].length - 1];
@@ -867,24 +865,6 @@ class faceClassGourad{
       vetPontos = vetPontos.sort((a, b) => a[0] - b[0]);
       scanline[1] = vetPontos;
     }    
-
-
-    /*/DEBUGAR
-    for (let i = 0; i < vetScanLinesFace.length; i++) {
-      console.log(vetScanLinesFace);
-      
-      let scanline = vetScanLinesFace[i];
-      let vetPontos = scanline[1];
-      let p1 = vetPontos[0];
-      let p2 = vetPontos[vetPontos.length - 1];
-      if (p1[0] > p2[0]) {
-        console.log('ERRO');
-      }
-      if (p1[1] != scanline[0]) {
-        console.log('ERRO');
-      }
-    } */
-    
     return vetScanLinesFace;
   };
 };
@@ -1076,12 +1056,6 @@ var xMax = document.getElementById('xMaxSRU').value || 20;
 var yMin = document.getElementById('yMinSRU').value || -15;
 var yMax = document.getElementById('yMaxSRU').value || 15;
 
-/*
-var uMin = 0;
-var uMax = 1099;
-var vMin = 0;
-var vMax = 699;
-*/
 var uMin = parseInt(document.getElementById('uMinW').value) || 0;
 var uMax = parseInt(document.getElementById('uMaxW').value) || 1299;
 var vMin = parseInt(document.getElementById('vMinW').value) || 0;
@@ -1138,9 +1112,6 @@ var iluLampadaB = parseInt(colorHexLampada.substring(5, 7), 16);
 var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
-
-
-
 } ////////////////////////////////////////////////
   
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
@@ -1343,18 +1314,6 @@ function getFaces(grid) {
   }  
   return matrizFaces;
 };
-function drawMalha(gridControle) {
-  for (let i = 0; i < gridControle.length; i++) {
-      for (let j = 0; j < gridControle[i].length - 1; j++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i][j + 1][0], gridControle[i][j + 1][1]);
-      }
-  }
-  for (let j = 0; j < gridControle[0].length; j++) {
-      for (let i = 0; i < gridControle.length - 1; i++) {
-          drawLine(gridControle[i][j][0], gridControle[i][j][1], gridControle[i + 1][j][0], gridControle[i + 1][j][1]);
-      }
-  }
-};
 function paintFace(scanLines, color) {
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
@@ -1506,7 +1465,6 @@ function paintFacePhong(scanLines, vetorLuz, vetH, propIlu) {
   }
 };
 function paintAresta(scanLines, color) {
-
   var canvas = document.getElementById('viewport');
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = color;
@@ -1859,8 +1817,7 @@ function recorte2DPhong(pontos, vetMedios) {
 }/////////////////////////////////////////////////////////////////////
 
 {/// FUNCOES /////////////////////////////////////////
-
-function obterVizinhos(i, j, matrizFaces) {
+function obterVizinhos(i, j, matrizFaces) { // Retorna os vizinhos de uma face
   let vizinhos = [];
   let linhas = matrizFaces.length;
   let colunas = matrizFaces[i].length;
@@ -1905,28 +1862,27 @@ function obterVizinhos(i, j, matrizFaces) {
   };
   return vizinhos;
 }
-
 // ILUMINAÇÃO
-function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vetNormal, iluAmbiente, iluLampada) {
+function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vetNormal, iluAmbiente, iluLampada) { // Calcula a iluminação total de um ponto
 
+  // Iluminacao ambiente (Ia = Il . Ka)
   let iluTotal = iluAmbiente*kaObj;
   if (iluTotal>=255){
-          return 255;
+    return 255;
   };
 
   // Iluminação difusa (Id = Il . Kd . (N^ . L^))
   let vetorLuz = [xLampada - centroide_vertice[0],
                   yLampada - centroide_vertice[1],
                   zLampada - centroide_vertice[2]];
-
   vetorLuz = vetorUnitario(vetorLuz);
-
   let escalarNL = produtoEscalar(vetNormal,vetorLuz)
   let iluDifusa = iluLampada * kdObj * escalarNL;
   if (escalarNL <= 0 || iluDifusa <= 0) {
-          return iluTotal;
-  }
+    return iluTotal;
+  };
   iluTotal += iluDifusa;
+
   // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
   let vetorS = [vetVrp[0] - centroide_vertice[0],
                 vetVrp[1] - centroide_vertice[1],
@@ -1934,55 +1890,41 @@ function calcularIluTotal([kaObj, kdObj, ksObj, iluNObj], centroide_vertice, vet
                 vetorS = vetorUnitario(vetorS);
   //R^ = (2 . L^ . N^).N^ - L^ // s == o ; vetor de observação
   let vetorR = [2*escalarNL*vetNormal[0] - vetorLuz[0],
-                  2*escalarNL*vetNormal[1] - vetorLuz[1],
-                  2*escalarNL*vetNormal[2] - vetorLuz[2]];  
-
-  // Iluminação especular (Is = Il . Ks . (R^.S^)^n)
+                2*escalarNL*vetNormal[1] - vetorLuz[1],
+                2*escalarNL*vetNormal[2] - vetorLuz[2]];  
   let escalarRS = produtoEscalar(vetorUnitario(vetorR), vetorS);
-  if (escalarRS <= 0) {
+  let iluEspecular = iluLampada * ksObj * (escalarRS ** iluNObj);
+  if (escalarRS <=0 || iluEspecular <= 0) {
     return iluTotal;
   }
-  let iluEspecular = iluLampada * ksObj * (escalarRS ** iluNObj);
   iluTotal += iluEspecular;
   return iluTotal
 };
-function calcularIluTotalPhong([kaObj, kdObj, ksObj, iluNObj], vetNormalPonto, vetorLuz, vetorH, iluAmbiente, iluLampada) {
-  
-  // ILUMINAÇÃO AMBIENTE
+function calcularIluTotalPhong([kaObj, kdObj, ksObj, iluNObj], vetNormalPonto, vetorLuz, vetorH, iluAmbiente, iluLampada) { // Calcula a iluminação total de um ponto PHONG
+  // Iluminacao ambiente (Ia = Il . Ka)
   let iluTotal = iluAmbiente * kaObj;
   if (iluTotal >= 255) {
     return 255;
   }
-  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
-  let escalarNL = produtoEscalar(vetNormalPonto, vetorLuz);
-  let iluDifusa = iluLampada * kdObj * escalarNL;
-  if (iluDifusa <= 0) {
-    return iluTotal;
-  }
-  iluTotal += iluDifusa;
 
+  // Iluminação difusa (Id = Il . Kd . (N^ . L^))
+  let escalarNL = produtoEscalar(vetNormalPonto,vetorLuz)
+  let iluDifusa = iluLampada * kdObj * escalarNL;
+  if (escalarNL <= 0 || iluDifusa <= 0) {
+    return iluTotal;
+  };
+  
   // Iluminação especular (Is = Il . Ks . (N^.H^)^n)
   let escalarNH = produtoEscalar(vetNormalPonto, vetorH);
   let iluEspecular = iluLampada * ksObj * (escalarNH ** iluNObj);
-  if (iluEspecular <= 0) {
+  if (escalarNH <=0 || iluEspecular <= 0) {
     return iluTotal
   }
   iluTotal += iluEspecular;
   return iluTotal;
-}
+};
 
 // BSPLINES
-function closedBspline(pontosDeControle) {
-  let n = pontosDeControle.length;
-  let pontosDeControleFechado = [
-      pontosDeControle[n - 2],
-      pontosDeControle[n - 1],
-      ...pontosDeControle,
-      pontosDeControle[0],
-      pontosDeControle[1]
-  ];
-  return pontosDeControleFechado;
-};
 function transporUmaMatriz(matriz) {
   let matrizTransposta = [];
   for (let i = 0; i < matriz[0].length; i++) {
@@ -1993,18 +1935,7 @@ function transporUmaMatriz(matriz) {
   }
   return matrizTransposta;
 };
-function calculateBspline(pontosDeControle, nSegmentos) {
-  //pontosDeControle = clampingBspline(pontosDeControle);
-  /*
-  if (document.getElementById('clamped').checked) {
-      pontosDeControle = clampingBspline(pontosDeControle);
-  }
-
-  if (document.getElementById('closed').checked) {
-      pontosDeControle = closedBspline(pontosDeControle);
-  }*/
-  //pontosDeControle = closedBspline(pontosDeControle);
-
+function calculateBspline(pontosDeControle, nSegmentos) { // Calcula os pontos da curva BSpline
   let pontosDaCurva = [];
   for (let i = 1; i < pontosDeControle.length - 2; i++) {
       let [xA, xB, xC, xD] = [
@@ -2066,7 +1997,7 @@ function calculateBspline(pontosDeControle, nSegmentos) {
 
   return pontosDaCurva;
 };
-function createGridBspline(gridSRUPontosControle){
+function createGridBspline(gridSRUPontosControle){ // Cria GRID
   let gridBspline = [];
   let lengthI = gridSRUPontosControle.length;
   // PEGAR OS INDICES PARA LINHAS
@@ -2081,49 +2012,6 @@ function createGridBspline(gridSRUPontosControle){
   }
   return gridBsplineFinal;
 };
-// GRID PONTOS DE CONTROLE
-function matrizPontosControle(pontos, m, n) {
-  function calculoTaxaPontos(p0, p1, x) {
-      let taxaX = (p1[0] - p0[0]) / (x - 1);
-      let taxaY = (p1[1] - p0[1]) / (x - 1);
-      let taxaZ = (p1[2] - p0[2]) / (x - 1);
-      return [taxaX, taxaY, taxaZ];
-  }
-  
-  function calculoVetorPontos(p0, p1, x) {
-      let vetor = [];
-      let [taxaX, taxaY, taxaZ] = calculoTaxaPontos(p0, p1, x);
-      vetor.push(p0);
-      let y = x - 2;
-      let pX = p0[0];
-      let pY = p0[1];
-      let pZ = p0[2];
-      for (let i = 0; i < y; i++) {
-          pX += taxaX;
-          pY += taxaY;
-          pZ += taxaZ;
-          let ponto = [pX, pY, pZ];
-          vetor.push(ponto);
-      }
-      vetor.push(p1);
-      return vetor;
-  }
-
-  let p1 = pontos[0];
-  let p2 = pontos[1];
-  let p3 = pontos[2];
-  let p4 = pontos[3];
-  let vetM1 = calculoVetorPontos(p1, p2, m);
-  let vetM2 = calculoVetorPontos(p4, p3, m);
-
-  let matrizPontosControleControle = [];
-  for (let i = 0; i < vetM1.length; i++) {
-      let ponto = calculoVetorPontos(vetM1[i], vetM2[i], n);
-      matrizPontosControleControle.push(ponto);
-  }
-  return matrizPontosControleControle;
-};
-
 
 // ATUALIZAR PONTOS CONTROLE E PROGRAMA
 function atualizarPCSelecionado(click){
