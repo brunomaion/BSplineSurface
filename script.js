@@ -2763,11 +2763,10 @@ function carregarMalhaDeArquivo(event) {
       novaMalha.nMalha = malhaData.nMalha;
       novaMalha.visibilidadePC = malhaData.visibilidadePC;
       novaMalha.gridControleSRU = malhaData.pontosControleTransformados;
-
       // Atualizar a malha com as novas propriedades
       novaMalha.update();
-
       vetMalha.push(novaMalha);
+
       updateMalhaSelector();
       updatePrograma();
 
