@@ -1204,7 +1204,6 @@ function calculaCentroide(pontos) {
   }
   return [somaX / 4, somaY / 4, somaZ / 4];
 };
-
 function calculoVetObservacaoUnitario(centroide) {
   let vetObservacao = [vetVrp[0] - centroide[0], 
                        vetVrp[1] - centroide[1], 
@@ -2702,7 +2701,7 @@ function salvarMalhaEmArquivo(malha) {
     mMalha: malha.mMalha,
     nMalha: malha.nMalha,
     visibilidadePC: malha.visibilidadePC,
-    pontosControleTransformados: malha.gridControleSRT
+    pontosControleTransformados: malha.gridControleSRU
   };
 
   const blob = new Blob([JSON.stringify(malhaData, null, 2)], { type: 'application/json' });
@@ -2763,7 +2762,7 @@ function carregarMalhaDeArquivo(event) {
       novaMalha.mMalha = malhaData.mMalha;
       novaMalha.nMalha = malhaData.nMalha;
       novaMalha.visibilidadePC = malhaData.visibilidadePC;
-      novaMalha.gridControleSRT = malhaData.pontosControleTransformados;
+      novaMalha.gridControleSRU = malhaData.pontosControleTransformados;
 
       // Atualizar a malha com as novas propriedades
       novaMalha.update();
