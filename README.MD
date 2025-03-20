@@ -10,6 +10,8 @@
 - **Interatividade**: Interface interativa para manipulação dos pontos de controle.
 - **Renderização**: Algoritmo incremental para renderização das superfícies.
 - **Transformações**: Suporte para transformações geométricas como translação, rotação e escala.
+- **Recorte**: Suporte para recorte de superfícies.
+- **Z-Buffer**: Implementação de Z-Buffer para ocultação de superfícies.
 
 ## Program Attributes
 
@@ -21,3 +23,8 @@
 - **Interactivity**: Interactive interface for manipulating control points.
 - **Rendering**: Incremental algorithm for surface rendering.
 - **Transformations**: Support for geometric transformations such as translation, rotation, and scaling.
+- **Clipping**: Support for surface clipping.
+- **Z-Buffer**: Implementation of Z-Buffer for surface occlusion.
+
+![alt text](image-1.png)
+![alt text](image.png)
