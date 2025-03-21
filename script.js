@@ -1112,6 +1112,7 @@ var iluLampadaB = parseInt(colorHexLampada.substring(5, 7), 16);
 var xLampada = parseInt(document.getElementById('xLampada').value) || 0;
 var yLampada = parseInt(document.getElementById('yLampada').value) || 0;
 var zLampada = parseInt(document.getElementById('zLampada').value) || 0;
+
 } ////////////////////////////////////////////////
   
 {//////// FUNCOES BASICAS ////////////////////////////////////////////////
@@ -2453,6 +2454,10 @@ document.getElementById('eixo3d').addEventListener('input', onFieldChange);
 document.getElementById('boolArestasVerdeVermelha').addEventListener('input', onFieldChange);
 document.getElementById('boolPintarFaces').addEventListener('input', onFieldChange);
 document.getElementById('rgbBool').addEventListener('input', onFieldChange);
+
+document.getElementById('xLampada').addEventListener('input', onFieldChange);
+document.getElementById('yLampada').addEventListener('input', onFieldChange);
+document.getElementById('zLampada').addEventListener('input', onFieldChange);
 
 
 const selectMalha = document.getElementById("malhaSelecionada");
