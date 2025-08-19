@@ -40,3 +40,6 @@ Light Position
 
 Rotation
 ![alt text](image-8.png)
+
+preview window
+![alt text](image-9.png)
